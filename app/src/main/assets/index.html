@@ -73,7 +73,7 @@ function rhythmSVG(q){
   if(dot)marks+='<circle cx="'+(x+18)+'" cy="'+(rest?88:85)+'" r="3.5" fill="#6b4d8f"/>';
   x+=62;
  }
- const [num,den]=q.meter.split('/');
+ const [rawNum,rawDen]=q.meter.split('/');const num=q.kind==='meter'?'?':rawNum,den=q.kind==='meter'?'?':rawDen;
  return '<svg viewBox="0 0 '+w+' 150" aria-label="میزان با نت‌ها و سکوت‌ها" role="img">'+lines+'<text x="37" y="78" font-size="27" font-weight="bold">'+num+'</text><text x="37" y="108" font-size="27" font-weight="bold">'+den+'</text>'+marks+'<line x1="'+(w-20)+'" x2="'+(w-20)+'" y1="48" y2="120" stroke="#555" stroke-width="3"/></svg>';
 }
 function rhythmAnswer(q){
