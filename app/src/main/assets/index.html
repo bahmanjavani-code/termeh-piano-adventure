@@ -1,5 +1,5 @@
 <!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>پیانوی ترمه</title><style>
-:root{font-family:Tahoma,Arial,sans-serif;color:#34305c}*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#fff3c9,#f8d8f8 55%,#d4f0ff);min-height:100vh}.wrap{max-width:620px;margin:auto;padding:18px}.hero{background:#fff9;border:2px solid #fff;border-radius:28px;padding:20px;text-align:center;box-shadow:0 12px 35px #a79ad444}h1{margin:4px;font-size:27px}h2{margin:10px 0}.muted{color:#716c91;font-size:14px}.stats{display:flex;justify-content:center;gap:18px;font-weight:bold;font-size:18px;margin:12px}.tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:15px 0}button{font:inherit;border:0;border-radius:16px;padding:13px 16px;cursor:pointer;background:#fff;color:#554681;box-shadow:0 3px 0 #ddd1e9;font-weight:bold}button.active{background:#6d55cf;color:white;box-shadow:0 3px 0 #4635a0}.card{background:#fffffff0;border-radius:24px;padding:20px;box-shadow:0 9px 25px #9e8db82e;margin-top:12px;text-align:center}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0}.answers button{background:#f3edff;font-size:19px}.answers button:active{transform:translateY(2px)}#feedback{min-height:34px;font-weight:bold;color:#5945b4}svg{max-width:100%;height:auto}#next:disabled{opacity:.4;filter:grayscale(1);cursor:not-allowed}#mascot{font-size:38px;min-height:55px;animation:bob 2s infinite}@keyframes bob{50%{transform:translateY(-6px)}}.flash{animation:flash .35s 3}@keyframes flash{50%{opacity:.2}}#shop{display:none}.shopitem{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #eae2fa}.pill{display:inline-block;background:#f4e7ff;padding:8px 12px;border-radius:20px;margin:4px}.note{font-size:65px;line-height:1.4}.footer{font-size:12px;color:#807a99;margin:20px;text-align:center}</style></head><body><main class="wrap"><header class="hero"><div style="font-size:50px">👧🏻🎹🌈</div><h1>دنیای جادویی پیانوی ترمه</h1><div class="muted">هر نت درست، یک قدم به سوی ستاره‌ها!</div><div id="mascot">🎹 ✨</div><div id="levelInfo" class="muted"></div><div class="stats"><span id="coins">🪙 ۰</span><span id="stars">⭐ ۰</span><span id="score">🏆 ۰</span></div></header><nav class="tabs"><button class="active" data-tab="bass">🎼 کلید فا</button><button data-tab="treble">🎵 کلید سل</button><button data-tab="rhythm">🥁 ریتم</button><button data-tab="shop">🛍️ فروشگاه</button></nav><section class="card" id="game"><h2 id="title">کلید فا</h2><p id="question">اسم این نت چیه؟</p><div id="visual"></div><div class="answers" id="answers"></div><div id="feedback" aria-live="polite"></div><button id="listen">🔊 صدای نت</button> <button id="next" disabled>🔒 سؤال بعدی</button></section><section class="card" id="shop"><h2>🛍️ فروشگاه ستاره‌ها</h2><p>با سکه‌های تمرین خرید کن!</p><div id="items"></div><div id="shopmsg"></div></section><p class="footer">نسخه آزمایشی ۱ — بدون خرید واقعی و بدون تبلیغات. تشخیص صدای پیانوی واقعی در این نسخه فعال نیست.</p></main><script>
+:root{font-family:Tahoma,Arial,sans-serif;color:#34305c}*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#fff3c9,#f8d8f8 55%,#d4f0ff);min-height:100vh}.wrap{max-width:620px;margin:auto;padding:18px}.hero{background:#fff9;border:2px solid #fff;border-radius:28px;padding:20px;text-align:center;box-shadow:0 12px 35px #a79ad444}h1{margin:4px;font-size:27px}h2{margin:10px 0}.muted{color:#716c91;font-size:14px}.stats{display:flex;justify-content:center;gap:18px;font-weight:bold;font-size:18px;margin:12px}.tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:15px 0}button{font:inherit;border:0;border-radius:16px;padding:13px 16px;cursor:pointer;background:#fff;color:#554681;box-shadow:0 3px 0 #ddd1e9;font-weight:bold}button.active{background:#6d55cf;color:white;box-shadow:0 3px 0 #4635a0}.card{background:#fffffff0;border-radius:24px;padding:20px;box-shadow:0 9px 25px #9e8db82e;margin-top:12px;text-align:center}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0}.answers button{background:#f3edff;font-size:19px}.answers button:active{transform:translateY(2px)}#feedback{min-height:34px;font-weight:bold;color:#5945b4}svg{max-width:100%;height:auto}#next:disabled{opacity:.4;filter:grayscale(1);cursor:not-allowed}#mascot{font-size:38px;min-height:55px;animation:bob 2s infinite}@keyframes bob{50%{transform:translateY(-6px)}}.flash{animation:flash .35s 3}@keyframes flash{50%{opacity:.2}}#shop{display:none}.shopitem{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #eae2fa}.pill{display:inline-block;background:#f4e7ff;padding:8px 12px;border-radius:20px;margin:4px}.note{font-size:65px;line-height:1.4}.footer{font-size:12px;color:#807a99;margin:20px;text-align:center}</style></head><body><main class="wrap"><header class="hero"><div style="font-size:50px">👧🏻🎹🌈</div><h1>دنیای جادویی پیانوی ترمه</h1><div class="muted">هر نت درست، یک قدم به سوی ستاره‌ها!</div><div id="mascot">🎹 ✨</div><div id="levelInfo" class="muted"></div><div class="stats"><span id="coins">🪙 ۰</span><span id="stars">⭐ ۰</span><span id="score">🏆 ۰</span></div></header><nav class="tabs"><button class="active" data-tab="bass">🎼 کلید فا</button><button data-tab="treble">🎵 کلید سل</button><button data-tab="rhythm">🥁 ریتم</button><button data-tab="shop">🛍️ فروشگاه</button></nav><section class="card" id="game"><h2 id="title">کلید فا</h2><p id="question">اسم این نت چیه؟</p><div id="visual"></div><div class="answers" id="answers"></div><div id="feedback" aria-live="polite"></div><button id="listen">🔊 صدای نت</button> <button id="next" disabled>🔒 سؤال بعدی</button></section><section class="card" id="shop"><h2>🛍️ فروشگاه ستاره‌ها</h2><p>با سکه‌های تمرین خرید کن!</p><div id="items"></div><div id="shopmsg"></div></section><p class="footer">نسخه آزمایشی ۲ — بدون خرید واقعی و بدون تبلیغات. تشخیص صدای پیانوی واقعی در این نسخه فعال نیست.</p></main><script>
 const names=['دو','ر','می','فا','سل','لا','سی'],notes=[{name:'سل',midi:43},{name:'لا',midi:45},{name:'سی',midi:47},{name:'دو',midi:48},{name:'ر',midi:50},{name:'می',midi:52},{name:'فا',midi:53},{name:'سل',midi:55},{name:'لا',midi:57}],treble=[{name:'می',midi:64},{name:'فا',midi:65},{name:'سل',midi:67},{name:'لا',midi:69},{name:'سی',midi:71},{name:'دو',midi:72},{name:'ر',midi:74},{name:'می',midi:76},{name:'فا',midi:77}];
 let tab='bass',answer='',currentMidi=60,coins=+(localStorage.getItem('termeh_coins')||0),stars=+(localStorage.getItem('termeh_stars')||0),owned=JSON.parse(localStorage.getItem('termeh_owned')||'[]'),audio,score=+(localStorage.getItem('termeh_score')||0),completed=JSON.parse(localStorage.getItem('termeh_completed')||'{"bass":0,"treble":0,"rhythm":0}'),solved=false,questionStart=Date.now();
 function update(){document.getElementById('coins').textContent='🪙 '+coins;document.getElementById('stars').textContent='⭐ '+stars;localStorage.setItem('termeh_coins',coins);localStorage.setItem('termeh_stars',stars);localStorage.setItem('termeh_score',score);localStorage.setItem('termeh_completed',JSON.stringify(completed));document.getElementById('score').textContent='🏆 '+score;document.getElementById('levelInfo').textContent='مرحله کلید فا: '+(completed.bass+1)+' | کلید سل: '+(completed.treble+1)+' | ریتم: '+(completed.rhythm+1);renderMascot()}
@@ -28,15 +28,109 @@ function answerSound(val){
  if(found)sound(found.midi);
 }
 function staff(i,clef){const y=126-i*12;let lines='';for(let j=0;j<5;j++)lines+='<line x1="25" x2="325" y1="'+(126-j*24)+'" y2="'+(126-j*24)+'" stroke="#625b91" stroke-width="2"/>';let ledger='';if(i<0)for(let k=-2;k>=i;k-=2)ledger+='<line x1="151" x2="205" y1="'+(126-k*12)+'" y2="'+(126-k*12)+'" stroke="#625b91"/>';if(i>8)for(let k=10;k<=i;k+=2)ledger+='<line x1="151" x2="205" y1="'+(126-k*12)+'" y2="'+(126-k*12)+'" stroke="#625b91"/>';return '<svg viewBox="0 0 350 170" role="img" aria-label="نت روی پنج خط حامل">'+lines+ledger+'<text x="38" y="122" font-size="73" fill="#6550a7">'+(clef==='bass'?'𝄢':'𝄞')+'</text><ellipse cx="180" cy="'+y+'" rx="16" ry="11" transform="rotate(-20 180 '+y+')" fill="#e45f9b"/><line x1="194" y1="'+y+'" x2="194" y2="'+(y-53)+'" stroke="#e45f9b" stroke-width="4"/></svg>'}
-const rhythms=[{s:'♩ + ♪ + ♪',v:2},{s:'♪ + ♪',v:1},{s:'♬ + ♬',v:1},{s:'♩. + ♪',v:2},{s:'𝅗𝅥 + ♩',v:3},{s:'♩ + ♩ + ♪ + ♪',v:3},{s:'𝅝',v:4}];
+
+const DUR={w:8,h:4,q:2,e:1,s:.5,wd:12,hd:6,qd:3,ed:1.5,rw:8,rh:4,rq:2,re:1,rs:.5,rhd:6,rqd:3};
+const rhythmQuestions=[
+ {meter:'2/4',seq:['q','q'],unit:'h',kind:'equiv'},
+ {meter:'4/4',seq:['h','h'],unit:'w',kind:'equiv'},
+ {meter:'2/4',seq:['e','e','q'],unit:'h',kind:'equiv'},
+ {meter:'3/4',seq:['qd','e','q'],unit:'h',kind:'equiv'},
+ {meter:'4/4',seq:['q','rq','h'],unit:'h',kind:'equiv'},
+ {meter:'3/4',seq:['h','rq'],unit:'q',kind:'equiv'},
+ {meter:'4/4',seq:['rw'],unit:'h',kind:'equiv'},
+ {meter:'2/4',seq:['rh'],unit:'q',kind:'equiv'},
+ {meter:'4/4',seq:['hd','rq'],unit:'h',kind:'equiv'},
+ {meter:'6/8',seq:['qd','qd'],unit:'qd',kind:'equiv'},
+ {meter:'6/8',seq:['e','e','e','rqd'],unit:'q',kind:'equiv'},
+ {meter:'2/4',seq:['s','s','e','rq'],unit:'q',kind:'equiv'},
+ {meter:'3/4',seq:['q','rh'],unit:'h',kind:'equiv'},
+ {meter:'2/4',seq:['q','rq'],kind:'meter'},
+ {meter:'3/4',seq:['h','rq'],kind:'meter'},
+ {meter:'4/4',seq:['q','q','rh'],kind:'meter'},
+ {meter:'6/8',seq:['qd','rqd'],kind:'meter'},
+ {meter:'6/8',seq:['e','e','e','e','e','e'],kind:'meter'},
+ {meter:'3/4',seq:['hd'],kind:'meter'},
+ {meter:'4/4',seq:['w'],kind:'meter'}
+];
+let rhythmCurrent=null,playToken=0,errorsThisQuestion=0;
+const valueNames={w:'گرد',h:'سفید',q:'سیاه',e:'چنگ',s:'دولاچنگ',qd:'سیاه نقطه‌دار'};
+function rhythmSVG(q){
+ const seq=q.seq,w=Math.max(350,seq.length*62+95),unit=50;
+ let x=80,marks='',lines='';
+ for(let j=0;j<5;j++)lines+='<line x1="20" x2="'+(w-20)+'" y1="'+(120-j*18)+'" y2="'+(120-j*18)+'" stroke="#77719c" stroke-width="1.7"/>';
+ for(const code of seq){
+  const rest=code[0]==='r',dot=code.endsWith('d'),base=code.replace(/^r/,'').replace(/d$/,'');
+  if(rest){
+   if(base==='w'||base==='h')marks+='<rect x="'+(x-12)+'" y="'+(base==='w'?66:84)+'" width="24" height="8" fill="#39334d"/>';
+   else if(base==='q')marks+='<path d="M '+x+' 62 q -14 12 0 20 l -7 11 q 17 -4 9 13 l -10 9" fill="none" stroke="#39334d" stroke-width="5"/>';
+   else marks+='<path d="M '+x+' 63 l 0 38 q 22 -12 7 -20" fill="none" stroke="#39334d" stroke-width="4"/>';
+  }else{
+   const fill=(base==='w'||base==='h')?'white':'#dc5399';
+   marks+='<ellipse cx="'+x+'" cy="85" rx="11" ry="8" transform="rotate(-18 '+x+' 85)" stroke="#6b4d8f" stroke-width="2" fill="'+fill+'"/>';
+   if(base!=='w')marks+='<path d="M '+(x+10)+' 83 v -44" stroke="#6b4d8f" stroke-width="3"/>';
+   if(base==='e'||base==='s')marks+='<path d="M '+(x+10)+' 39 q 24 8 13 25'+(base==='s'?' M '+(x+10)+' 49 q 24 8 13 25':'')+'" fill="none" stroke="#6b4d8f" stroke-width="3"/>';
+  }
+  if(dot)marks+='<circle cx="'+(x+18)+'" cy="'+(rest?88:85)+'" r="3.5" fill="#6b4d8f"/>';
+  x+=62;
+ }
+ const [num,den]=q.meter.split('/');
+ return '<svg viewBox="0 0 '+w+' 150" aria-label="میزان با نت‌ها و سکوت‌ها" role="img">'+lines+'<text x="37" y="78" font-size="27" font-weight="bold">'+num+'</text><text x="37" y="108" font-size="27" font-weight="bold">'+den+'</text>'+marks+'<line x1="'+(w-20)+'" x2="'+(w-20)+'" y1="48" y2="120" stroke="#555" stroke-width="3"/></svg>';
+}
+function rhythmAnswer(q){
+ const eighths=q.seq.reduce((sum,c)=>sum+DUR[c],0);
+ if(q.kind==='meter')return q.meter;
+ return String(eighths/DUR[q.unit]);
+}
+function rhythmChoices(q){
+ if(q.kind==='meter')return ['2/4','3/4','4/4','6/8'];
+ const correct=+rhythmAnswer(q),opts=new Set([String(correct)]);
+ for(const x of [correct-1,correct+1,correct/2,correct*2,.5,1,1.5,2,3,4,6])if(x>0&&opts.size<4)opts.add(String(x));
+ return [...opts];
+}
+function clickTrack(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume();let o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type='sine';o.frequency.value=950;g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.0001,t+.045);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.05)}catch(e){}}
+function playRhythm(){
+ if(!rhythmCurrent)return;
+ const token=++playToken,q=rhythmCurrent,ms=250,den=+q.meter.split('/')[1],total=q.seq.reduce((v,c)=>v+DUR[c],0);
+ // One click per denominator unit; six-eight gets six eighth-note clicks.
+ const beatEighths=8/den;
+ for(let at=0;at<total;at+=beatEighths)setTimeout(()=>{if(token===playToken)clickTrack()},Math.round(at*ms));
+ let at=0;
+ for(const code of q.seq){
+  const pos=at;at+=DUR[code];
+  if(!code.startsWith('r'))setTimeout(()=>{if(token===playToken)sound(60,Math.max(.2,DUR[code]*ms/1000*.65))},Math.round(pos*ms));
+ }
+}
+
 function choices(correct,pool){let arr=[correct];for(const p of [...pool].sort(()=>Math.random()-.5))if(!arr.includes(p)&&arr.length<4)arr.push(p);arr.sort(()=>Math.random()-.5);document.getElementById('answers').innerHTML='';for(const val of arr){let b=document.createElement('button');b.textContent=val;b.onclick=()=>guess(val);document.getElementById('answers').appendChild(b)}}
-function newQuestion(){solved=false;questionStart=Date.now();document.getElementById('next').disabled=true;document.getElementById('next').textContent='🔒 سؤال بعدی';document.getElementById('feedback').textContent='';document.getElementById('listen').style.display=tab==='rhythm'?'none':'inline-block';if(tab==='rhythm'){let r=rhythms[Math.floor(Math.random()*rhythms.length)];answer=String(r.v);document.getElementById('title').textContent='🥁 جادوی ریتم';document.getElementById('question').textContent='جمع کشش نت‌ها چند ضربِ سیاه است؟';document.getElementById('visual').innerHTML='<div class="note" dir="ltr">'+r.s+'</div>';choices(answer,['1','2','3','4'])}else{let list=tab==='bass'?notes:treble;let i=Math.floor(Math.random()*list.length);answer=list[i].name;currentMidi=list[i].midi;document.getElementById('title').textContent=tab==='bass'?'🎼 کلید فا':'🎵 کلید سل';document.getElementById('question').textContent='این نت چه اسمی دارد؟';document.getElementById('visual').innerHTML=staff(i,tab);choices(answer,names)}}
-function renderMascot(){let m=document.getElementById('mascot');let earned=completed.bass+completed.treble+completed.rhythm;let icons=['🎹 ✨','🐱 🎹','🐱 🎀','🐱 🌈','🐱 👑'];let tier=earned>=30?4:earned>=18?3:earned>=8?2:earned>=1?1:0;m.textContent=icons[tier]+(owned.includes('گربه موزیسین')?' 🐾':'');}
+function newQuestion(){
+ solved=false;errorsThisQuestion=0;playToken++;questionStart=Date.now();
+ document.getElementById('next').disabled=true;document.getElementById('next').textContent='🔒 سؤال بعدی';
+ document.getElementById('feedback').textContent='';
+ document.getElementById('listen').style.display='inline-block';
+ if(tab==='rhythm'){
+  const unlocked=Math.min(rhythmQuestions.length,Math.max(5,5+Math.floor((completed.rhythm||0)/3)*3));
+  rhythmCurrent=rhythmQuestions[Math.floor(Math.random()*unlocked)];
+  answer=rhythmAnswer(rhythmCurrent);
+  document.getElementById('title').textContent='🥁 وزن‌خوانی و سکوت‌ها';
+  document.getElementById('question').textContent=rhythmCurrent.kind==='meter'?'این میزان چه کسر میزانی دارد؟':'مجموع شکل‌های این میزان، معادل چند '+valueNames[rhythmCurrent.unit]+' است؟ (سکوت هم کشش دارد)';
+  document.getElementById('visual').innerHTML=rhythmSVG(rhythmCurrent);
+  document.getElementById('listen').textContent='▶️ شنیدن ریتم و سکوت‌ها';
+  choices(answer,rhythmChoices(rhythmCurrent));
+ }else{
+  rhythmCurrent=null;document.getElementById('listen').textContent='🔊 صدای نت';
+  let list=tab==='bass'?notes:treble,i=Math.floor(Math.random()*list.length);
+  answer=list[i].name;currentMidi=list[i].midi;
+  document.getElementById('title').textContent=tab==='bass'?'🎼 کلید فا':'🎵 کلید سل';
+  document.getElementById('question').textContent='این نت چه اسمی دارد؟';
+  document.getElementById('visual').innerHTML=staff(i,tab);choices(answer,names);
+ }
+}
+function renderMascot(){let m=document.getElementById('mascot');let earned=completed.bass+completed.treble+completed.rhythm;let icons=['🎹 ✨','🐱 🎹','🐱 🎀','🐱 🌈','🐱 👑'];let tier=earned>=30?4:earned>=18?3:earned>=8?2:earned>=1?1:0;m.textContent='🎹 ✨'+(owned.includes('گربه موزیسین')?' 🐱':'')+(owned.includes('پاپیون صورتی')?' 🎀':'')+(owned.includes('رنگین‌کمان جادویی')?' 🌈':'')+(owned.includes('تاج ستاره‌ای')?' 👑':'');}
 function celebrate(){let m=document.getElementById('mascot');m.classList.remove('flash');void m.offsetWidth;m.classList.add('flash');if(owned.includes('گربه موزیسین')){document.getElementById('feedback').textContent+=' 🐱 میو!';}}
-function guess(val){if(solved)return;answerSound(val);let f=document.getElementById('feedback');if(val===answer){solved=true;let seconds=(Date.now()-questionStart)/1000;let bonus=tab==='rhythm'?Math.max(0,Math.round(100-seconds*8)):Math.max(0,Math.round(50-seconds*3));coins+=10;stars++;score+=100+bonus;completed[tab]=(completed[tab]||0)+1;update();f.textContent='🌟 آفرین ترمه! ۱۰ سکه و '+(100+bonus)+' امتیاز!';celebrate();document.querySelectorAll('#answers button').forEach(b=>b.disabled=true);document.getElementById('next').disabled=false;document.getElementById('next').textContent='🔓 سؤال بعدی'}else{f.textContent='❌ هنوز درست نیست! دوباره تلاش کن؛ مرحله بعد قفل است.';document.getElementById('next').disabled=true}}
+function guess(val){if(solved)return;answerSound(val);let f=document.getElementById('feedback');if(val===answer){solved=true;let seconds=(Date.now()-questionStart)/1000;let bonus=tab==='rhythm'?Math.max(0,Math.round(100-seconds*8)):Math.max(0,Math.round(50-seconds*3));bonus=Math.max(0,bonus-errorsThisQuestion*25);coins+=10;stars++;score+=100+bonus;completed[tab]=(completed[tab]||0)+1;update();f.textContent='🌟 آفرین ترمه! ۱۰ سکه و '+(100+bonus)+' امتیاز!';celebrate();document.querySelectorAll('#answers button').forEach(b=>b.disabled=true);document.getElementById('next').disabled=false;document.getElementById('next').textContent='🔓 سؤال بعدی'}else{errorsThisQuestion++;f.textContent='❌ هنوز درست نیست! دوباره تلاش کن؛ مرحله بعد قفل است.';document.getElementById('next').disabled=true}}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.tab;document.getElementById('game').style.display=tab==='shop'?'none':'block';document.getElementById('shop').style.display=tab==='shop'?'block':'none';if(tab==='shop')renderShop();else newQuestion()});
-document.getElementById('listen').onclick=()=>sound(currentMidi,.7);document.getElementById('next').onclick=()=>{if(solved)newQuestion()};
-const goods=[['🐱','گربه موزیسین',30],['👑','تاج ستاره‌ای',50],['🎀','پاپیون صورتی',20],['🌈','رنگین‌کمان جادویی',80]];
-function renderShop(){document.getElementById('items').innerHTML='';for(const [emoji,name,price] of goods){let row=document.createElement('div');row.className='shopitem';let label=document.createElement('span');label.textContent=emoji+' '+name;let btn=document.createElement('button');btn.textContent=owned.includes(name)?'خریداری شده':'🪙 '+price;btn.disabled=owned.includes(name);btn.onclick=()=>{if(coins<price){document.getElementById('shopmsg').textContent='سکه‌هات کمه! بیشتر تمرین کن 🌟';return}coins-=price;owned.push(name);localStorage.setItem('termeh_owned',JSON.stringify(owned));update();renderShop();document.getElementById('shopmsg').textContent='🎉 مبارکه! '+name+' مال تو شد!'};row.append(label,btn);document.getElementById('items').appendChild(row)}}
+document.getElementById('listen').onclick=()=>{if(tab==='rhythm')playRhythm();else sound(currentMidi,.7)};document.getElementById('next').onclick=()=>{if(solved)newQuestion()};
+const goods=[['🐱','گربه موزیسین',30,1],['🎀','پاپیون صورتی',20,8],['🌈','رنگین‌کمان جادویی',80,18],['👑','تاج ستاره‌ای',150,30]];
+function renderShop(){document.getElementById('items').innerHTML='';for(const [emoji,name,price,required] of goods){let row=document.createElement('div');row.className='shopitem';let label=document.createElement('span');label.textContent=emoji+' '+name;let btn=document.createElement('button');let unlocked=completed.bass+completed.treble+completed.rhythm>=required;btn.textContent=owned.includes(name)?'خریداری شده':!unlocked?'🔒 '+required+' پاسخ درست':'🪙 '+price;btn.disabled=owned.includes(name)||!unlocked;btn.onclick=()=>{if(coins<price){document.getElementById('shopmsg').textContent='سکه‌هات کمه! بیشتر تمرین کن 🌟';return}coins-=price;owned.push(name);localStorage.setItem('termeh_owned',JSON.stringify(owned));update();renderShop();document.getElementById('shopmsg').textContent='🎉 مبارکه! '+name+' مال تو شد!'};row.append(label,btn);document.getElementById('items').appendChild(row)}}
 update();newQuestion();
 </script></body></html>
