@@ -1560,6 +1560,7 @@
          * 8. MODE SWITCHING, MASCOT UI & TROPHY SHOP
          **************************************************************/
         function switchGameMode(newMode) {
+            if (typeof isModeUnlocked === 'function' && !isModeUnlocked(newMode)) { showUnlock(newMode); return; }
             state.mode = newMode;
 
             const modes = [
@@ -1845,6 +1846,22 @@ function translate(root){if(current!=='en')return;const walk=document.createTree
 window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else location.reload()};
 window.resetLanguage=function(){localStorage.removeItem('termeh_language');location.reload()};
 document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getItem('termeh_language');if(saved==='en'||saved==='fa')chooseLanguage(saved)});
+})();
+</script><style>
+#unlockOverlay{position:fixed;inset:0;z-index:80;background:#1e1b4bcc;display:none;align-items:center;justify-content:center;padding:18px}
+#unlockOverlay.open{display:flex}#unlockOverlay .box{width:100%;max-width:420px;background:#fff;border:5px solid #fde68a;border-radius:28px;padding:25px;text-align:center;box-shadow:0 20px 40px #0005}
+#unlockOverlay button{border-radius:14px;padding:12px 18px;background:#7c3aed;color:#fff;font-weight:800;margin:8px}
+#unlockOverlay button.secondary{background:#64748b}#unlockOverlay input{width:100%;border:2px solid #a78bfa;border-radius:12px;padding:12px;text-align:center;font-size:20px}
+</style>
+<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 بخش والدین / Parents</button><button class="secondary" onclick="closeUnlock()">ادامه تمرین / Keep practicing</button><div id="parentChallenge" style="display:none"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="parentMath"></p><input id="parentAnswer" type="number" inputmode="numeric" aria-label="Parent challenge answer"><button onclick="checkParentGate()">تأیید / Continue</button><p id="parentMessage" aria-live="polite"></p></div></div></div>
+<script>
+(function(){
+const thresholds={bass:100,rhythm:200};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
+window.isModeUnlocked=function(mode){if(mode==='treble')return true;return mode==='bass'?(state.levelTreble-1>=thresholds.bass):(state.levelBass-1>=thresholds.rhythm)};
+window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const count=source==='treble'?state.levelTreble-1:state.levelBass-1;const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Practice '+(source==='treble'?'treble clef':'bass clef')+' to unlock: '+count+' / '+goal+' correct answers. Premium purchase is not yet available.':'با تمرین '+(source==='treble'?'کلید سل':'کلید فا')+' باز می‌شود: '+count+' از '+goal+' پاسخ درست. خرید نسخه ویژه هنوز فعال نشده است.'};
+window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');pendingMode=null};
+window.showParentGate=function(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;document.getElementById('parentMath').textContent=a+' × '+b+' + 13 = ?';document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
+window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent='لطفاً کمی بعد تلاش کنید / Try later';return}if(Number(document.getElementById('parentAnswer').value)===answer&&document.getElementById('parentAnswer').value!==''){attempts=0;msg.textContent='بخش والدین هنوز در حال توسعه است. پرداخت یا ثبت‌نام فعال نیست. / Parent account and payments are coming soon.';}else{attempts++;msg.textContent='پاسخ نادرست / Incorrect answer';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;}showParentGate();msg.textContent='پاسخ نادرست / Incorrect answer';}};
 })();
 </script></body>
 </html>
