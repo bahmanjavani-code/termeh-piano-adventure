@@ -1,12 +1,41 @@
 plugins { id 'com.android.application' }
+
 android {
- namespace 'com.termeh.piano'
- compileSdk 35
- defaultConfig {
-  applicationId 'com.termeh.piano'
-  minSdk 26
-  targetSdk 35
-  versionCode 4
-  versionName '1.2.1'
- }
+    namespace 'com.termeh.piano'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.termeh.piano'
+        minSdk 26
+        targetSdk 35
+        versionCode 5
+        versionName '1.3.0-beta'
+    }
+
+    signingConfigs {
+        release {
+            // These are populated only on the trusted CI release job.
+            def store = System.getenv('TERMEH_KEYSTORE_FILE')
+            if (store && System.getenv('TERMEH_KEYSTORE_PASSWORD') &&
+                    System.getenv('TERMEH_KEY_ALIAS') && System.getenv('TERMEH_KEY_PASSWORD')) {
+                storeFile file(store)
+                storePassword System.getenv('TERMEH_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('TERMEH_KEY_ALIAS')
+                keyPassword System.getenv('TERMEH_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
 }
