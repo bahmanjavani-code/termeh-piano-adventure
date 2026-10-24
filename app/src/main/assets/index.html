@@ -1354,7 +1354,7 @@
             const nextBtn = document.getElementById('nextRhythmQuizBtn');
             nextBtn.disabled = true;
             nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
-            nextBtn.innerHTML = `<span>🔒</span><span>جواب درست رو انتخاب کن تا سوال بعدی باز بشه!</span>`;
+            nextBtn.innerHTML = isEnglish()?`<span>🔒</span><span>Choose the correct answer to continue</span>`:`<span>🔒</span><span>جواب درست رو انتخاب کن تا سوال بعدی باز بشه!</span>`;
 
             setMascotBubble(isEnglish()?'Note duration quiz ⏱️':'مسابقه کشش نت‌ها ⏱️',isEnglish()?'Look at the note shape. What is it called and how many quarter-note beats is it worth?':'به شکل این نت نگاه کن! اسمش چیه و چند ضرب سیاه کشش داره؟','normal');
         }
@@ -1386,7 +1386,7 @@
                     const nextBtn = document.getElementById('nextRhythmQuizBtn');
                     nextBtn.disabled = false;
                     nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 border-b-4 border-amber-700 glow-next-btn cursor-pointer';
-                    nextBtn.innerHTML = `<span>🎉</span><span>عالی بود! سوال بعدی ⬅️</span>`;
+                    nextBtn.innerHTML = isEnglish()?`<span>🎉</span><span>Great! Next question</span>`:`<span>🎉</span><span>عالی بود! سوال بعدی ⬅️</span>`;
                 }
             } else {
                 playWrongSound();
@@ -1418,14 +1418,14 @@
             document.getElementById('holdTargetSvg').innerHTML = getNoteDurationSvg(target.id, 75);
             document.getElementById('holdTargetDesc').textContent = isEnglish()?`Hold the piano key for ${target.beats} beats, then release.`:`کلید پیانو رو دقیقاً ${target.beats} ضرب نگه دار و بعد رها کن!`;
             document.getElementById('holdTargetBeatBadge').textContent = isEnglish()?`Target: ${target.beats} beats`:`هدف: ${target.beats} ضرب`;
-            document.getElementById('holdLiveCounterText').textContent = 'دکمه بنفش پایین رو نگه دار!';
+            document.getElementById('holdLiveCounterText').textContent = isEnglish()?'Hold the purple button below!':'دکمه بنفش پایین رو نگه دار!';
 
             resetHoldBeatLights(target.beats);
 
             const nextBtn = document.getElementById('nextHoldGameBtn');
             nextBtn.disabled = true;
             nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
-            nextBtn.innerHTML = `<span>🔒</span><span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>`;
+            nextBtn.innerHTML = isEnglish()?`<span>🔒</span><span>Hold the note for the correct duration to continue</span>`:`<span>🔒</span><span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>`;
 
             setMascotBubble(isEnglish()?'Hold the note 🎹':'چالش نگه داشتن نت 🎹',isEnglish()?`Try the ${durationName(target)}. Hold the big piano key for ${target.beats} beats, then release.`:`الان نوبت «${target.faName}» است! دکمه بزرگ پیانو رو نگه دار تا ${target.beats} چراغ روشن بشه و بعد رها کن!`,'normal');
         }
@@ -1436,7 +1436,7 @@
                 if (!el) continue;
                 const isTargetRange = i <= targetBeats;
                 el.className = `h-11 rounded-xl ${isTargetRange ? 'bg-slate-800 border-2 border-emerald-500/60 text-emerald-300' : 'bg-slate-800/50 border border-slate-700 text-slate-600'} flex flex-col items-center justify-center font-black text-xs transition-all`;
-                el.innerHTML = `<span>ضرب ${i}</span>${i === targetBeats ? '<span class="text-[9px] text-amber-300">🎯 هدف</span>' : ''}`;
+                el.innerHTML = `<span>${isEnglish()?'Beat':'ضرب'} ${i}</span>${i === targetBeats ? '<span class="text-[9px] text-amber-300">🎯 '+(isEnglish()?'Target':'هدف')+'</span>' : ''}`;
             }
         }
 
@@ -1452,7 +1452,7 @@
             resetHoldBeatLights(target.beats);
 
             const padLabel = document.getElementById('giantHoldPadLabel');
-            if (padLabel) padLabel.textContent = 'نگه داشتی... بشمار! 🎵';
+            if (padLabel) padLabel.textContent = isEnglish()?'Keep holding... count! 🎵':'نگه داشتی... بشمار! 🎵';
 
             if (state.soundEnabled) {
                 try {
@@ -1478,7 +1478,7 @@
                     highlightHoldBeat(currentHeldBeats, target.beats);
                     playMetronomeTick(false);
                 } else {
-                    document.getElementById('holdLiveCounterText').textContent = 'زیاد نگه داشتی! رها کن! 😅';
+                    document.getElementById('holdLiveCounterText').textContent = isEnglish()?'Too long! Release now. 😅':'زیاد نگه داشتی! رها کن! 😅';
                 }
             }, 650);
         }
@@ -1489,7 +1489,7 @@
                 const isGood = beatNum <= targetBeats;
                 el.className = `h-11 rounded-xl ${isGood ? 'bg-emerald-400 text-slate-900 border-2 border-white' : 'bg-rose-500 text-white border-2 border-white'} flex flex-col items-center justify-center font-black text-xs scale-105 shadow-lg transition-all`;
             }
-            document.getElementById('holdLiveCounterText').textContent = `شمردن: ${beatNum} ضرب...`;
+            document.getElementById('holdLiveCounterText').textContent = isEnglish()?`Counting: ${beatNum} beats...`:`شمردن: ${beatNum} ضرب...`;
         }
 
         function stopHoldSoundAndTimer() {
@@ -1519,7 +1519,7 @@
             stopHoldSoundAndTimer();
 
             const padLabel = document.getElementById('giantHoldPadLabel');
-            if (padLabel) padLabel.textContent = 'اینجا رو نگه دار و بشمار!';
+            if (padLabel) padLabel.textContent = isEnglish()?'Hold here and count!':'اینجا رو نگه دار و بشمار!';
 
             const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
 
@@ -1534,7 +1534,7 @@
                 }
                 playSuccessSound();
                 launchConfetti();
-                document.getElementById('holdLiveCounterText').textContent = `🌟 عالی! دقیقاً ${target.beats} ضرب نگه داشتی!`;
+                document.getElementById('holdLiveCounterText').textContent = isEnglish()?`🌟 Great! You held for ${target.beats} beats!`:`🌟 عالی! دقیقاً ${target.beats} ضرب نگه داشتی!`;
                 setMascotBubble(isEnglish()?'Great rhythm! 🎉':'ریتم عالی! 🎉',isEnglish()?`You held the ${durationName(target)} for ${target.beats} beats. Next challenge unlocked!`:`دقیقاً به اندازه «${target.faName}» (${target.beats} ضرب) نگه داشتی! قفل مرحله بعد باز شد!`,'joy');
 
                 const nextBtn = document.getElementById('nextHoldGameBtn');
@@ -1547,7 +1547,7 @@
                     ? `زود رها کردی (${currentHeldBeats} ضرب)! باید تا ضرب ${target.beats} نگه داری.`
                     : `بیشتر از ${target.beats} ضرب نگه داشتی! سر ضرب ${target.beats} رها کن.`;
                 document.getElementById('holdLiveCounterText').textContent = diffMsg;
-                setMascotBubble('دوباره امتحان کن! ⏱️', diffMsg, 'shake');
+                setMascotBubble(isEnglish()?'Try again! ⏱️':'دوباره امتحان کن! ⏱️',isEnglish()?'Follow the steady beat, then release on the target beat.':diffMsg,'shake');
             }
         }
 
