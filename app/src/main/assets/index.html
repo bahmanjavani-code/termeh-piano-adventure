@@ -1897,5 +1897,39 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeUnlock(
 window.showParentGate=function(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;document.getElementById('parentMath').textContent=a+' × '+b+' + 13 = ?';document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
 window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const raw=document.getElementById('parentAnswer').value.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));if(raw!=='' && Number(raw)===answer){attempts=0;msg.textContent='✅ تأیید شد. بخش حساب والدین و خرید هنوز فعال نشده است. / Verified. Parent account and payments are not available yet.';document.getElementById('parentAnswer').value='';return;}attempts++;msg.textContent='❌ پاسخ نادرست است / Incorrect answer';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;msg.textContent='تلاش‌های زیاد؛ یک دقیقه صبر کنید / Too many attempts; wait one minute';}};
 })();
+</script><style>
+#parentHub{position:fixed;inset:0;z-index:95;background:#1e1b4bdd;display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
+#parentHub.open{display:flex}#parentHub .panel{position:relative;width:100%;max-width:440px;max-height:90dvh;overflow-y:auto;box-sizing:border-box;background:white;border:4px solid #fcd34d;border-radius:26px;padding:20px;text-align:center;color:#293449;box-shadow:0 18px 42px #0005}
+#parentHub .close{position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:42px;height:42px;font-size:26px;z-index:2}
+#parentHub .action{display:block;width:100%;margin:10px 0;padding:13px;border:0;border-radius:14px;background:#7c3aed;color:white;font-weight:bold;font-size:16px}
+#parentHub .action:disabled{background:#cbd5e1;color:#475569;opacity:1}
+#parentHub .notice{padding:12px;border-radius:14px;background:#fef3c7;font-size:14px;line-height:1.8}
+#parentLaunch{position:fixed;right:16px;bottom:92px;z-index:45;border:2px solid white;border-radius:20px;background:#6d28d9;color:white;padding:9px 13px;font-weight:800;box-shadow:0 3px 12px #0004}
+</style>
+<button id="parentLaunch" type="button" onclick="openParentHub()">👨‍👩‍👧 Parents / والدین</button>
+<div id="parentHub" role="dialog" aria-modal="true" aria-label="Parent account"><div class="panel"><button class="close" type="button" aria-label="بستن / Close" onclick="closeParentHub()">×</button>
+<h2>👨‍👩‍👧 حساب والدین<br><small>Parent Account</small></h2>
+<p class="notice">🎹 تمرین بدون ثبت‌نام امکان‌پذیر است. پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.<br>Play without an account. Progress is currently saved on this device only.</p>
+<div id="parentHubGate"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()">تأیید والدین / Verify parent</button><p id="hubGateMessage" role="status"></p></div>
+<div id="parentHubOptions" hidden><p>🔒 <b>وضعیت حساب: مهمان / Guest</b></p>
+<button class="action" disabled>🔑 ورود / Sign in — به‌زودی</button>
+<button class="action" disabled>📝 ثبت‌نام / Register — به‌زودی</button>
+<button class="action" disabled>☁️ پشتیبان‌گیری / Backup — به‌زودی</button>
+<button class="action" disabled>🔄 بازیابی پیشرفت / Restore — به‌زودی</button>
+<button class="action" disabled>🚪 خروج از حساب / Sign out — وارد نشده‌اید</button>
+<p class="notice">حساب آنلاین و خرید هنوز راه‌اندازی نشده‌اند. هیچ رمز عبور یا اطلاعات کودک در این صفحه دریافت نمی‌شود.<br>Online accounts and purchases are not available yet. No passwords or child data are collected here.</p>
+</div></div></div>
+<script>
+(function(){
+let answer=0,failures=0,lockUntil=0;
+const el=id=>document.getElementById(id);
+const normalize=s=>s.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));
+function question(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;el('hubMath').textContent=a+' × '+b+' + 13 = ?';el('hubAnswer').value='';}
+window.openParentHub=function(){closeUnlock();el('parentHub').classList.add('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubGateMessage').textContent='';question();};
+window.closeParentHub=function(){el('parentHub').classList.remove('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubAnswer').value='';};
+window.verifyParentHub=function(){const msg=el('hubGateMessage');if(Date.now()<lockUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';return;}failures++;msg.textContent='پاسخ نادرست / Incorrect answer';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent='یک دقیقه صبر کنید / Wait one minute';}};
+el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
+})();
 </script></body>
 </html>
