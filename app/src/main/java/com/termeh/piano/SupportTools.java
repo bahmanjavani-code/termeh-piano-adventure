@@ -36,6 +36,7 @@ final class SupportTools {
     // Populate after the developer provides a dedicated support email.
     private static final String SUPPORT_EMAIL = "";
     private static final long CHECK_INTERVAL_MS = 6L * 60L * 60L * 1000L;
+    private static boolean nativeCrashRecorderInstalled = false;
 
     private final Activity activity;
     private final SharedPreferences prefs;
@@ -66,7 +67,9 @@ final class SupportTools {
         }
     }
 
-    static void installNativeCrashRecorder(Activity activity) {
+    static synchronized void installNativeCrashRecorder(Activity activity) {
+        if (nativeCrashRecorderInstalled) return;
+        nativeCrashRecorderInstalled = true;
         final SharedPreferences storage = activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE);
         final Thread.UncaughtExceptionHandler previous =
                 Thread.getDefaultUncaughtExceptionHandler();
