@@ -19,6 +19,13 @@ jobs:
           gradle-version: '8.7'
       - name: Validate music theory, privacy, and JavaScript syntax
         run: node tests/quality.test.cjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser smoke-test runner
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Exercise offline app in headless Chrome
+        run: node tests/browser-smoke.cjs
       - name: Build debug APK with runner Android SDK
         run: gradle --no-daemon :app:assembleDebug
       - name: Verify final APK has no camera, microphone or location permissions
