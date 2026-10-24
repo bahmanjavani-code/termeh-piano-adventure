@@ -948,6 +948,7 @@
         }
 
         function playCurrentTargetNoteSound() {
+            if (state.exam && state.exam.active) return;
             if (state.currentStaffNote) {
                 playPianoTone(state.currentStaffNote.freq, 1.0);
             }
@@ -1027,7 +1028,8 @@
 
             const posLabel = document.getElementById('staffPositionLabel');
             if (posLabel) {
-                posLabel.textContent = state.staffQuestionSolved ? `📍 موقعیت نت: ${note.posText}` : '🎼 نت را از روی حامل پیدا کن';
+                const en=localStorage.getItem('termeh_language')==='en';
+                posLabel.textContent = state.staffQuestionSolved ? (en ? `✅ Answer: ${note.code}` : `📍 موقعیت نت: ${note.posText}`) : (en ? '🎼 Read the note on the staff' : '🎼 نت را از روی حامل پیدا کن');
             }
         }
 
@@ -1062,7 +1064,7 @@
                         ${state.staffQuestionSolved && isSolvedRight ? `<span class="w-3.5 h-3.5 rounded-full ${key.bgClass} mb-auto mt-14 shadow-sm"></span>` : ''}
                         <span class="text-[11px] font-bold text-slate-400 mb-1">${key.enName}</span>
                         <span class="w-full py-1.5 rounded-xl font-black text-sm sm:text-base shadow-sm ${badgeColorClass}">
-                            ${key.faName}
+                            ${localStorage.getItem('termeh_language')==='en' ? key.enName : key.faName}
                         </span>
                     </button>
                 `;
@@ -1099,17 +1101,17 @@
                     launchConfetti();
 
                     const mascot = getCurrentMascot();
-                    const praiseMsg = mascot.praise[Math.floor(Math.random() * mascot.praise.length)];
+                    const praiseMsg = localStorage.getItem('termeh_language')==='en' ? 'Excellent note reading! 🌟' : mascot.praise[Math.floor(Math.random() * mascot.praise.length)];
                     setMascotBubble(
                         'آفرین! درست گفتی! 🎉',
-                        `${praiseMsg} این نت «${target.faName}» (${target.posText}) بود! حالا دکمه زرد رنگ «نت بعدی» رو بزن!`,
+                        localStorage.getItem('termeh_language')==='en' ? `${praiseMsg} The answer was ${target.code}. Tap Next Note to continue!` : `${praiseMsg} این نت «${target.faName}» (${target.posText}) بود! حالا دکمه زرد رنگ «نت بعدی» رو بزن!`,
                         'joy'
                     );
 
                     const overlayBadge = document.getElementById('correctOverlayBadge');
                     const nameSpan = document.getElementById('correctNoteNameSpan');
                     if (overlayBadge && nameSpan) {
-                        nameSpan.textContent = target.faName;
+                        nameSpan.textContent = localStorage.getItem('termeh_language')==='en' ? target.code : target.faName;
                         overlayBadge.classList.remove('hidden');
                     }
 
@@ -1148,7 +1150,7 @@
             if (btn) {
                 btn.disabled = true;
                 btn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
-                btn.innerHTML = `<span>🔒</span><span>اول نت درست رو پیدا کن تا قفل باز بشه!</span>`;
+                btn.innerHTML = state.exam && state.exam.active ? `<span>🎓</span><span>آزمون در جریان است؛ پاسخ را انتخاب کن</span>` : `<span>🔒</span><span>اول نت درست رو پیدا کن تا قفل باز بشه!</span>`;
             }
             if (lockBadge) {
                 lockBadge.className = 'text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-300';
@@ -1192,13 +1194,13 @@
                     clefBadge.textContent = 'کلید سل 𝄞';
                     clefBadge.className = 'bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
-                if (levelText) levelText.textContent = `مرحله ${state.levelTreble} (کلید سل)`;
+                if (levelText) levelText.textContent = localStorage.getItem('termeh_language')==='en' ? `Level ${state.levelTreble} (Treble clef)` : `مرحله ${state.levelTreble} (کلید سل)`;
             } else {
                 if (clefBadge) {
                     clefBadge.textContent = 'کلید فا 𝄢';
                     clefBadge.className = 'bg-purple-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
-                if (levelText) levelText.textContent = `مرحله ${state.levelBass} (کلید فا)`;
+                if (levelText) levelText.textContent = localStorage.getItem('termeh_language')==='en' ? `Level ${state.levelBass} (Bass clef)` : `مرحله ${state.levelBass} (کلید فا)`;
             }
 
             lockStaffNextButton();
@@ -1350,7 +1352,7 @@
             state.rhythmQuizSolved = false;
 
             document.getElementById('rhythmQuizSvgBox').innerHTML = getNoteDurationSvg(target.id, 95);
-            document.getElementById('rhythmQuizApples').textContent = `کشش به اندازه: ${target.apples}`;
+            document.getElementById('rhythmQuizApples').textContent = localStorage.getItem('termeh_language')==='en' ? '🎼 Look at the note shape' : '🎼 به شکل نت نگاه کن'; // Never reveal beat count before answer
 
             const optionsContainer = document.getElementById('rhythmQuizOptions');
             optionsContainer.innerHTML = NOTE_DURATIONS.map(opt => `
@@ -1405,7 +1407,7 @@
                 if (btn) {
                     btn.className = 'btn-cartoon py-3 px-3 rounded-2xl font-black text-sm sm:text-base bg-rose-100 text-rose-500 border-2 border-rose-300 opacity-60 flex flex-col items-center gap-1 animate-shake';
                 }
-                setMascotBubble('دقت کن دوست من! 💡', `راهنمایی: ${target.desc}`, 'shake');
+                setMascotBubble(localStorage.getItem('termeh_language')==='en' ? 'Try again! 💡' : 'دقت کن دوست من! 💡', localStorage.getItem('termeh_language')==='en' ? 'Look for the note head and its stem or flag. Try another answer.' : 'به توخالی یا توپر بودن سر نت و وجود دسته یا پرچم دقت کن؛ دوباره تلاش کن.', 'shake');
             }
         }
 
@@ -1712,7 +1714,7 @@
         function updateHeaderUI() {
             const mascot = getCurrentMascot();
             document.getElementById('headerMascotIcon').textContent = mascot.emoji;
-            document.getElementById('headerMascotName').textContent = `همراه تو: ${mascot.name}`;
+            document.getElementById('headerMascotName').textContent = localStorage.getItem('termeh_language')==='en' ? `Your buddy: ${({panda:'Pandy',lion:'Leo',bunny:'Bunny',unicorn:'Unicorn'})[mascot.id]||'Buddy'}` : `همراه تو: ${mascot.name}`;
             document.getElementById('mascotAvatar').textContent = mascot.emoji;
 
             document.getElementById('starCount').textContent = state.stars;
@@ -1760,7 +1762,7 @@
                 return `
                     <button onclick="selectMascot('${m.id}')" class="btn-cartoon p-3 rounded-2xl border-4 flex flex-col items-center gap-1.5 ${isSelected ? 'bg-amber-100 border-amber-500 shadow-md' : 'bg-slate-50 border-slate-200 hover:bg-amber-50'}">
                         <span class="text-5xl">${m.emoji}</span>
-                        <span class="font-black text-sm text-purple-900">${m.name}</span>
+                        <span class="font-black text-sm text-purple-900">${localStorage.getItem("termeh_language")==="en" ? (({panda:"Pandy",lion:"Leo",bunny:"Bunny",unicorn:"Unicorn"})[m.id]||"Buddy") : m.name}</span>
                         <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full ${isSelected ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'}">
                             ${isSelected ? '✓ انتخاب شده' : 'انتخاب کاراکتر'}
                         </span>
@@ -1783,7 +1785,7 @@
             saveState();
             updateHeaderUI();
             const m = getCurrentMascot();
-            setMascotBubble(`سلام از طرف ${m.name}!`, m.greeting, 'joy');
+            setMascotBubble(localStorage.getItem('termeh_language')==='en' ? 'Hello from your buddy!' : `سلام از طرف ${m.name}!`, localStorage.getItem('termeh_language')==='en' ? 'Let’s learn piano together! 🎹' : m.greeting, 'joy');
             playSuccessSound();
             closeMascotModal();
         }
