@@ -46,7 +46,7 @@ for(const permission of ['RECORD_AUDIO','CAMERA','ACCESS_FINE_LOCATION','ACCESS_
 assert(activity.includes('request::deny'),'WebView media permissions must be denied');
 assert(activity.includes('callback.invoke(origin, false, false)'),'WebView location must be denied');
 assert(!html.includes('${target.hintText}'),'Practice feedback must not reveal correct note via hint');
-assert(!html.includes('rhythmQuizApples\').textContent = `کشش به اندازه: ${target.apples}'),'Quiz must not show correct beat count');
+assert(!/rhythmQuizApples[^\n]*target\.apples/.test(html),'Quiz must not show correct beat count');
 assert(html.includes('function beginFinalAssessment()'),'Independent final assessment required');
 assert(html.includes('e.correct>=18'),'Final assessment pass threshold must be 18/20');
 assert(html.includes('state.mastery[mode].examPassed===true'),'Cannot use last 20 practice results as final exam');
