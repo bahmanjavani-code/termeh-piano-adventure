@@ -1282,7 +1282,7 @@
 
             if (subMode === 'learn') {
                 renderDurationLearnCards();
-                setMascotBubble('درسنامه کشش نت‌ها 📖', 'روی هر کدوم از نت‌های گرد، سفید، سیاه یا چنگ بزن تا ببینی چند ضرب طول می‌کشه!', 'normal');
+                setMascotBubble(isEnglish()?'Learn note values 📖':'درسنامه کشش نت‌ها 📖',isEnglish()?'Tap a whole, half, quarter, or eighth note to hear its duration.':'روی نت گرد، سفید، سیاه یا چنگ بزن تا ببینی چند ضرب سیاه طول می‌کشد!','normal');
             } else if (subMode === 'quiz') {
                 loadNewRhythmQuizQuestion();
             } else if (subMode === 'hold') {
@@ -1291,6 +1291,27 @@
         }
 
         let demoTimerIds = [];
+        function isEnglish() {return localStorage.getItem('termeh_language')==='en';}
+        const EN_DURATIONS={
+            whole:{name:'Whole note',desc:'An open note head without a stem: four quarter-note beats.'},
+            half:{name:'Half note',desc:'An open note head with a stem: two quarter-note beats.'},
+            quarter:{name:'Quarter note',desc:'A filled note head with a stem: one quarter-note beat.'},
+            eighth:{name:'Eighth note',desc:'A filled note head with a stem and flag: half a quarter-note beat.'}
+        };
+        function durationName(d){return isEnglish()?EN_DURATIONS[d.id].name:d.faName;}
+        function durationDescription(d){return isEnglish()?EN_DURATIONS[d.id].desc:d.desc;}
+        function durationBeats(d){return isEnglish()?(d.beats===0.5?'½':String(d.beats))+' quarter-note beats':d.beatsLabel;}
+        const EN_TROPHIES={
+            starter_star:['Beginner Musician','Your first music adventure award!'],
+            golden_piano:['Golden Piano','For practicing note reading.'],
+            magic_violin:['Magic Violin','A musical orchestra treasure.'],
+            rock_guitar:['Star Guitar','A gift for clef explorers.'],
+            happy_drum:['Rhythm Drum','For rhythm explorers.'],
+            gold_trumpet:['Shining Trumpet','A bright brass instrument.'],
+            mozart_crown:['Little Mozart Crown','A great music achievement.'],
+            rainbow_trophy:['Rainbow Trophy','For exploring every music lesson.']
+        };
+
         function renderDurationLearnCards() {
             const container = document.getElementById('durationCardsContainer');
             if (!container) return;
@@ -1300,12 +1321,12 @@
                     <div class="w-16 h-16 bg-white rounded-2xl shadow-inner flex items-center justify-center border">
                         ${getNoteDurationSvg(d.id, 56)}
                     </div>
-                    <h4 class="font-black text-sm sm:text-base mt-1">${d.faName}</h4>
+                    <h4 class="font-black text-sm sm:text-base mt-1">${durationName(d)}</h4>
                     <span class="bg-white px-2.5 py-0.5 rounded-full text-xs font-black shadow-sm border">
-                        کشش: ${d.beatsLabel}
+                        ${isEnglish()?"Value:":"کشش:"} ${durationBeats(d)}
                     </span>
                     <div class="text-sm my-0.5">${d.apples}</div>
-                    <p class="text-[11px] leading-snug opacity-85 font-semibold">${d.desc}</p>
+                    <p class="text-[11px] leading-snug opacity-85 font-semibold">${durationDescription(d)}</p>
                 </button>
             `).join('');
         }
@@ -1323,9 +1344,9 @@
             }
 
             const statusEl = document.getElementById('demoBeatStatus');
-            if (statusEl) statusEl.textContent = `🔊 در حال اجرای «${item.faName}» (${item.beatsLabel})...`;
+            if (statusEl) statusEl.textContent = isEnglish()?`🔊 Playing ${durationName(item)} (${durationBeats(item)})...`:`🔊 در حال اجرای «${item.faName}» (${item.beatsLabel})...`;
 
-            setMascotBubble(item.faName, item.desc, 'joy');
+            setMascotBubble(durationName(item), durationDescription(item), 'joy');
 
             const beatMs = 650;
             const totalDurationSec = (item.beats * beatMs) / 1000;
@@ -1358,8 +1379,8 @@
             optionsContainer.innerHTML = NOTE_DURATIONS.map(opt => `
                 <button id="rhythmOpt-${opt.id}" onclick="handleRhythmQuizAnswer('${opt.id}')"
                     class="btn-cartoon py-3 px-3 rounded-2xl font-black text-sm sm:text-base bg-white hover:bg-indigo-50 text-indigo-950 border-2 border-b-4 border-indigo-300 shadow flex flex-col items-center gap-1">
-                    <span>${opt.faName}</span>
-                    <span class="text-xs font-extrabold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">${opt.beatsLabel}</span>
+                    <span>${durationName(opt)}</span>
+                    <span class="text-xs font-extrabold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">${durationBeats(opt)}</span>
                 </button>
             `).join('');
 
@@ -1368,7 +1389,7 @@
             nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
             nextBtn.innerHTML = `<span>🔒</span><span>جواب درست رو انتخاب کن تا سوال بعدی باز بشه!</span>`;
 
-            setMascotBubble('مسابقه کشش نت‌ها ⏱️', 'به شکل این نت نگاه کن! اسمش چیه و چند ضرب کشش داره؟', 'normal');
+            setMascotBubble(isEnglish()?'Note duration quiz ⏱️':'مسابقه کشش نت‌ها ⏱️',isEnglish()?'Look at the note shape. What is it called and how many quarter-note beats is it worth?':'به شکل این نت نگاه کن! اسمش چیه و چند ضرب سیاه کشش داره؟','normal');
         }
 
         function handleRhythmQuizAnswer(selectedId) {
@@ -1393,7 +1414,7 @@
                         btn.className = 'btn-cartoon py-3 px-3 rounded-2xl font-black text-sm sm:text-base bg-emerald-500 text-white border-2 border-b-4 border-emerald-700 shadow-lg flex flex-col items-center gap-1 scale-105';
                     }
 
-                    setMascotBubble('آفرین! کاملاً درسته! 🌟', `این «${target.faName}» است که به اندازه «${target.beatsLabel}» کشیده میشه!`, 'joy');
+                    setMascotBubble(isEnglish()?'Correct! 🌟':'آفرین! کاملاً درسته! 🌟',isEnglish()?`This is a ${durationName(target)}, worth ${durationBeats(target)}.`:`این «${target.faName}» است که به اندازه «${target.beatsLabel}» کشیده میشه!`,'joy');
 
                     const nextBtn = document.getElementById('nextRhythmQuizBtn');
                     nextBtn.disabled = false;
@@ -1426,10 +1447,10 @@
             state.holdChallengeSolved = false;
             const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
 
-            document.getElementById('holdTargetTitle').textContent = `${target.faName} (${target.beatsLabel})`;
+            document.getElementById('holdTargetTitle').textContent = `${durationName(target)} (${durationBeats(target)})`;
             document.getElementById('holdTargetSvg').innerHTML = getNoteDurationSvg(target.id, 75);
-            document.getElementById('holdTargetDesc').textContent = `کلید پیانو رو دقیقاً ${target.beats} ضرب نگه دار و بعد رها کن!`;
-            document.getElementById('holdTargetBeatBadge').textContent = `هدف: ${target.beats} ضرب`;
+            document.getElementById('holdTargetDesc').textContent = isEnglish()?`Hold the piano key for ${target.beats} beats, then release.`:`کلید پیانو رو دقیقاً ${target.beats} ضرب نگه دار و بعد رها کن!`;
+            document.getElementById('holdTargetBeatBadge').textContent = isEnglish()?`Target: ${target.beats} beats`:`هدف: ${target.beats} ضرب`;
             document.getElementById('holdLiveCounterText').textContent = 'دکمه بنفش پایین رو نگه دار!';
 
             resetHoldBeatLights(target.beats);
@@ -1439,7 +1460,7 @@
             nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
             nextBtn.innerHTML = `<span>🔒</span><span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>`;
 
-            setMascotBubble('چالش نگه داشتن نت 🎹', `الان نوبت «${target.faName}» است! دکمه بزرگ پیانو رو نگه دار تا ${target.beats} چراغ روشن بشه و بعد رها کن!`, 'normal');
+            setMascotBubble(isEnglish()?'Hold the note 🎹':'چالش نگه داشتن نت 🎹',isEnglish()?`Try the ${durationName(target)}. Hold the big piano key for ${target.beats} beats, then release.`:`الان نوبت «${target.faName}» است! دکمه بزرگ پیانو رو نگه دار تا ${target.beats} چراغ روشن بشه و بعد رها کن!`,'normal');
         }
 
         function resetHoldBeatLights(targetBeats) {
@@ -1547,7 +1568,7 @@
                 playSuccessSound();
                 launchConfetti();
                 document.getElementById('holdLiveCounterText').textContent = `🌟 عالی! دقیقاً ${target.beats} ضرب نگه داشتی!`;
-                setMascotBubble('ریتم عالی! 🎉', `دقیقاً به اندازه «${target.faName}» (${target.beats} ضرب) نگه داشتی! قفل مرحله بعد باز شد!`, 'joy');
+                setMascotBubble(isEnglish()?'Great rhythm! 🎉':'ریتم عالی! 🎉',isEnglish()?`You held the ${durationName(target)} for ${target.beats} beats. Next challenge unlocked!`:`دقیقاً به اندازه «${target.faName}» (${target.beats} ضرب) نگه داشتی! قفل مرحله بعد باز شد!`,'joy');
 
                 const nextBtn = document.getElementById('nextHoldGameBtn');
                 nextBtn.disabled = false;
@@ -1817,8 +1838,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-white shadow-inner flex items-center justify-center text-3xl ${isUnlocked ? '' : 'grayscale opacity-50'}">
                             ${t.emoji}
                         </div>
-                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${t.name}</h4>
-                        <p class="text-[11px] text-slate-500 leading-tight">${t.desc}</p>
+                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${isEnglish() ? EN_TROPHIES[t.id][0] : t.name}</h4>
+                        <p class="text-[11px] text-slate-500 leading-tight">${isEnglish() ? EN_TROPHIES[t.id][1] : t.desc}</p>
                         ${
                             isUnlocked
                             ? `<span class="mt-auto bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-xl w-full">✓ باز شده!</span>`
