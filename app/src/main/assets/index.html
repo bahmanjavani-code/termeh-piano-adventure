@@ -1970,7 +1970,7 @@ document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getIt
 #unlockOverlay button{border-radius:14px;padding:12px 18px;background:#7c3aed;color:#fff;font-weight:800;margin:8px}
 #unlockOverlay button.secondary{background:#64748b}#unlockOverlay input{width:100%;border:2px solid #a78bfa;border-radius:12px;padding:12px;text-align:center;font-size:20px}
 </style>
-<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 بخش والدین / Parents</button><button class="secondary" onclick="closeUnlock()">ادامه تمرین / Keep practicing</button><div id="parentChallenge" style="display:none"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="parentMath"></p><input id="parentAnswer" type="number" inputmode="numeric" aria-label="Parent challenge answer"><button onclick="checkParentGate()">تأیید / Continue</button><p id="parentMessage" aria-live="polite"></p></div></div></div>
+<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 بخش والدین / Parents</button><button class="secondary" onclick="closeUnlock()">ادامه تمرین / Keep practicing</button><div id="parentChallenge" style="display:none"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="parentMath"></p><input id="parentAnswer" type="number" inputmode="numeric" aria-label="Parent challenge answer"><button onclick="checkParentGate()">تأیید / Continue</button><p id="parentMessage" aria-live="polite"></p></div></div></div>
 <script>
 (function(){
 const thresholds={bass:85,rhythm:90};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
@@ -1983,6 +1983,7 @@ window.showParentGate=function(){const a=12+Math.floor(Math.random()*18),b=7+Mat
 window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const raw=document.getElementById('parentAnswer').value.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));if(raw!=='' && Number(raw)===answer){attempts=0;msg.textContent='✅ تأیید شد. بخش حساب والدین و خرید هنوز فعال نشده است. / Verified. Parent account and payments are not available yet.';document.getElementById('parentAnswer').value='';return;}attempts++;msg.textContent='❌ پاسخ نادرست است / Incorrect answer';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;msg.textContent='تلاش‌های زیاد؛ یک دقیقه صبر کنید / Too many attempts; wait one minute';}};
 })();
 </script><style>
+html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 #parentHub{position:fixed;inset:0;z-index:95;background:#1e1b4bdd;display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
 #parentHub.open{display:flex}#parentHub .panel{position:relative;width:100%;max-width:440px;max-height:90dvh;overflow-y:auto;box-sizing:border-box;background:white;border:4px solid #fcd34d;border-radius:26px;padding:20px;text-align:center;color:#293449;box-shadow:0 18px 42px #0005}
 #parentHub .close{position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:42px;height:42px;font-size:26px;z-index:2}
@@ -1991,18 +1992,18 @@ window.checkParentGate=function(){const msg=document.getElementById('parentMessa
 #parentHub .notice{padding:12px;border-radius:14px;background:#fef3c7;font-size:14px;line-height:1.8}
 #parentLaunch{position:fixed;right:16px;bottom:92px;z-index:45;border:2px solid white;border-radius:20px;background:#6d28d9;color:white;padding:9px 13px;font-weight:800;box-shadow:0 3px 12px #0004}
 </style>
-<button id="parentLaunch" type="button" onclick="openParentHub()">👨‍👩‍👧 Parents / والدین</button>
+<button id="parentLaunch" type="button" onclick="openParentHub()">👨‍👩‍👧 <span class="only-fa">والدین</span><span class="only-en">Parents</span></button>
 <div id="parentHub" role="dialog" aria-modal="true" aria-label="Parent account"><div class="panel"><button class="close" type="button" aria-label="بستن / Close" onclick="closeParentHub()">×</button>
-<h2>👨‍👩‍👧 حساب والدین<br><small>Parent Account</small></h2>
-<p class="notice">🎹 تمرین بدون ثبت‌نام امکان‌پذیر است. پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.<br>Play without an account. Progress is currently saved on this device only.</p>
-<div id="parentHubGate"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()">تأیید والدین / Verify parent</button><p id="hubGateMessage" role="status"></p></div>
-<div id="parentHubOptions" hidden><p>🔒 <b>وضعیت حساب: مهمان / Guest</b></p>
-<button class="action" disabled>🔑 ورود / Sign in — به‌زودی</button>
-<button class="action" disabled>📝 ثبت‌نام / Register — به‌زودی</button>
-<button class="action" disabled>☁️ پشتیبان‌گیری / Backup — به‌زودی</button>
-<button class="action" disabled>🔄 بازیابی پیشرفت / Restore — به‌زودی</button>
-<button class="action" disabled>🚪 خروج از حساب / Sign out — وارد نشده‌اید</button>
-<p class="notice">حساب آنلاین و خرید هنوز راه‌اندازی نشده‌اند. هیچ رمز عبور یا اطلاعات کودک در این صفحه دریافت نمی‌شود.<br>Online accounts and purchases are not available yet. No passwords or child data are collected here.</p>
+<h2>👨‍👩‍👧 <span class="only-fa">حساب والدین</span><span class="only-en">Parent Account</span></h2>
+<p class="notice">🎹 <span class="only-fa">تمرین بدون ثبت‌نام امکان‌پذیر است. پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.</span><span class="only-en">Play without an account. Progress is currently saved on this device only.</span></p>
+<div id="parentHubGate"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()"><span class="only-fa">تأیید والدین</span><span class="only-en">Verify parent</span></button><p id="hubGateMessage" role="status"></p></div>
+<div id="parentHubOptions" hidden><p>🔒 <b><span class="only-fa">وضعیت حساب: مهمان</span><span class="only-en">Account status: Guest</span></b></p>
+<button class="action" disabled>🔑 <span class="only-fa">ورود — به‌زودی</span><span class="only-en">Sign in — Coming soon</span></button>
+<button class="action" disabled>📝 <span class="only-fa">ثبت‌نام — به‌زودی</span><span class="only-en">Register — Coming soon</span></button>
+<button class="action" disabled>☁️ <span class="only-fa">پشتیبان‌گیری — به‌زودی</span><span class="only-en">Backup — Coming soon</span></button>
+<button class="action" disabled>🔄 <span class="only-fa">بازیابی پیشرفت — به‌زودی</span><span class="only-en">Restore — Coming soon</span></button>
+<button class="action" disabled>🚪 <span class="only-fa">خروج از حساب — وارد نشده‌اید</span><span class="only-en">Sign out — Not signed in</span></button>
+<p class="notice"><span class="only-fa">حساب آنلاین و خرید هنوز راه‌اندازی نشده‌اند. هیچ رمز عبور یا اطلاعات کودک در این صفحه دریافت نمی‌شود.</span><span class="only-en">Online accounts and purchases are not available yet. No passwords or child data are collected here.</span></p>
 </div></div></div>
 <script>
 (function(){
