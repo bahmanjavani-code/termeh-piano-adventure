@@ -582,7 +582,9 @@
             isHoldingPad: false,
             holdStartTime: 0,
             holdIntervalId: null,
-            holdOscillator: null
+            holdOscillator: null,
+            mastery: {treble:{attempts:[],started:0},bass:{attempts:[],started:0}},
+            staffStartedAt: 0
         };
 
         function loadSavedState() {
@@ -590,6 +592,7 @@
                 const raw = localStorage.getItem('notAmoozKidsState_v1');
                 if (raw) {
                     const parsed = JSON.parse(raw);
+                    if(parsed.mastery && typeof parsed.mastery === 'object') { for(const k of ['treble','bass']) {const v=parsed.mastery[k]; if(v && Array.isArray(v.attempts)) state.mastery[k].attempts=v.attempts.slice(-240).filter(x=>x && typeof x.correct==='boolean' && typeof x.ms==='number' && typeof x.note==='string'); } }
                     state.stars = parsed.stars || 0;
                     state.coins = parsed.coins || 0;
                     state.levelTreble = parsed.levelTreble || 1;
@@ -606,6 +609,7 @@
         function saveState() {
             try {
                 localStorage.setItem('notAmoozKidsState_v1', JSON.stringify({
+                    mastery: state.mastery,
                     stars: state.stars,
                     coins: state.coins,
                     levelTreble: state.levelTreble,
@@ -1078,6 +1082,7 @@
                 playPianoTone(target.freq, 0.9);
 
                 if (!state.staffQuestionSolved) {
+                    recordMasteryAttempt(state.mode, true, state.currentStaffNote.code, performance.now()-state.staffStartedAt, state.wrongKeysPressed.size===0);
                     state.staffQuestionSolved = true;
                     state.streak += 1;
                     state.stars += 1;
@@ -1113,6 +1118,7 @@
             } else {
                 playWrongSound();
                 state.streak = 0;
+                if (!state.wrongKeysPressed.size && !state.staffQuestionSolved) recordMasteryAttempt(state.mode, false, state.currentStaffNote.code, performance.now()-state.staffStartedAt, false);
                 state.wrongKeysPressed.add(keyId);
                 updateHeaderUI();
 
@@ -1169,6 +1175,7 @@
 
             const chosen = candidates[Math.floor(Math.random() * candidates.length)];
             state.currentStaffNote = chosen;
+            state.staffStartedAt = performance.now();
             state.staffQuestionSolved = false;
             state.wrongKeysPressed.clear();
 
@@ -1559,6 +1566,32 @@
         /**************************************************************
          * 8. MODE SWITCHING, MASCOT UI & TROPHY SHOP
          **************************************************************/
+
+        // Mastery is an educational local metric, NOT a secure paid entitlement.
+        function recordMasteryAttempt(mode, correct, note, ms, firstTry) {
+            if (!['treble','bass'].includes(mode)) return;
+            const history=state.mastery[mode].attempts;
+            // Record one result per question: an incorrect first try cannot later become correct.
+            if(correct && !firstTry) return;
+            history.push({correct:!!correct,note:String(note),ms:Math.max(0,Math.min(60000,Math.round(ms))),at:Date.now()});
+            if(history.length>240)history.splice(0,history.length-240);
+            saveState();
+        }
+        function getMastery(mode) {
+            const h=(state.mastery[mode]||{attempts:[]}).attempts;
+            const recent=h.slice(-80);
+            const accuracy=recent.length?recent.filter(x=>x.correct).length/recent.length:0;
+            const correct=recent.filter(x=>x.correct);
+            const speed=correct.length?correct.reduce((s,x)=>s+Math.max(0,Math.min(1,5000/Math.max(1000,x.ms))),0)/correct.length:0;
+            const notePool=mode==='treble'?TREBLE_NOTES:BASS_NOTES;
+            const diversity=new Set(correct.map(x=>x.note)).size/Math.max(1,new Set(notePool.map(x=>x.code)).size);
+            const score=Math.round(100*(.5*accuracy+.3*speed+.2*Math.min(1,diversity)));
+            const exam=h.slice(-20);
+            const examPassed=exam.length===20&&exam.filter(x=>x.correct).length>=18;
+            const target=mode==='treble'?85:90;
+            return {score,passed:h.length>=80&&score>=target&&examPassed,examPassed,attempts:h.length};
+        }
+
         function switchGameMode(newMode) {
             if (typeof isModeUnlocked === 'function' && !isModeUnlocked(newMode)) { showUnlock(newMode); return; }
             state.mode = newMode;
@@ -1856,9 +1889,9 @@ document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getIt
 <div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 بخش والدین / Parents</button><button class="secondary" onclick="closeUnlock()">ادامه تمرین / Keep practicing</button><div id="parentChallenge" style="display:none"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="parentMath"></p><input id="parentAnswer" type="number" inputmode="numeric" aria-label="Parent challenge answer"><button onclick="checkParentGate()">تأیید / Continue</button><p id="parentMessage" aria-live="polite"></p></div></div></div>
 <script>
 (function(){
-const thresholds={bass:100,rhythm:200};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
-window.isModeUnlocked=function(mode){if(mode==='treble')return true;return mode==='bass'?(state.levelTreble-1>=thresholds.bass):(state.levelBass-1>=thresholds.rhythm)};
-window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const count=source==='treble'?state.levelTreble-1:state.levelBass-1;const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Practice '+(source==='treble'?'treble clef':'bass clef')+' to unlock: '+count+' / '+goal+' correct answers. Premium purchase is not yet available.':'با تمرین '+(source==='treble'?'کلید سل':'کلید فا')+' باز می‌شود: '+count+' از '+goal+' پاسخ درست. خرید نسخه ویژه هنوز فعال نشده است.'};
+const thresholds={bass:85,rhythm:90};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
+window.isModeUnlocked=function(mode){if(mode==='treble')return true;return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed};
+window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const result=getMastery(source);const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Mastery '+result.score+'% / '+goal+'%. Accuracy, response speed and note variety count. Complete at least 80 first attempts and pass the final 20-question assessment with 90% accuracy. Premium purchase is not available yet.':'تسلط: '+result.score+'٪ از '+goal+'٪. دقت، سرعت و تنوع نت‌ها محاسبه می‌شود. دست‌کم ۸۰ تلاش اول و قبولی در آزمون ۲۰ پرسشی پایانی با دقت ۹۰٪ لازم است. خرید نسخه ویژه هنوز فعال نیست.'};
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');pendingMode=null};
 window.showParentGate=function(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;document.getElementById('parentMath').textContent=a+' × '+b+' + 13 = ?';document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
 window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent='لطفاً کمی بعد تلاش کنید / Try later';return}if(Number(document.getElementById('parentAnswer').value)===answer&&document.getElementById('parentAnswer').value!==''){attempts=0;msg.textContent='بخش والدین هنوز در حال توسعه است. پرداخت یا ثبت‌نام فعال نیست. / Parent account and payments are coming soon.';}else{attempts++;msg.textContent='پاسخ نادرست / Incorrect answer';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;}showParentGate();msg.textContent='پاسخ نادرست / Incorrect answer';}};
