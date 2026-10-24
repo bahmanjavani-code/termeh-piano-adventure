@@ -22,10 +22,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install browser smoke-test runner
-        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
-      - name: Exercise offline app in headless Chrome
-        run: node tests/browser-smoke.cjs
       - name: Build debug APK with runner Android SDK
         run: gradle --no-daemon :app:assembleDebug
       - name: Verify final APK has no camera, microphone or location permissions
@@ -71,3 +67,7 @@ jobs:
           echo "[Download Termeh-Piano-APK]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
           echo "Artifact ID: $ARTIFACT_ID" >> "$GITHUB_STEP_SUMMARY"
           echo "APK artifact uploaded: $ARTIFACT_URL"
+      - name: Install browser smoke-test runner
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Exercise offline app in headless Chrome
+        run: node tests/browser-smoke.cjs
