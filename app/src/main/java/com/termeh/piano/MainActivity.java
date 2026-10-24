@@ -1,26 +1,36 @@
 package com.termeh.piano;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.webkit.ConsoleMessage;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.graphics.Bitmap;
+import android.webkit.RenderProcessGoneDetail;
+import android.net.Uri;
 
 public class MainActivity extends Activity {
     private static final String START_PAGE = "file:///android_asset/index.html";
     private WebView web;
+    private SupportTools support;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        SupportTools.installNativeCrashRecorder(this);
+        support = new SupportTools(this);
+
         web = new WebView(this);
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setAllowFileAccess(true); // Required for bundled offline HTML.
+        settings.setAllowFileAccess(true); // Bundled offline HTML.
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setAllowContentAccess(false);
@@ -28,17 +38,48 @@ public class MainActivity extends Activity {
         settings.setSupportMultipleWindows(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setSafeBrowsingEnabled(true);
+        settings.setBlockNetworkLoads(true); // WebView never loads Internet resources.
 
-        // Do not let local asset links turn into external navigation or file access.
         web.setWebViewClient(new WebViewClient() {
-            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return !START_PAGE.equals(url);
+            private boolean handleLink(String link) {
+                if (link == null) return true;
+                Uri uri;
+                try { uri = Uri.parse(link); }
+                catch (Exception ignored) { return true; }
+                if ("termeh-support".equals(uri.getScheme())) {
+                    if ("report".equals(uri.getHost())) {
+                        support.composeEmail(uri.getQueryParameter("events"));
+                    } else if ("updates".equals(uri.getHost())) {
+                        support.checkUpdates(true);
+                    }
+                    return true;
+                }
+                // No navigation outside the packaged home page.
+                return !START_PAGE.equals(link);
             }
-            @Override public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleLink(url);
+            }
+            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return handleLink(request.getUrl().toString());
+            }
+            @Override public void onPageStarted(WebView view, String url, Bitmap icon) {
                 if (!START_PAGE.equals(url)) view.stopLoading();
             }
+            @Override public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                support.recordRendererCrash();
+                view.destroy();
+                web = null;
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Termeh Piano")
+                        .setMessage("برنامه دچار خطا شد. لطفاً دوباره اجرا کنید. / The app needs to restart.")
+                        .setCancelable(false)
+                        .setPositiveButton("Restart / راه‌اندازی مجدد", (d, w) -> recreate())
+                        .show();
+                return true;
+            }
         });
-        // The child-facing app never requests microphone, camera, or geolocation.
+
         web.setWebChromeClient(new WebChromeClient() {
             @Override public void onPermissionRequest(PermissionRequest request) {
                 runOnUiThread(request::deny);
@@ -47,19 +88,35 @@ public class MainActivity extends Activity {
                     android.webkit.GeolocationPermissions.Callback callback) {
                 callback.invoke(origin, false, false);
             }
+            @Override public boolean onConsoleMessage(ConsoleMessage message) {
+                if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                    // Record only the line number, never raw messages or child's answers.
+                    support.recordWebError(message.lineNumber());
+                }
+                return false;
+            }
         });
+
         setContentView(web);
         web.loadUrl(START_PAGE);
+        support.enforceCachedPolicy();
+        support.checkUpdates(false);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (support != null) support.enforceCachedPolicy();
     }
 
     @Override public void onBackPressed() {
+        if (web == null) { super.onBackPressed(); return; }
         web.evaluateJavascript("(function(){var p=document.getElementById('parentHub');if(p&&p.classList.contains('open')){closeParentHub();return true;}var u=document.getElementById('unlockOverlay');if(u&&u.classList.contains('open')){closeUnlock();return true;}return false;})()",
-            handled -> {
-                if (!"true".equals(handled)) {
-                    if (web.canGoBack()) web.goBack();
-                    else MainActivity.super.onBackPressed();
-                }
-            });
+                handled -> {
+                    if (!"true".equals(handled)) {
+                        if (web != null && web.canGoBack()) web.goBack();
+                        else MainActivity.super.onBackPressed();
+                    }
+                });
     }
 
     @Override protected void onDestroy() {
