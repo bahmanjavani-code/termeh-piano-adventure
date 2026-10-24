@@ -31,7 +31,34 @@ jobs:
             exit 1
           fi
           echo "Privacy check passed: no microphone, camera or location permissions."
-      - uses: actions/upload-artifact@v4
+      - name: Confirm APK exists before upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -lh app/build/outputs/apk/debug/
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          echo 'APK exists and is nonempty.'
+      - name: Upload installable APK
+        id: apk_upload
+        uses: actions/upload-artifact@v4
         with:
           name: Termeh-Piano-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Show APK artifact download link
+        shell: bash
+        env:
+          ARTIFACT_URL: ${{ steps.apk_upload.outputs.artifact-url }}
+          ARTIFACT_ID: ${{ steps.apk_upload.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          if [ -z "$ARTIFACT_URL" ] || [ -z "$ARTIFACT_ID" ]; then
+            echo '::error::Artifact upload returned no artifact URL or ID.'
+            exit 1
+          fi
+          echo "### Download the Android APK" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Download Termeh-Piano-APK]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact ID: $ARTIFACT_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "APK artifact uploaded: $ARTIFACT_URL"
