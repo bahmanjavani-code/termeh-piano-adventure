@@ -272,7 +272,7 @@
                     <span id="staffPositionLabel" class="bg-white/90 border border-amber-300 px-2.5 py-0.5 rounded-full text-amber-900 shadow-sm">
                         📍 موقعیت: در حال بارگذاری...
                     </span>
-                    <span class="text-[11px] text-slate-400">خط‌ها از پایین به بالا ۱ تا ۵ شمرده می‌شن</span>
+                    <span class="text-[11px] text-slate-400"><span class="only-fa">خط‌ها از پایین به بالا ۱ تا ۵ شمرده می‌شن</span><span class="only-en">Staff lines are counted from bottom (1) to top (5).</span></span>
                 </div>
 
                 <!-- Dynamic SVG Staff Container -->
@@ -284,7 +284,7 @@
 
                 <!-- Celebration Overlay Badge when Answered Correctly -->
                 <div id="correctOverlayBadge" class="hidden absolute top-3 left-3 bg-emerald-500 text-white font-black text-xs sm:text-sm px-3 py-1.5 rounded-2xl shadow-lg border-2 border-white flex items-center gap-1 animate-bounce">
-                    <span>🌟 آفرین! نت</span>
+                    <span class="only-fa">🌟 آفرین! نت</span><span class="only-en">🌟 Correct note:</span>
                     <span id="correctNoteNameSpan" class="underline">دو</span>
                 </div>
             </div>
@@ -1117,11 +1117,11 @@
             if (btn) {
                 btn.disabled = true;
                 btn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
-                btn.innerHTML = state.exam && state.exam.active ? `<span>🎓</span><span>آزمون در جریان است؛ پاسخ را انتخاب کن</span>` : `<span>🔒</span><span>اول نت درست رو پیدا کن تا قفل باز بشه!</span>`;
+                btn.innerHTML = state.exam && state.exam.active ? (isEnglish()?`<span>🎓</span><span>Assessment in progress: select an answer</span>`:`<span>🎓</span><span>آزمون در جریان است؛ پاسخ را انتخاب کن</span>`) : (isEnglish()?`<span>🔒</span><span>Find the correct note to unlock the next question!</span>`:`<span>🔒</span><span>اول نت درست رو پیدا کن تا قفل باز بشه!</span>`);
             }
             if (lockBadge) {
                 lockBadge.className = 'text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-300';
-                lockBadge.textContent = '🔒 تا درست نگی سوال بعدی باز نمیشه!';
+                lockBadge.textContent = isEnglish()?'🔒 Get it right to unlock the next question!':'🔒 تا درست نگی سوال بعدی باز نمیشه!';
             }
         }
 
@@ -1131,11 +1131,11 @@
             if (btn) {
                 btn.disabled = false;
                 btn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 transition-all btn-cartoon bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 border-b-4 border-amber-700 glow-next-btn cursor-pointer';
-                btn.innerHTML = `<span>🎉</span><span>آفرین! بریم سوال بعدی ⬅️</span>`;
+                btn.innerHTML = isEnglish()?`<span>🎉</span><span>Great! Next question</span>`:`<span>🎉</span><span>آفرین! بریم سوال بعدی ⬅️</span>`;
             }
             if (lockBadge) {
                 lockBadge.className = 'text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-400';
-                lockBadge.textContent = '🔓 قفل باز شد! بریم نت بعدی!';
+                lockBadge.textContent = isEnglish()?'🔓 Unlocked! Next note.':'🔓 قفل باز شد! بریم نت بعدی!';
             }
         }
 
@@ -1926,7 +1926,7 @@ document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getIt
 #unlockOverlay button{border-radius:14px;padding:12px 18px;background:#7c3aed;color:#fff;font-weight:800;margin:8px}
 #unlockOverlay button.secondary{background:#64748b}#unlockOverlay input{width:100%;border:2px solid #a78bfa;border-radius:12px;padding:12px;text-align:center;font-size:20px}
 </style>
-<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 بخش والدین / Parents</button><button class="secondary" onclick="closeUnlock()">ادامه تمرین / Keep practicing</button><div id="parentChallenge" style="display:none"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="parentMath"></p><input id="parentAnswer" type="number" inputmode="numeric" aria-label="Parent challenge answer"><button onclick="checkParentGate()">تأیید / Continue</button><p id="parentMessage" aria-live="polite"></p></div></div></div>
+<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 <span class="only-fa">بخش والدین</span><span class="only-en">Parents</span></button><button class="secondary" onclick="closeUnlock()"><span class="only-fa">ادامه تمرین</span><span class="only-en">Keep practicing</span></button><div id="parentChallenge" style="display:none"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="parentMath"></p><input id="parentAnswer" type="number" inputmode="numeric" aria-label="Parent challenge answer"><button onclick="checkParentGate()"><span class="only-fa">تأیید</span><span class="only-en">Continue</span></button><p id="parentMessage" aria-live="polite"></p></div></div></div>
 <script>
 (function(){
 const thresholds={bass:85,rhythm:90};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
@@ -1952,7 +1952,7 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 <div id="parentHub" role="dialog" aria-modal="true" aria-label="Parent account"><div class="panel"><button class="close" type="button" aria-label="بستن / Close" onclick="closeParentHub()">×</button>
 <h2>👨‍👩‍👧 <span class="only-fa">حساب والدین</span><span class="only-en">Parent Account</span></h2>
 <p class="notice">🎹 <span class="only-fa">تمرین بدون ثبت‌نام امکان‌پذیر است. پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.</span><span class="only-en">Play without an account. Progress is currently saved on this device only.</span></p>
-<div id="parentHubGate"><p>لطفاً گوشی را به والدین بدهید.<br>Please hand the phone to a parent.</p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()"><span class="only-fa">تأیید والدین</span><span class="only-en">Verify parent</span></button><p id="hubGateMessage" role="status"></p></div>
+<div id="parentHubGate"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()"><span class="only-fa">تأیید والدین</span><span class="only-en">Verify parent</span></button><p id="hubGateMessage" role="status"></p></div>
 <div id="parentHubOptions" hidden><p>🔒 <b><span class="only-fa">وضعیت حساب: مهمان</span><span class="only-en">Account status: Guest</span></b></p>
 <button class="action" disabled>🔑 <span class="only-fa">ورود — به‌زودی</span><span class="only-en">Sign in — Coming soon</span></button>
 <button class="action" disabled>📝 <span class="only-fa">ثبت‌نام — به‌زودی</span><span class="only-en">Register — Coming soon</span></button>
