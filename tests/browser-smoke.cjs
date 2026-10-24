@@ -41,6 +41,9 @@ const { chromium }=require('playwright-core');
     await page.locator('#parentHubGate button').click();
     assert(await page.locator('#parentHubOptions').isVisible(),'Parent gate not passable');
     assert(await page.locator('#parentHubOptions button').first().isDisabled(),'Fake sign in must be disabled');
+    assert(await page.locator('button[onclick="termehReportErrors()"]').isVisible(),'Parent report button missing');
+    assert(await page.locator('button[onclick="termehCheckUpdates()"]').isVisible(),'Parent update button missing');
+    assert((await page.locator('#parentReportCount').innerText()).length>0,'Local diagnostic status missing');
     await page.locator('#parentHub .close').click();
     // Simulate previous legitimate practice history to exercise assessment UI.
     await page.evaluate(()=>{
