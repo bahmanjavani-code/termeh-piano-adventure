@@ -19,6 +19,18 @@ jobs:
           gradle-version: '8.7'
       - name: Build debug APK with runner Android SDK
         run: gradle --no-daemon :app:assembleDebug
+      - name: Verify final APK has no camera, microphone or location permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
+          test -x "$AAPT"
+          "$AAPT" dump permissions app/build/outputs/apk/debug/app-debug.apk | tee /tmp/termeh-permissions.txt
+          if grep -Ei 'android.permission.(RECORD_AUDIO|CAMERA|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION|ACCESS_BACKGROUND_LOCATION|ACCESS_MEDIA_LOCATION|LOCATION_HARDWARE)' /tmp/termeh-permissions.txt; then
+            echo "::error::Privacy check failed: forbidden permission in final APK"
+            exit 1
+          fi
+          echo "Privacy check passed: no microphone, camera or location permissions."
       - uses: actions/upload-artifact@v4
         with:
           name: Termeh-Piano-APK
