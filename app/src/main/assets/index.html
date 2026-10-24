@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>ماجراجویی پیانوی ترمه | نت‌آموز کوچولو</title>
 
-    <!-- Tailwind CSS: currently requires an internet connection -->
+    <!-- Offline bundled styles -->
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="offline.css">
 
     <!-- Google Font: Vazirmatn -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    
+    
 
     <style>
         * {
@@ -1833,5 +1833,18 @@
             switchGameMode('treble');
         };
     </script>
-</body>
+<style>#languageGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#60a5fa,#8b5cf6,#f472b6);display:flex;align-items:center;justify-content:center;padding:24px}#languageGate.hide{display:none}#languageGate .card{max-width:420px;width:100%;background:white;border:5px solid #fde68a;border-radius:32px;text-align:center;padding:30px 18px;box-shadow:0 18px 45px #312e8166}#languageGate button{display:block;width:100%;font-size:21px;font-weight:900;border-radius:20px;padding:18px;margin-top:14px;background:#7c3aed;color:white;box-shadow:0 5px 0 #4c1d95}#languageGate button:last-child{background:#ec4899;box-shadow:0 5px 0 #9d174d}#langSwitcher{position:fixed;bottom:10px;right:10px;z-index:35;background:#fff;color:#5b21b6;border:2px solid #c4b5fd;border-radius:15px;padding:8px 12px;font-weight:900}html[lang=en] body{direction:ltr}</style>
+<div id="languageGate"><div class="card"><div style="font-size:70px">🎹🌈</div><h2 style="color:#6d28d9">ماجراجویی پیانوی ترمه<br><span style="font-size:20px">Termeh's Piano Adventure</span></h2><p>زبان بازی را انتخاب کن / Choose your language</p><button onclick="chooseLanguage('fa')">🇮🇷 فارسی</button><button onclick="chooseLanguage('en')">🇬🇧 English</button></div></div><button id="langSwitcher" onclick="resetLanguage()">🌐 FA / EN</button>
+<script>
+(function(){
+const phrases=[
+['ماجراجویی پیانوی ترمه','Termeh’s Piano Adventure'],['نت‌آموز کوچولو','Little Music Explorer'],['همراه تو:','Your buddy:'],['قفسه جوایز','Trophy Room'],['راهنما: روشن','Hints: ON'],['راهنما: خاموش','Hints: OFF'],['مود کلید سل','Treble Clef'],['مود کلید فا','Bass Clef'],['کشش نت‌ها','Note Durations'],['تغییر دوست','Change Buddy'],['این کدوم نُته؟','Which note is this?'],['شنیدن صدای نت','Hear the note'],['روی کلید درستِ پیانو بزن:','Tap the correct piano key:'],['تا درست نگی سوال بعدی باز نمیشه!','Get it right to unlock the next question!'],['اول نت درست رو پیدا کن تا قفل باز بشه!','Find the correct note to unlock!'],['آفرین! بریم سوال بعدی','Great! Next question'],['قفل باز شد! بریم نت بعدی!','Unlocked! Next note!'],['درسنامه صوتی','Learn & Listen'],['مسابقه ضرب‌ها','Beat Quiz'],['بازی نگه داشتن نت','Hold the Note'],['سوال جدید','New Question'],['مرحله','Level'],['کشش:','Duration:'],['نت گرد','Whole note'],['نت سفید','Half note'],['نت سیاه','Quarter note'],['نت چنگ','Eighth note'],['دو (میانی)','Middle C'],['دو میانی','Middle C'],['دو (بالا)','High C'],['ر (بالا)','High D'],['می (بالا)','High E'],['فا (بالا)','High F'],['درست گفتی','Correct!'],['دوباره امتحان کن','Try again'],['سکه‌های تو:','Your coins:'],['ستاره‌ها:','Stars:'],['آماده‌ای؟','Ready?'],['هدف:','Target:'],['اینجا رو نگه دار و بشمار!','Hold here and count!'],['متوجه شدم، بریم سراغ بازی!','Got it! Let’s play!'],['دوست موسیقی‌دان خودت رو انتخاب کن!','Choose your musical buddy!'],['قفسه جوایز و استیکرها','Trophies & Stickers'],['راهنمای تبدیل به فایل APK و نصب روی گوشی','Android installation guide'],['کلید سل','Treble clef'],['کلید فا','Bass clef'],['ضرب','beat']
+];
+let observer;let current='fa';
+function translate(root){if(current!=='en')return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(node=>{if(node.parentElement&&['SCRIPT','STYLE'].includes(node.parentElement.tagName))return;let out=node.nodeValue;for(const [fa,en] of phrases)out=out.split(fa).join(en);if(out!==node.nodeValue)node.nodeValue=out;});}
+window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else location.reload()};
+window.resetLanguage=function(){localStorage.removeItem('termeh_language');location.reload()};
+document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getItem('termeh_language');if(saved==='en'||saved==='fa')chooseLanguage(saved)});
+})();
+</script></body>
 </html>
