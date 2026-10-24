@@ -17,6 +17,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
+      - name: Validate music theory, privacy, and JavaScript syntax
+        run: node tests/quality.test.cjs
       - name: Build debug APK with runner Android SDK
         run: gradle --no-daemon :app:assembleDebug
       - name: Verify final APK has no camera, microphone or location permissions
