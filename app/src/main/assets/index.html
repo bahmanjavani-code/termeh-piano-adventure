@@ -1,136 +1,1838 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>پیانوی ترمه</title><style>
-:root{font-family:Tahoma,Arial,sans-serif;color:#34305c}*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#fff3c9,#f8d8f8 55%,#d4f0ff);min-height:100vh}.wrap{max-width:620px;margin:auto;padding:18px}.hero{background:#fff9;border:2px solid #fff;border-radius:28px;padding:20px;text-align:center;box-shadow:0 12px 35px #a79ad444}h1{margin:4px;font-size:27px}h2{margin:10px 0}.muted{color:#716c91;font-size:14px}.stats{display:flex;justify-content:center;gap:18px;font-weight:bold;font-size:18px;margin:12px}.tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:15px 0}button{font:inherit;border:0;border-radius:16px;padding:13px 16px;cursor:pointer;background:#fff;color:#554681;box-shadow:0 3px 0 #ddd1e9;font-weight:bold}button.active{background:#6d55cf;color:white;box-shadow:0 3px 0 #4635a0}.card{background:#fffffff0;border-radius:24px;padding:20px;box-shadow:0 9px 25px #9e8db82e;margin-top:12px;text-align:center}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0}.answers button{background:#f3edff;font-size:19px}.answers button:active{transform:translateY(2px)}#feedback{min-height:34px;font-weight:bold;color:#5945b4}svg{max-width:100%;height:auto}#next:disabled{opacity:.4;filter:grayscale(1);cursor:not-allowed}#mascot{font-size:38px;min-height:55px;animation:bob 2s infinite}@keyframes bob{50%{transform:translateY(-6px)}}.flash{animation:flash .35s 3}@keyframes flash{50%{opacity:.2}}#shop{display:none}.shopitem{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #eae2fa}.pill{display:inline-block;background:#f4e7ff;padding:8px 12px;border-radius:20px;margin:4px}.note{font-size:65px;line-height:1.4}.footer{font-size:12px;color:#807a99;margin:20px;text-align:center}</style></head><body><main class="wrap"><header class="hero"><div style="font-size:50px">👧🏻🎹🌈</div><h1>دنیای جادویی پیانوی ترمه</h1><div class="muted">هر نت درست، یک قدم به سوی ستاره‌ها!</div><div id="mascot">🎹 ✨</div><div id="levelInfo" class="muted"></div><div class="stats"><span id="coins">🪙 ۰</span><span id="stars">⭐ ۰</span><span id="score">🏆 ۰</span></div></header><nav class="tabs"><button class="active" data-tab="bass">🎼 کلید فا</button><button data-tab="treble">🎵 کلید سل</button><button data-tab="rhythm">🥁 ریتم</button><button data-tab="shop">🛍️ فروشگاه</button></nav><section class="card" id="game"><h2 id="title">کلید فا</h2><p id="question">اسم این نت چیه؟</p><div id="visual"></div><div class="answers" id="answers"></div><div id="feedback" aria-live="polite"></div><button id="listen">🔊 صدای نت</button> <button id="next" disabled>🔒 سؤال بعدی</button></section><section class="card" id="shop"><h2>🛍️ فروشگاه ستاره‌ها</h2><p>با سکه‌های تمرین خرید کن!</p><div id="items"></div><div id="shopmsg"></div></section><p class="footer">نسخه آزمایشی ۲ — بدون خرید واقعی و بدون تبلیغات. تشخیص صدای پیانوی واقعی در این نسخه فعال نیست.</p></main><script>
-const names=['دو','ر','می','فا','سل','لا','سی'],notes=[{name:'سل',midi:43},{name:'لا',midi:45},{name:'سی',midi:47},{name:'دو',midi:48},{name:'ر',midi:50},{name:'می',midi:52},{name:'فا',midi:53},{name:'سل',midi:55},{name:'لا',midi:57}],treble=[{name:'می',midi:64},{name:'فا',midi:65},{name:'سل',midi:67},{name:'لا',midi:69},{name:'سی',midi:71},{name:'دو',midi:72},{name:'ر',midi:74},{name:'می',midi:76},{name:'فا',midi:77}];
-let tab='bass',answer='',currentMidi=60,coins=+(localStorage.getItem('termeh_coins')||0),stars=+(localStorage.getItem('termeh_stars')||0),owned=JSON.parse(localStorage.getItem('termeh_owned')||'[]'),audio,score=+(localStorage.getItem('termeh_score')||0),completed=JSON.parse(localStorage.getItem('termeh_completed')||'{"bass":0,"treble":0,"rhythm":0}'),solved=false,questionStart=Date.now();
-function update(){document.getElementById('coins').textContent='🪙 '+coins;document.getElementById('stars').textContent='⭐ '+stars;localStorage.setItem('termeh_coins',coins);localStorage.setItem('termeh_stars',stars);localStorage.setItem('termeh_score',score);localStorage.setItem('termeh_completed',JSON.stringify(completed));document.getElementById('score').textContent='🏆 '+score;document.getElementById('levelInfo').textContent='مرحله کلید فا: '+(completed.bass+1)+' | کلید سل: '+(completed.treble+1)+' | ریتم: '+(completed.rhythm+1);renderMascot()}
-// Piano-like plucked tone: layered harmonics, fast hammer attack, natural decay.
-function sound(midi,dur=.85){
- try{
-  audio=audio||new (window.AudioContext||window.webkitAudioContext)();
-  audio.resume();
-  const t=audio.currentTime, f=440*Math.pow(2,(midi-69)/12);
-  const master=audio.createGain();master.gain.value=.45;master.connect(audio.destination);
-  const harmonics=[1,.43,.21,.11,.055,.025];
-  harmonics.forEach((amp,i)=>{
-   const o=audio.createOscillator(),g=audio.createGain();
-   o.type='sine';o.frequency.setValueAtTime(f*(i+1)*(1+.00012*i*i),t);
-   g.gain.setValueAtTime(.00001,t);
-   g.gain.exponentialRampToValueAtTime(Math.max(.0001,amp*.35),t+.008+(i*.002));
-   g.gain.exponentialRampToValueAtTime(.00001,t+Math.max(.38,dur)*(1.7-i*.13));
-   o.connect(g).connect(master);o.start(t);o.stop(t+Math.max(.38,dur)*1.8+.05);
-  });
- }catch(e){}
-}
-function answerSound(val){
- if(tab==='rhythm')return;
- const pool=tab==='bass'?notes:treble;
- const found=pool.filter(n=>n.name===val).sort((a,b)=>Math.abs(a.midi-currentMidi)-Math.abs(b.midi-currentMidi))[0];
- if(found)sound(found.midi);
-}
-function staff(i,clef){const y=126-i*12;let lines='';for(let j=0;j<5;j++)lines+='<line x1="25" x2="325" y1="'+(126-j*24)+'" y2="'+(126-j*24)+'" stroke="#625b91" stroke-width="2"/>';let ledger='';if(i<0)for(let k=-2;k>=i;k-=2)ledger+='<line x1="151" x2="205" y1="'+(126-k*12)+'" y2="'+(126-k*12)+'" stroke="#625b91"/>';if(i>8)for(let k=10;k<=i;k+=2)ledger+='<line x1="151" x2="205" y1="'+(126-k*12)+'" y2="'+(126-k*12)+'" stroke="#625b91"/>';return '<svg viewBox="0 0 350 170" role="img" aria-label="نت روی پنج خط حامل">'+lines+ledger+'<text x="38" y="122" font-size="73" fill="#6550a7">'+(clef==='bass'?'𝄢':'𝄞')+'</text><ellipse cx="180" cy="'+y+'" rx="16" ry="11" transform="rotate(-20 180 '+y+')" fill="#e45f9b"/><line x1="194" y1="'+y+'" x2="194" y2="'+(y-53)+'" stroke="#e45f9b" stroke-width="4"/></svg>'}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ماجراجویی پیانوی ترمه | نت‌آموز کوچولو</title>
 
-const DUR={w:8,h:4,q:2,e:1,s:.5,wd:12,hd:6,qd:3,ed:1.5,rw:8,rh:4,rq:2,re:1,rs:.5,rhd:6,rqd:3};
-const rhythmQuestions=[
- {meter:'2/4',seq:['q','q'],unit:'h',kind:'equiv'},
- {meter:'4/4',seq:['h','h'],unit:'w',kind:'equiv'},
- {meter:'2/4',seq:['e','e','q'],unit:'h',kind:'equiv'},
- {meter:'3/4',seq:['qd','e','q'],unit:'h',kind:'equiv'},
- {meter:'4/4',seq:['q','rq','h'],unit:'h',kind:'equiv'},
- {meter:'3/4',seq:['h','rq'],unit:'q',kind:'equiv'},
- {meter:'4/4',seq:['rw'],unit:'h',kind:'equiv'},
- {meter:'2/4',seq:['rh'],unit:'q',kind:'equiv'},
- {meter:'4/4',seq:['hd','rq'],unit:'h',kind:'equiv'},
- {meter:'6/8',seq:['qd','qd'],unit:'qd',kind:'equiv'},
- {meter:'6/8',seq:['e','e','e','rqd'],unit:'q',kind:'equiv'},
- {meter:'2/4',seq:['s','s','e','rq'],unit:'q',kind:'equiv'},
- {meter:'3/4',seq:['q','rh'],unit:'h',kind:'equiv'},
- {meter:'2/4',seq:['q','rq'],kind:'meter'},
- {meter:'3/4',seq:['h','rq'],kind:'meter'},
- {meter:'4/4',seq:['q','q','rh'],kind:'meter'},
- {meter:'6/8',seq:['qd','rqd'],kind:'meter'},
- {meter:'6/8',seq:['e','e','e','e','e','e'],kind:'meter'},
- {meter:'3/4',seq:['hd'],kind:'meter'},
- {meter:'4/4',seq:['w'],kind:'meter'}
-];
-let rhythmCurrent=null,playToken=0,errorsThisQuestion=0;
-const valueNames={w:'گرد',h:'سفید',q:'سیاه',e:'چنگ',s:'دولاچنگ',qd:'سیاه نقطه‌دار'};
-function rhythmSVG(q){
- const seq=q.seq,w=Math.max(350,seq.length*62+95),unit=50;
- let x=80,marks='',lines='';
- for(let j=0;j<5;j++)lines+='<line x1="20" x2="'+(w-20)+'" y1="'+(120-j*18)+'" y2="'+(120-j*18)+'" stroke="#77719c" stroke-width="1.7"/>';
- for(const code of seq){
-  const rest=code[0]==='r',dot=code.endsWith('d'),base=code.replace(/^r/,'').replace(/d$/,'');
-  if(rest){
-   if(base==='w'||base==='h')marks+='<rect x="'+(x-12)+'" y="'+(base==='w'?66:84)+'" width="24" height="8" fill="#39334d"/>';
-   else if(base==='q')marks+='<path d="M '+x+' 62 q -14 12 0 20 l -7 11 q 17 -4 9 13 l -10 9" fill="none" stroke="#39334d" stroke-width="5"/>';
-   else marks+='<path d="M '+x+' 63 l 0 38 q 22 -12 7 -20" fill="none" stroke="#39334d" stroke-width="4"/>';
-  }else{
-   const fill=(base==='w'||base==='h')?'white':'#dc5399';
-   marks+='<ellipse cx="'+x+'" cy="85" rx="11" ry="8" transform="rotate(-18 '+x+' 85)" stroke="#6b4d8f" stroke-width="2" fill="'+fill+'"/>';
-   if(base!=='w')marks+='<path d="M '+(x+10)+' 83 v -44" stroke="#6b4d8f" stroke-width="3"/>';
-   if(base==='e'||base==='s')marks+='<path d="M '+(x+10)+' 39 q 24 8 13 25'+(base==='s'?' M '+(x+10)+' 49 q 24 8 13 25':'')+'" fill="none" stroke="#6b4d8f" stroke-width="3"/>';
-  }
-  if(dot)marks+='<circle cx="'+(x+18)+'" cy="'+(rest?88:85)+'" r="3.5" fill="#6b4d8f"/>';
-  x+=62;
- }
- const [rawNum,rawDen]=q.meter.split('/');const num=q.kind==='meter'?'?':rawNum,den=q.kind==='meter'?'?':rawDen;
- return '<svg viewBox="0 0 '+w+' 150" aria-label="میزان با نت‌ها و سکوت‌ها" role="img">'+lines+'<text x="37" y="78" font-size="27" font-weight="bold">'+num+'</text><text x="37" y="108" font-size="27" font-weight="bold">'+den+'</text>'+marks+'<line x1="'+(w-20)+'" x2="'+(w-20)+'" y1="48" y2="120" stroke="#555" stroke-width="3"/></svg>';
-}
-function rhythmAnswer(q){
- const eighths=q.seq.reduce((sum,c)=>sum+DUR[c],0);
- if(q.kind==='meter')return q.meter;
- return String(eighths/DUR[q.unit]);
-}
-function rhythmChoices(q){
- if(q.kind==='meter')return ['2/4','3/4','4/4','6/8'];
- const correct=+rhythmAnswer(q),opts=new Set([String(correct)]);
- for(const x of [correct-1,correct+1,correct/2,correct*2,.5,1,1.5,2,3,4,6])if(x>0&&opts.size<4)opts.add(String(x));
- return [...opts];
-}
-function clickTrack(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume();let o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type='sine';o.frequency.value=950;g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.0001,t+.045);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+.05)}catch(e){}}
-function playRhythm(){
- if(!rhythmCurrent)return;
- const token=++playToken,q=rhythmCurrent,ms=250,den=+q.meter.split('/')[1],total=q.seq.reduce((v,c)=>v+DUR[c],0);
- // One click per denominator unit; six-eight gets six eighth-note clicks.
- const beatEighths=8/den;
- for(let at=0;at<total;at+=beatEighths)setTimeout(()=>{if(token===playToken)clickTrack()},Math.round(at*ms));
- let at=0;
- for(const code of q.seq){
-  const pos=at;at+=DUR[code];
-  if(!code.startsWith('r'))setTimeout(()=>{if(token===playToken)sound(60,Math.max(.2,DUR[code]*ms/1000*.65))},Math.round(pos*ms));
- }
-}
+    <!-- Tailwind CSS (online fallback; local bundled stylesheet loads first) -->
+    <link rel="stylesheet" href="tailwind-local.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-function choices(correct,pool){let arr=[correct];for(const p of [...pool].sort(()=>Math.random()-.5))if(!arr.includes(p)&&arr.length<4)arr.push(p);arr.sort(()=>Math.random()-.5);document.getElementById('answers').innerHTML='';for(const val of arr){let b=document.createElement('button');b.textContent=val;b.onclick=()=>guess(val);document.getElementById('answers').appendChild(b)}}
-function newQuestion(){
- solved=false;errorsThisQuestion=0;playToken++;questionStart=Date.now();
- document.getElementById('next').disabled=true;document.getElementById('next').textContent='🔒 سؤال بعدی';
- document.getElementById('feedback').textContent='';
- document.getElementById('listen').style.display='inline-block';
- if(tab==='rhythm'){
-  const unlocked=Math.min(rhythmQuestions.length,Math.max(5,5+Math.floor((completed.rhythm||0)/3)*3));
-  rhythmCurrent=rhythmQuestions[Math.floor(Math.random()*unlocked)];
-  answer=rhythmAnswer(rhythmCurrent);
-  document.getElementById('title').textContent='🥁 وزن‌خوانی و سکوت‌ها';
-  document.getElementById('question').textContent=rhythmCurrent.kind==='meter'?'این میزان چه کسر میزانی دارد؟':'مجموع شکل‌های این میزان، معادل چند '+valueNames[rhythmCurrent.unit]+' است؟ (سکوت هم کشش دارد)';
-  document.getElementById('visual').innerHTML=rhythmSVG(rhythmCurrent);
-  document.getElementById('listen').textContent='▶️ شنیدن ریتم و سکوت‌ها';
-  choices(answer,rhythmChoices(rhythmCurrent));
- }else{
-  rhythmCurrent=null;document.getElementById('listen').textContent='🔊 صدای نت';
-  let list=tab==='bass'?notes:treble,i=Math.floor(Math.random()*list.length);
-  answer=list[i].name;currentMidi=list[i].midi;
-  document.getElementById('title').textContent=tab==='bass'?'🎼 کلید فا':'🎵 کلید سل';
-  document.getElementById('question').textContent='این نت چه اسمی دارد؟';
-  document.getElementById('visual').innerHTML=staff(i,tab);choices(answer,names);
- }
-}
-function renderMascot(){let m=document.getElementById('mascot');let earned=completed.bass+completed.treble+completed.rhythm;let icons=['🎹 ✨','🐱 🎹','🐱 🎀','🐱 🌈','🐱 👑'];let tier=earned>=30?4:earned>=18?3:earned>=8?2:earned>=1?1:0;m.textContent='🎹 ✨'+(owned.includes('گربه موزیسین')?' 🐱':'')+(owned.includes('پاپیون صورتی')?' 🎀':'')+(owned.includes('رنگین‌کمان جادویی')?' 🌈':'')+(owned.includes('تاج ستاره‌ای')?' 👑':'');}
-function celebrate(){let m=document.getElementById('mascot');m.classList.remove('flash');void m.offsetWidth;m.classList.add('flash');if(owned.includes('گربه موزیسین')){document.getElementById('feedback').textContent+=' 🐱 میو!';}}
-function guess(val){if(solved)return;answerSound(val);let f=document.getElementById('feedback');if(val===answer){solved=true;let seconds=(Date.now()-questionStart)/1000;let bonus=tab==='rhythm'?Math.max(0,Math.round(100-seconds*8)):Math.max(0,Math.round(50-seconds*3));bonus=Math.max(0,bonus-errorsThisQuestion*25);coins+=10;stars++;score+=100+bonus;completed[tab]=(completed[tab]||0)+1;update();f.textContent='🌟 آفرین ترمه! ۱۰ سکه و '+(100+bonus)+' امتیاز!';celebrate();document.querySelectorAll('#answers button').forEach(b=>b.disabled=true);document.getElementById('next').disabled=false;document.getElementById('next').textContent='🔓 سؤال بعدی'}else{errorsThisQuestion++;f.textContent='❌ هنوز درست نیست! دوباره تلاش کن؛ مرحله بعد قفل است.';document.getElementById('next').disabled=true}}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.tab;document.getElementById('game').style.display=tab==='shop'?'none':'block';document.getElementById('shop').style.display=tab==='shop'?'block':'none';if(tab==='shop')renderShop();else newQuestion()});
-document.getElementById('listen').onclick=()=>{if(tab==='rhythm')playRhythm();else sound(currentMidi,.7)};document.getElementById('next').onclick=()=>{if(solved)newQuestion()};
-const goods=[['🐱','گربه موزیسین',30,1],['🎀','پاپیون صورتی',20,8],['🌈','رنگین‌کمان جادویی',80,18],['👑','تاج ستاره‌ای',150,30]];
-function renderShop(){document.getElementById('items').innerHTML='';for(const [emoji,name,price,required] of goods){let row=document.createElement('div');row.className='shopitem';let label=document.createElement('span');label.textContent=emoji+' '+name;let btn=document.createElement('button');let unlocked=completed.bass+completed.treble+completed.rhythm>=required;btn.textContent=owned.includes(name)?'خریداری شده':!unlocked?'🔒 '+required+' پاسخ درست':'🪙 '+price;btn.disabled=owned.includes(name)||!unlocked;btn.onclick=()=>{if(coins<price){document.getElementById('shopmsg').textContent='سکه‌هات کمه! بیشتر تمرین کن 🌟';return}coins-=price;owned.push(name);localStorage.setItem('termeh_owned',JSON.stringify(owned));update();renderShop();document.getElementById('shopmsg').textContent='🎉 مبارکه! '+name+' مال تو شد!'};row.append(label,btn);document.getElementById('items').appendChild(row)}}
-update();newQuestion();
-</script></body></html>
+    <!-- Google Font: Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #60a5fa 0%, #a78bfa 45%, #f472b6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Floating Clouds & Notes Animation */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(4deg); }
+        }
+        @keyframes bounceJoy {
+            0%, 100% { transform: translateY(0) scale(1); }
+            30% { transform: translateY(-18px) scale(1.1); }
+            60% { transform: translateY(-6px) scale(1.04); }
+        }
+        @keyframes shakeWrong {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px) rotate(-2deg); }
+            40%, 80% { transform: translateX(10px) rotate(2deg); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7), 0 8px 0 #ca8a04; }
+            50% { box-shadow: 0 0 25px 10px rgba(250, 204, 21, 0.9), 0 8px 0 #ca8a04; }
+        }
+        @keyframes notePop {
+            0% { transform: scale(0.3); opacity: 0; }
+            70% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+        .animate-joy {
+            animation: bounceJoy 0.7s ease-in-out infinite;
+        }
+        .animate-shake {
+            animation: shakeWrong 0.45s ease-in-out;
+        }
+        .animate-note-pop {
+            animation: notePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .glow-next-btn {
+            animation: pulseGlow 1.5s infinite;
+        }
+
+        /* 3D Kid-Friendly Cartoon Buttons */
+        .btn-cartoon {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .btn-cartoon:active:not(:disabled) {
+            transform: translateY(5px);
+        }
+
+        /* Piano Keys Styling */
+        .piano-key-white {
+            transition: all 0.1s ease;
+            box-shadow: 0 8px 0 #cbd5e1, 0 12px 15px rgba(0,0,0,0.18);
+        }
+        .piano-key-white:active:not(:disabled),
+        .piano-key-white.key-pressed {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #94a3b8, 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        .piano-key-black {
+            background: linear-gradient(180deg, #334155 0%, #0f172a 100%);
+            box-shadow: 0 5px 0 #020617, 0 6px 8px rgba(0,0,0,0.35);
+            z-index: 20;
+        }
+        .piano-key-black:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #020617;
+        }
+
+        /* Speech Bubble Tail */
+        .speech-bubble {
+            position: relative;
+            background: #ffffff;
+            border: 4px solid #f59e0b;
+            border-radius: 1.5rem;
+        }
+
+        /* Confetti Canvas */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 58, 237, 0.5);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
+
+    <!-- Confetti Overlay Canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Floating Decorative Background Elements -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-35">
+        <div class="absolute top-8 right-6 text-4xl animate-float" style="animation-delay: 0s;">🎵</div>
+        <div class="absolute top-24 left-8 text-5xl animate-float" style="animation-delay: 1.2s;">☁️</div>
+        <div class="absolute bottom-28 right-10 text-4xl animate-float" style="animation-delay: 2s;">🎶</div>
+        <div class="absolute top-1/2 left-6 text-3xl animate-float" style="animation-delay: 0.7s;">⭐</div>
+        <div class="absolute bottom-12 left-16 text-5xl animate-float" style="animation-delay: 1.5s;">🌈</div>
+    </div>
+
+    <!-- Main Mobile-First Game Container -->
+    <div class="w-full max-w-lg z-10 flex flex-col gap-3">
+
+        <!-- TOP HEADER: Score, Stars, Coins, Trophy Room & Controls -->
+        <header class="bg-white/95 backdrop-blur-md rounded-3xl p-3 shadow-xl border-4 border-yellow-300 flex flex-wrap items-center justify-between gap-2">
+            <!-- App Title & Mascot Quick Switch -->
+            <div class="flex items-center gap-2">
+                <button onclick="openMascotModal()" title="تغییر کاراکتر" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-400 border-b-4 border-orange-600 flex items-center justify-center text-3xl shadow-md btn-cartoon">
+                    <span id="headerMascotIcon">🐼</span>
+                </button>
+                <div>
+                    <h1 class="font-black text-base sm:text-lg text-purple-800 leading-tight">ماجراجویی پیانوی ترمه 🎹</h1>
+                    <p id="headerMascotName" class="text-xs font-bold text-amber-600">همراه تو: پاندی پیانیست</p>
+                </div>
+            </div>
+
+            <!-- Rewards Counters -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Streak -->
+                <div class="bg-orange-100 border-2 border-orange-300 rounded-2xl px-2.5 py-1 flex items-center gap-1" title="پاسخ‌های درست متوالی">
+                    <span class="text-base">🔥</span>
+                    <span id="streakCount" class="font-black text-orange-600 text-sm sm:text-base">0</span>
+                </div>
+                <!-- Stars -->
+                <div class="bg-yellow-100 border-2 border-yellow-400 rounded-2xl px-2.5 py-1 flex items-center gap-1" title="ستاره‌های تو">
+                    <span class="text-base">⭐</span>
+                    <span id="starCount" class="font-black text-yellow-700 text-sm sm:text-base">0</span>
+                </div>
+                <!-- Coins -->
+                <div class="bg-amber-100 border-2 border-amber-400 rounded-2xl px-2.5 py-1 flex items-center gap-1" title="سکه‌های جایزه">
+                    <span class="text-base">🪙</span>
+                    <span id="coinCount" class="font-black text-amber-700 text-sm sm:text-base">0</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons Row (Trophies, Hint, Sound, APK Guide) -->
+            <div class="w-full flex items-center justify-between pt-2 border-t-2 border-dashed border-purple-100 gap-1.5">
+                <button onclick="openTrophyModal()" class="flex-1 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-amber-700 flex items-center justify-center gap-1.5 btn-cartoon shadow">
+                    <span>🏆</span>
+                    <span>قفسه جوایز</span>
+                    <span id="unlockedBadgeCount" class="bg-white text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-black">1/8</span>
+                </button>
+
+                <button id="hintToggleBtn" onclick="toggleHintMode()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-emerald-700 flex items-center gap-1 btn-cartoon shadow">
+                    <span>💡</span>
+                    <span id="hintBtnText">راهنما: روشن</span>
+                </button>
+
+                <button id="soundToggleBtn" onclick="toggleSound()" class="bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-sky-700 flex items-center gap-1 btn-cartoon shadow" title="قطع و وصل صدا">
+                    <span id="soundIcon">🔊</span>
+                </button>
+
+                <button onclick="openApkModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs sm:text-sm py-2 px-2.5 rounded-2xl border-b-4 border-purple-900 flex items-center gap-1 btn-cartoon shadow" title="راهنمای دریافت فایل APK">
+                    <span>📲</span>
+                    <span class="hidden sm:inline">نصب اپ</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- MODE SELECTOR TABS (3 Modes) -->
+        <nav class="grid grid-cols-3 gap-2">
+            <button id="modeTab-treble" onclick="switchGameMode('treble')" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-gradient-to-b from-pink-500 to-rose-600 text-white border-rose-800 shadow-lg scale-105">
+                <span class="text-2xl leading-none">𝄞</span>
+                <span>مود کلید سل</span>
+            </button>
+
+            <button id="modeTab-bass" onclick="switchGameMode('bass')" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
+                <span class="text-2xl leading-none">𝄢</span>
+                <span>مود کلید فا</span>
+            </button>
+
+            <button id="modeTab-rhythm" onclick="switchGameMode('rhythm')" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
+                <span class="text-2xl leading-none">⏱️</span>
+                <span>کشش نت‌ها</span>
+            </button>
+        </nav>
+
+        <!-- MASCOT & SPEECH BUBBLE AREA -->
+        <section class="bg-gradient-to-r from-indigo-900/90 via-purple-900/90 to-fuchsia-900/90 rounded-3xl p-3 shadow-xl border-4 border-purple-300 flex items-center gap-3 relative overflow-hidden">
+            <!-- Animated Mascot Character -->
+            <div onclick="openMascotModal()" class="cursor-pointer flex flex-col items-center shrink-0">
+                <div id="mascotAvatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-b from-yellow-200 to-amber-300 border-4 border-white shadow-lg flex items-center justify-center text-4xl sm:text-5xl transition-transform">
+                    🐼
+                </div>
+                <span class="text-[11px] text-yellow-200 font-bold mt-1 bg-black/30 px-2 py-0.5 rounded-full">تغییر دوست 🔄</span>
+            </div>
+
+            <!-- Dynamic Speech Bubble -->
+            <div class="speech-bubble flex-1 p-3 shadow-md">
+                <div class="flex items-center justify-between mb-1">
+                    <span id="bubbleTitle" class="text-xs font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">سوال جدید 🎯</span>
+                    <span id="levelProgressText" class="text-xs font-extrabold text-slate-500">مرحله ۱</span>
+                </div>
+                <p id="mascotSpeech" class="text-slate-800 font-extrabold text-sm sm:text-base leading-relaxed">
+                    سلام قهرمان کوچولو! 👋 به خط‌های حامل نگاه کن و بگو این کدوم نُته؟ روی کلاویه درست پیانو بزن!
+                </p>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- MAIN GAME STAGE: STAFF MODES (TREBLE & BASS CLEF)         -->
+        <!-- ======================================================== -->
+        <main id="staffGameArea" class="bg-white/95 rounded-3xl p-3 sm:p-4 shadow-2xl border-4 border-sky-300 flex flex-col gap-3">
+            
+            <!-- Top Question Banner & Replay Sound Button -->
+            <div class="flex items-center justify-between bg-sky-50 rounded-2xl px-3 py-2 border-2 border-sky-200">
+                <div class="flex items-center gap-2">
+                    <span id="clefBadge" class="bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm">کلید سل 𝄞</span>
+                    <h2 id="questionPrompt" class="font-black text-sm sm:text-base text-slate-800">این کدوم نُته؟ 🧐</h2>
+                </div>
+                <button onclick="playCurrentTargetNoteSound()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold text-xs px-3 py-1.5 rounded-xl border-b-4 border-amber-600 btn-cartoon flex items-center gap-1">
+                    <span>👂</span>
+                    <span>شنیدن صدای نت</span>
+                </button>
+            </div>
+
+            <!-- SVG MUSICAL STAFF (5 Lines + Clef + Active Note) -->
+            <div id="staffCard" class="relative bg-gradient-to-b from-amber-50/70 to-orange-50/50 rounded-2xl border-2 border-amber-200 p-2 flex flex-col items-center justify-center shadow-inner overflow-hidden">
+                <!-- Subtle Hint Banner Inside Staff -->
+                <div id="staffHintPill" class="w-full flex items-center justify-between px-2 mb-1 text-xs font-bold text-slate-600">
+                    <span id="staffPositionLabel" class="bg-white/90 border border-amber-300 px-2.5 py-0.5 rounded-full text-amber-900 shadow-sm">
+                        📍 موقعیت: در حال بارگذاری...
+                    </span>
+                    <span class="text-[11px] text-slate-400">خط‌ها از پایین به بالا ۱ تا ۵ شمرده می‌شن</span>
+                </div>
+
+                <!-- Dynamic SVG Staff Container -->
+                <div class="w-full overflow-hidden" dir="ltr">
+                    <svg id="musicStaffSvg" viewBox="0 0 500 200" class="w-full h-40 sm:h-48 drop-shadow-sm">
+                        <!-- Rendered dynamically via JS -->
+                    </svg>
+                </div>
+
+                <!-- Celebration Overlay Badge when Answered Correctly -->
+                <div id="correctOverlayBadge" class="hidden absolute top-3 left-3 bg-emerald-500 text-white font-black text-xs sm:text-sm px-3 py-1.5 rounded-2xl shadow-lg border-2 border-white flex items-center gap-1 animate-bounce">
+                    <span>🌟 آفرین! نت</span>
+                    <span id="correctNoteNameSpan" class="underline">دو</span>
+                </div>
+            </div>
+
+            <!-- COLORFUL INTERACTIVE PIANO KEYBOARD -->
+            <div class="flex flex-col gap-2 pt-1">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-extrabold text-purple-800">👇 روی کلید درستِ پیانو بزن:</span>
+                    <span id="lockStatusBadge" class="text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-300">
+                        🔒 تا درست نگی سوال بعدی باز نمیشه!
+                    </span>
+                </div>
+
+                <!-- Piano Container -->
+                <div dir="ltr" class="relative bg-slate-900 p-2.5 pt-4 rounded-3xl shadow-2xl border-4 border-slate-700 select-none">
+                    <!-- Decorative Piano Top Red Felt Strip -->
+                    <div class="w-full h-2 bg-rose-600 rounded-full mb-1.5 opacity-90"></div>
+
+                    <!-- Black Keys Row -->
+                    <div class="relative w-full h-0 pointer-events-none">
+                        <button onclick="playDecorativeSharp(0)" class="pointer-events-auto piano-key-black absolute top-0 left-[10.5%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
+                        <button onclick="playDecorativeSharp(1)" class="pointer-events-auto piano-key-black absolute top-0 left-[24.8%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
+                        <button onclick="playDecorativeSharp(2)" class="pointer-events-auto piano-key-black absolute top-0 left-[53.4%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
+                        <button onclick="playDecorativeSharp(3)" class="pointer-events-auto piano-key-black absolute top-0 left-[67.7%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
+                        <button onclick="playDecorativeSharp(4)" class="pointer-events-auto piano-key-black absolute top-0 left-[82%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
+                    </div>
+
+                    <!-- 7 White Keys (Do, Re, Mi, Fa, Sol, La, Si) -->
+                    <div id="pianoKeysGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                        <!-- Generated dynamically by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- STRICT PROGRESSION FOOTER: Next Note Button (Locked until correct!) -->
+            <div class="pt-1 flex items-center gap-2">
+                <button id="nextQuestionBtn" onclick="goToNextStaffQuestion()" disabled
+                    class="w-full py-3.5 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed">
+                    <span id="nextBtnIcon">🔒</span>
+                    <span id="nextBtnText">اول نت درست رو پیدا کن تا قفل باز بشه!</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- ======================================================== -->
+        <!-- MODE 3: NOTE DURATIONS & RHYTHM (آموزش و بازی کشش نت‌ها)  -->
+        <!-- ======================================================== -->
+        <main id="rhythmGameArea" class="hidden bg-white/95 rounded-3xl p-3 sm:p-4 shadow-2xl border-4 border-amber-300 flex flex-col gap-3">
+            
+            <!-- Sub-Mode Selector inside Rhythm Mode -->
+            <div class="grid grid-cols-3 gap-1.5 bg-amber-50 p-1.5 rounded-2xl border-2 border-amber-200">
+                <button id="rhythmSub-learn" onclick="switchRhythmSubMode('learn')" class="py-2 px-2 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-white shadow transition-all">
+                    📖 درسنامه صوتی
+                </button>
+                <button id="rhythmSub-quiz" onclick="switchRhythmSubMode('quiz')" class="py-2 px-2 rounded-xl font-black text-xs sm:text-sm text-amber-900 hover:bg-amber-100 transition-all">
+                    ❓ مسابقه ضرب‌ها
+                </button>
+                <button id="rhythmSub-hold" onclick="switchRhythmSubMode('hold')" class="py-2 px-2 rounded-xl font-black text-xs sm:text-sm text-amber-900 hover:bg-amber-100 transition-all">
+                    🎹 بازی نگه داشتن نت
+                </button>
+            </div>
+
+            <!-- 1. RHYTHM SUB-MODE: INTERACTIVE LEARNING CARDS -->
+            <div id="rhythmLearnSection" class="flex flex-col gap-3">
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-3 text-center">
+                    <p class="font-extrabold text-xs sm:text-sm text-purple-900">
+                        💡 روی هر کارت بزن تا صدای کشش نت و شمردن ضرب‌ها رو بشنوی!
+                    </p>
+                </div>
+
+                <!-- 4 Note Duration Cards Grid -->
+                <div id="durationCardsContainer" class="grid grid-cols-2 gap-2.5">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Live Beat Visualizer Bar when playing a card -->
+                <div class="bg-slate-900 text-white rounded-2xl p-3 flex flex-col items-center gap-2 border-4 border-purple-400">
+                    <span id="demoBeatStatus" class="text-xs font-extrabold text-amber-300">یک نت از بالا انتخاب کن تا بشماریم! 🎵</span>
+                    <div class="grid grid-cols-4 gap-2 w-full" dir="ltr">
+                        <div id="demoBeat-1" class="h-10 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-center font-black text-sm">۱ ضرب</div>
+                        <div id="demoBeat-2" class="h-10 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-center font-black text-sm">۲ ضرب</div>
+                        <div id="demoBeat-3" class="h-10 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-center font-black text-sm">۳ ضرب</div>
+                        <div id="demoBeat-4" class="h-10 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-center font-black text-sm">۴ ضرب</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. RHYTHM SUB-MODE: QUIZ (Strict Progression) -->
+            <div id="rhythmQuizSection" class="hidden flex-col gap-3">
+                <div class="bg-gradient-to-b from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 p-4 flex flex-col items-center text-center gap-2">
+                    <span id="rhythmQuizQuestionText" class="font-black text-base sm:text-lg text-indigo-950">
+                        این نت اسمش چیه و چند ضرب کشش داره؟
+                    </span>
+
+                    <!-- SVG Display of the Duration Note -->
+                    <div id="rhythmQuizSvgBox" class="w-32 h-32 bg-white rounded-3xl border-4 border-indigo-300 shadow-md flex items-center justify-center my-1">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <!-- Visual Apples/Beats helper -->
+                    <div id="rhythmQuizApples" class="flex items-center justify-center gap-2 text-2xl bg-amber-100/80 px-4 py-1.5 rounded-full border border-amber-300">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- 4 Multiple Choice Buttons -->
+                <div id="rhythmQuizOptions" class="grid grid-cols-2 gap-2.5">
+                    <!-- Injected via JS -->
+                </div>
+
+                <!-- Strict Next Button for Rhythm Quiz -->
+                <button id="nextRhythmQuizBtn" onclick="nextRhythmQuizQuestion()" disabled
+                    class="w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed">
+                    <span>🔒</span>
+                    <span>جواب درست رو انتخاب کن تا سوال بعدی باز بشه!</span>
+                </button>
+            </div>
+
+            <!-- 3. RHYTHM SUB-MODE: HOLD THE PIANO KEY FOR N BEATS -->
+            <div id="rhythmHoldSection" class="hidden flex-col gap-3">
+                <div class="bg-gradient-to-b from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 p-3 flex flex-col items-center text-center gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-emerald-600 text-white text-xs font-black px-2.5 py-1 rounded-xl">چالش ریتم ⏱️</span>
+                        <h3 id="holdTargetTitle" class="font-black text-base sm:text-lg text-emerald-950">
+                            نت سفید (۲ ضرب)
+                        </h3>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4 my-1">
+                        <div id="holdTargetSvg" class="w-24 h-24 bg-white rounded-2xl border-2 border-emerald-300 flex items-center justify-center shadow-sm">
+                            <!-- SVG -->
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-bold text-slate-600 mb-1">هدف این مرحله:</p>
+                            <p id="holdTargetDesc" class="font-black text-sm sm:text-base text-purple-800 bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-300">
+                                دکمه پیانو رو دقیقاً ۲ ضرب نگه دار!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 4 Beat Lights Meter -->
+                    <div class="w-full bg-slate-900 p-3 rounded-2xl border-4 border-slate-700 flex flex-col gap-2">
+                        <div class="flex items-center justify-between text-xs font-extrabold text-amber-300">
+                            <span id="holdLiveCounterText">آماده‌ای؟ دکمه پایین رو نگه دار!</span>
+                            <span id="holdTargetBeatBadge">هدف: ۲ ضرب</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2" dir="ltr">
+                            <div id="holdLight-1" class="h-11 rounded-xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center font-black text-xs text-slate-400 transition-all">
+                                <span>ضرب ۱</span>
+                            </div>
+                            <div id="holdLight-2" class="h-11 rounded-xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center font-black text-xs text-slate-400 transition-all">
+                                <span>ضرب ۲</span>
+                            </div>
+                            <div id="holdLight-3" class="h-11 rounded-xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center font-black text-xs text-slate-400 transition-all">
+                                <span>ضرب ۳</span>
+                            </div>
+                            <div id="holdLight-4" class="h-11 rounded-xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center font-black text-xs text-slate-400 transition-all">
+                                <span>ضرب ۴</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Giant Touch/Mouse Hold Piano Pad -->
+                    <button id="giantHoldPad"
+                        onmousedown="startRhythmHold(event)"
+                        onmouseup="endRhythmHold(event)"
+                        onmouseleave="cancelRhythmHoldIfActive(event)"
+                        ontouchstart="startRhythmHold(event)"
+                        ontouchend="endRhythmHold(event)"
+                        class="w-full py-5 rounded-3xl font-black text-lg sm:text-xl text-white bg-gradient-to-b from-fuchsia-500 to-purple-700 border-b-8 border-purple-900 shadow-xl flex flex-col items-center justify-center gap-1 active:translate-y-1 transition-all select-none">
+                        <span class="text-3xl">🎹👆</span>
+                        <span id="giantHoldPadLabel">اینجا رو نگه دار و بشمار!</span>
+                    </button>
+                </div>
+
+                <!-- Strict Next Button for Hold Game -->
+                <button id="nextHoldGameBtn" onclick="nextHoldChallenge()" disabled
+                    class="w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed">
+                    <span>🔒</span>
+                    <span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>
+                </button>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 1: MASCOT CHARACTER SELECTOR                       -->
+    <!-- ======================================================== -->
+    <div id="mascotModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 border-4 border-amber-400 shadow-2xl flex flex-col gap-4 animate-note-pop">
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3">
+                <h3 class="font-black text-lg text-purple-900">🐾 دوست موسیقی‌دان خودت رو انتخاب کن!</h3>
+                <button onclick="closeMascotModal()" class="w-9 h-9 rounded-full bg-rose-100 text-rose-600 font-black text-lg flex items-center justify-center">✕</button>
+            </div>
+            <div id="mascotListGrid" class="grid grid-cols-2 gap-3">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 2: TROPHY & STICKER SHOP ROOM (قفسه جوایز)          -->
+    <!-- ======================================================== -->
+    <div id="trophyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 border-4 border-yellow-400 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto animate-note-pop">
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-black text-lg text-amber-800">🏆 قفسه جوایز و استیکرها</h3>
+                    <p class="text-xs font-bold text-slate-500">با سکه‌هایی که از جواب‌های درست می‌گیری جایزه باز کن!</p>
+                </div>
+                <button onclick="closeTrophyModal()" class="w-9 h-9 rounded-full bg-rose-100 text-rose-600 font-black text-lg flex items-center justify-center">✕</button>
+            </div>
+
+            <!-- Current Wallet in Modal -->
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3 flex items-center justify-around">
+                <div class="flex items-center gap-1.5 font-black text-amber-800">
+                    <span class="text-2xl">🪙</span>
+                    <span>سکه‌های تو:</span>
+                    <span id="modalCoinBalance" class="text-lg text-amber-600">0</span>
+                </div>
+                <div class="flex items-center gap-1.5 font-black text-yellow-800">
+                    <span class="text-2xl">⭐</span>
+                    <span>ستاره‌ها:</span>
+                    <span id="modalStarBalance" class="text-lg text-yellow-600">0</span>
+                </div>
+            </div>
+
+            <div id="trophyGrid" class="grid grid-cols-2 gap-3">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 3: APK & MOBILE INSTALL GUIDE                      -->
+    <!-- ======================================================== -->
+    <div id="apkModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 border-4 border-purple-400 shadow-2xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto animate-note-pop">
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-2">
+                <h3 class="font-black text-base sm:text-lg text-purple-900">📲 راهنمای تبدیل به فایل APK و نصب روی گوشی</h3>
+                <button onclick="closeApkModal()" class="w-9 h-9 rounded-full bg-rose-100 text-rose-600 font-black text-lg flex items-center justify-center">✕</button>
+            </div>
+            <div class="text-xs sm:text-sm space-y-3 text-slate-700 leading-relaxed font-medium">
+                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-3">
+                    <p class="font-black text-purple-900 mb-1">روش اول: تبدیل ۱ دقیقه‌ای به فایل APK اندروید (بدون برنامه‌نویسی)</p>
+                    <ol class="list-decimal list-inside space-y-1">
+                        <li>کد این صفحه را با نام <code class="bg-white px-1.5 py-0.5 rounded border text-purple-700 font-bold">index.html</code> ذخیره کنید.</li>
+                        <li>نرم‌افزار رایگان <b>Website 2 APK Builder</b> (روی ویندوز) یا سایت <b>webintoapp.com</b> را باز کنید.</li>
+                        <li>گزینه <b>Local HTML Website</b> را انتخاب کرده و فایل <code class="bg-white px-1.5 py-0.5 rounded border text-purple-700 font-bold">index.html</code> را به آن بدهید.</li>
+                        <li>دکمه <b>Generate APK</b> را بزنید تا فایل نصبی اندروید با آیکون دلخواه شما ساخته شود!</li>
+                    </ol>
+                </div>
+                <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3">
+                    <p class="font-black text-emerald-900 mb-1">روش دوم: نصب مستقیم روی گوشی (PWA)</p>
+                    <p>اگر این فایل را در مرورگر کروم گوشی باز کنید و از منوی سه نقطه بالا گزینه <b>Add to Home Screen (افزودن به صفحه اصلی)</b> را بزنید، دقیقاً مثل یک بازی تمام‌صفحه روی گوشی نصب می‌شود و بدون اینترنت هم کار می‌کند!</p>
+                </div>
+            </div>
+            <button onclick="closeApkModal()" class="w-full py-2.5 bg-purple-600 text-white font-black rounded-2xl border-b-4 border-purple-800 btn-cartoon">
+                متوجه شدم، بریم سراغ بازی! 🎹
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- JAVASCRIPT: AUDIO SYNTHESIZER, MUSIC ENGINE & GAME LOGIC -->
+    <!-- ======================================================== -->
+    <script>
+        /**************************************************************
+         * 1. PERSISTENT STATE & REWARD DATA
+         **************************************************************/
+        const state = {
+            mode: 'treble',          // 'treble' | 'bass' | 'rhythm'
+            rhythmSubMode: 'learn',  // 'learn' | 'quiz' | 'hold'
+            stars: 0,
+            coins: 0,
+            streak: 0,
+            levelTreble: 1,
+            levelBass: 1,
+            levelRhythm: 1,
+            soundEnabled: true,
+            hintEnabled: true,
+            selectedMascotId: 'panda',
+            unlockedBadges: ['starter_star'],
+            currentStaffNote: null,
+            staffQuestionSolved: false,
+            wrongKeysPressed: new Set(),
+            currentRhythmQuiz: null,
+            rhythmQuizSolved: false,
+            currentHoldTargetIdx: 0,
+            holdChallengeSolved: false,
+            isHoldingPad: false,
+            holdStartTime: 0,
+            holdIntervalId: null,
+            holdOscillator: null
+        };
+
+        function loadSavedState() {
+            try {
+                const raw = localStorage.getItem('notAmoozKidsState_v1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    state.stars = parsed.stars || 0;
+                    state.coins = parsed.coins || 0;
+                    state.levelTreble = parsed.levelTreble || 1;
+                    state.levelBass = parsed.levelBass || 1;
+                    state.levelRhythm = parsed.levelRhythm || 1;
+                    state.selectedMascotId = parsed.selectedMascotId || 'panda';
+                    state.unlockedBadges = Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : ['starter_star'];
+                }
+            } catch (e) {
+                console.warn('Could not load saved state:', e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('notAmoozKidsState_v1', JSON.stringify({
+                    stars: state.stars,
+                    coins: state.coins,
+                    levelTreble: state.levelTreble,
+                    levelBass: state.levelBass,
+                    levelRhythm: state.levelRhythm,
+                    selectedMascotId: state.selectedMascotId,
+                    unlockedBadges: state.unlockedBadges
+                }));
+            } catch (e) {
+                console.warn('Could not save state:', e);
+            }
+        }
+
+        /**************************************************************
+         * 2. MASCOTS & TROPHIES DATABASE
+         **************************************************************/
+        const MASCOTS = [
+            {
+                id: 'panda',
+                name: 'پاندی پیانیست',
+                emoji: '🐼',
+                greeting: 'سلام دوست من! من پاندی هستم، بیا با هم نت‌های پیانو رو کشف کنیم!',
+                praise: ['آفرین قهرمان! دقیقاً درست زدی! 🌟', 'هورااا! چه گوش موسیقی قشنگ و دقیقی داری! 🎉', 'فوق‌العاده بود! پاندی بهت افتخار می‌کنه! 🐼💖']
+            },
+            {
+                id: 'lion',
+                name: 'شیرزاد آهنگساز',
+                emoji: '🦁',
+                greeting: 'غرش شادی! من شیرزاد رهبر ارکستر هستم! آماده‌ای نت‌ها رو بترکونیم؟',
+                praise: ['غرش پیروزی! مثل یک استاد واقعی نواختی! 🦁👑', 'بی‌نظیر بود! کل جنگل دارن دست می‌زنن! 👏', 'آفرین! یک ستاره طلایی دیگه گرفتی! ⭐']
+            },
+            {
+                id: 'bunny',
+                name: 'بانی ریتمیک',
+                emoji: '🐰',
+                greeting: 'بپر بالا! من بانی خرگوشه هستم، عاشق ریتم و نت‌های شادم! 🥕🎵',
+                praise: ['ایول! از خوشحالی دو متر پریدم هوا! 🐰✨', 'درستِ درست بود! تو نابغه موسیقی هستی! 🎶', 'چه صدای قشنگی! بریم سراغ نت بعدی! 🌟']
+            },
+            {
+                id: 'unicorn',
+                name: 'رنگین‌کمان آوازخوان',
+                emoji: '🦄',
+                greeting: 'سلام ستاره کوچولو! بیا با جادوی رنگ‌ها و موسیقی پیانو بزنیم! 🌈✨',
+                praise: ['جادویی بود! کل آسمون پر از ستاره شد! 🦄🌈', 'آفرین قشنگم! نت رو کاملاً درست شناختی! 💖', 'عالیه! قفل مرحله بعدی برات باز شد! 🔓🎉']
+            }
+        ];
+
+        const TROPHIES = [
+            { id: 'starter_star', name: 'نوازنده تازه‌کار', emoji: '🌟', cost: 0, desc: 'جایزه شروع ماجراجویی موسیقی!' },
+            { id: 'golden_piano', name: 'پیانوی طلایی', emoji: '🎹', cost: 20, desc: 'مخصوص بچه‌هایی که نت‌ها رو عالی می‌شناسن' },
+            { id: 'magic_violin', name: 'ویولن جادویی', emoji: '🎻', cost: 35, desc: 'ساز خوش‌صدای ارکستر کودکان' },
+            { id: 'rock_guitar', name: 'گیتار ستاره‌ای', emoji: '🎸', cost: 50, desc: 'جایزه قهرمان کلید سل و فا' },
+            { id: 'happy_drum', name: 'طبل ریتمیک', emoji: '🥁', cost: 70, desc: 'استاد شمردن ضرب و کشش نت‌ها' },
+            { id: 'gold_trumpet', name: 'ترومپت درخشان', emoji: '🎺', cost: 90, desc: 'ساز بادی شاد و پرانرژی' },
+            { id: 'mozart_crown', name: 'تاج موتسارت کوچولو', emoji: '👑', cost: 120, desc: 'بالاترین نشان افتخار نت‌آموز!' },
+            { id: 'rainbow_trophy', name: 'جام رنگین‌کمان', emoji: '🏆', cost: 150, desc: 'قهرمان تمام مودهای پیانو!' }
+        ];
+
+        /**************************************************************
+         * 3. MUSICAL NOTES DATABASE (TREBLE CLEF, BASS CLEF, DURATIONS)
+         **************************************************************/
+        const SOLFEGE_KEYS = [
+            { id: 'C', faName: 'دو', enName: 'C', colorHex: '#ef4444', bgClass: 'bg-red-500', lightBg: 'bg-red-100', borderClass: 'border-red-600', textClass: 'text-red-600' },
+            { id: 'D', faName: 'ر',  enName: 'D', colorHex: '#f97316', bgClass: 'bg-orange-500', lightBg: 'bg-orange-100', borderClass: 'border-orange-600', textClass: 'text-orange-600' },
+            { id: 'E', faName: 'می', enName: 'E', colorHex: '#eab308', bgClass: 'bg-yellow-500', lightBg: 'bg-yellow-100', borderClass: 'border-yellow-600', textClass: 'text-yellow-700' },
+            { id: 'F', faName: 'فا', enName: 'F', colorHex: '#22c55e', bgClass: 'bg-green-500', lightBg: 'bg-green-100', borderClass: 'border-green-600', textClass: 'text-green-600' },
+            { id: 'G', faName: 'سل', enName: 'G', colorHex: '#0ea5e9', bgClass: 'bg-sky-500', lightBg: 'bg-sky-100', borderClass: 'border-sky-600', textClass: 'text-sky-600' },
+            { id: 'A', faName: 'لا', enName: 'A', colorHex: '#6366f1', bgClass: 'bg-indigo-500', lightBg: 'bg-indigo-100', borderClass: 'border-indigo-600', textClass: 'text-indigo-600' },
+            { id: 'B', faName: 'سی', enName: 'B', colorHex: '#a855f7', bgClass: 'bg-purple-500', lightBg: 'bg-purple-100', borderClass: 'border-purple-600', textClass: 'text-purple-600' }
+        ];
+
+        // MODE 1: TREBLE CLEF NOTES (کلید سل)
+        const TREBLE_NOTES = [
+            {
+                code: 'C4', keyId: 'C', faName: 'دو (میانی)', freq: 261.63, svgY: 160, ledgerY: 160,
+                posText: 'روی خط کمکی پایین',
+                hintText: 'این نت یک خط کوچولوی کمکی زیر خطوط حامل داره! اولین نت یعنی «دو» (قرمز) است.'
+            },
+            {
+                code: 'D4', keyId: 'D', faName: 'ر', freq: 293.66, svgY: 150, ledgerY: null,
+                posText: 'چسبیده به زیر خط اول',
+                hintText: 'این نت درست زیر خط اول نشسته و یک پله بالاتر از دو است، یعنی نت «ر» (نارنجی)!'
+            },
+            {
+                code: 'E4', keyId: 'E', faName: 'می', freq: 329.63, svgY: 140, ledgerY: null,
+                posText: 'روی خط اول',
+                hintText: 'در کلید سل، نتی که روی خط اول (پایین‌ترین خط) می‌شینه نت «می» (زرد) است!'
+            },
+            {
+                code: 'F4', keyId: 'F', faName: 'فا', freq: 349.23, svgY: 130, ledgerY: null,
+                posText: 'بین خط ۱ و ۲',
+                hintText: 'این نت در فضای خالی اول (بین خط ۱ و ۲) قرار گرفته، یعنی نت «فا» (سبز)!'
+            },
+            {
+                code: 'G4', keyId: 'G', faName: 'سل', freq: 392.00, svgY: 120, ledgerY: null,
+                posText: 'روی خط دوم (خط کلید سل)',
+                hintText: 'کلید سل از روی خط دوم شروع میشه! پس نت روی خط دوم «سل» (آبی) است!'
+            },
+            {
+                code: 'A4', keyId: 'A', faName: 'لا', freq: 440.00, svgY: 110, ledgerY: null,
+                posText: 'بین خط ۲ و ۳',
+                hintText: 'این نت بین خط دوم و سوم نشسته (یک پله بالاتر از سل)، یعنی نت «لا» (نیلی)!'
+            },
+            {
+                code: 'B4', keyId: 'B', faName: 'سی', freq: 493.88, svgY: 100, ledgerY: null,
+                posText: 'روی خط سوم (خط وسط)',
+                hintText: 'در کلید سل، نتی که دقیقاً روی خط سوم (وسط) قرار داره نت «سی» (بنفش) است!'
+            },
+            {
+                code: 'C5', keyId: 'C', faName: 'دو (بالا)', freq: 523.25, svgY: 90, ledgerY: null,
+                posText: 'بین خط ۳ و ۴',
+                hintText: 'این نت بین خط سوم و چهارم نشسته و صدای زیرتری داره: نت «دو» (قرمز)!'
+            },
+            {
+                code: 'D5', keyId: 'D', faName: 'ر (بالا)', freq: 587.33, svgY: 80, ledgerY: null,
+                posText: 'روی خط چهارم',
+                hintText: 'در کلید سل، نتی که روی خط چهارم قرار داره نت «ر» (نارنجی) است!'
+            },
+            {
+                code: 'E5', keyId: 'E', faName: 'می (بالا)', freq: 659.25, svgY: 70, ledgerY: null,
+                posText: 'بین خط ۴ و ۵',
+                hintText: 'این نت در فضای بین خط چهارم و پنجم نشسته: نت «می» (زرد)!'
+            },
+            {
+                code: 'F5', keyId: 'F', faName: 'فا (بالا)', freq: 698.46, svgY: 60, ledgerY: null,
+                posText: 'روی خط پنجم (خط آخر)',
+                hintText: 'بالاترین خط (خط پنجم) در کلید سل مربوط به نت «فا» (سبز) است!'
+            }
+        ];
+
+        // MODE 2: BASS CLEF NOTES (کلید فا)
+        const BASS_NOTES = [
+            {
+                code: 'G2', keyId: 'G', faName: 'سل', freq: 98.00, svgY: 140, ledgerY: null,
+                posText: 'روی خط اول (در کلید فا)',
+                hintText: 'یادت باشه در کلید فا جای نت‌ها فرق داره! روی خط اولِ کلید فا، نت «سل» (آبی) می‌شینه!'
+            },
+            {
+                code: 'A2', keyId: 'A', faName: 'لا', freq: 110.00, svgY: 130, ledgerY: null,
+                posText: 'بین خط ۱ و ۲ (در کلید فا)',
+                hintText: 'در کلید فا، فضای بین خط اول و دوم مربوط به نت «لا» (نیلی) است!'
+            },
+            {
+                code: 'B2', keyId: 'B', faName: 'سی', freq: 123.47, svgY: 120, ledgerY: null,
+                posText: 'روی خط دوم (در کلید فا)',
+                hintText: 'در کلید فا، نتی که روی خط دوم قرار می‌گیره نت «سی» (بنفش) است!'
+            },
+            {
+                code: 'C3', keyId: 'C', faName: 'دو', freq: 130.81, svgY: 110, ledgerY: null,
+                posText: 'بین خط ۲ و ۳ (در کلید فا)',
+                hintText: 'در کلید فا، فضای بین خط دوم و سوم خانهٔ نت «دو» (قرمز) است!'
+            },
+            {
+                code: 'D3', keyId: 'D', faName: 'ر', freq: 146.83, svgY: 100, ledgerY: null,
+                posText: 'روی خط سوم / وسط (در کلید فا)',
+                hintText: 'در کلید فا، خط سوم (خط وسط) متعلق به نت «ر» (نارنجی) است!'
+            },
+            {
+                code: 'E3', keyId: 'E', faName: 'می', freq: 164.81, svgY: 90, ledgerY: null,
+                posText: 'بین خط ۳ و ۴ (در کلید فا)',
+                hintText: 'یک پله پایین‌تر از خط چهارم (بین خط ۳ و ۴ در کلید فا)، نت «می» (زرد) قرار داره!'
+            },
+            {
+                code: 'F3', keyId: 'F', faName: 'فا (خط کلید فا)', freq: 174.61, svgY: 80, ledgerY: null,
+                posText: 'روی خط چهارم (بین دو نقطه کلید فا!)',
+                hintText: 'راز بزرگ کلید فا: خط چهارم که بین دو تا نقطهٔ کلید فا قرار داره، همیشه نت «فا» (سبز) است!'
+            },
+            {
+                code: 'G3', keyId: 'G', faName: 'سل (بالا)', freq: 196.00, svgY: 70, ledgerY: null,
+                posText: 'بین خط ۴ و ۵ (در کلید فا)',
+                hintText: 'یک پله بالاتر از خط چهارم (فا)، یعنی بین خط ۴ و ۵، نت «سل» (آبی) قرار داره!'
+            },
+            {
+                code: 'A3', keyId: 'A', faName: 'لا (بالا)', freq: 220.00, svgY: 60, ledgerY: null,
+                posText: 'روی خط پنجم (در کلید فا)',
+                hintText: 'در کلید فا، بالاترین خط (خط پنجم) خانهٔ نت «لا» (نیلی) است!'
+            },
+            {
+                code: 'C4', keyId: 'C', faName: 'دو میانی', freq: 261.63, svgY: 40, ledgerY: 40,
+                posText: 'روی خط کمکی بالای کلید فا',
+                hintText: 'این نت با یک خط کمکی بالای خطوط کلید فا نوشته میشه و همون «دو میانی» (قرمز) است!'
+            }
+        ];
+
+        // MODE 3: NOTE DURATIONS (کشش نت‌ها)
+        const NOTE_DURATIONS = [
+            {
+                id: 'whole',
+                faName: 'نت گِرد',
+                beats: 4,
+                beatsLabel: '۴ ضرب',
+                apples: '🍎 🍎 🍎 🍎',
+                desc: 'مثل یک دایره توخالی بدون دسته است و از همه طولانی‌تر کشیده میشه (۴ شماره کامل)!',
+                color: 'from-rose-500 to-pink-600',
+                lightClass: 'bg-rose-50 border-rose-300 text-rose-900'
+            },
+            {
+                id: 'half',
+                faName: 'نت سفید',
+                beats: 2,
+                beatsLabel: '۲ ضرب',
+                apples: '🍎 🍎',
+                desc: 'شکم سفید و توخالی داره ولی برعکس نت گرد، یک دسته هم داره و ۲ شماره کشیده میشه!',
+                color: 'from-amber-400 to-orange-500',
+                lightClass: 'bg-amber-50 border-amber-300 text-amber-900'
+            },
+            {
+                id: 'quarter',
+                faName: 'نت سیاه',
+                beats: 1,
+                beatsLabel: '۱ ضرب',
+                apples: '🍎',
+                desc: 'شکم پر و سیاه با یک دسته داره و به اندازه ۱ شماره (یک قدم) کشیده میشه!',
+                color: 'from-emerald-500 to-teal-600',
+                lightClass: 'bg-emerald-50 border-emerald-300 text-emerald-900'
+            },
+            {
+                id: 'eighth',
+                faName: 'نت چنگ',
+                beats: 0.5,
+                beatsLabel: 'نیم ضرب (½)',
+                apples: '🍏 (نصف سیب)',
+                desc: 'شبیه نت سیاه است اما بالای دسته‌اش یک پرچم (چنگک) قشنگ داره و خیلی سریع (نیم ضرب) اجرا میشه!',
+                color: 'from-indigo-500 to-purple-600',
+                lightClass: 'bg-indigo-50 border-indigo-300 text-indigo-900'
+            }
+        ];
+
+        /**************************************************************
+         * 4. WEB AUDIO API SOUND ENGINE (REAL PIANO FREQUENCIES & SFX)
+         **************************************************************/
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playPianoTone(freq, durationSec = 0.85) {
+            if (!state.soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+
+                osc1.type = 'triangle';
+                osc1.frequency.setValueAtTime(freq, now);
+
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(freq * 2, now);
+
+                const osc2Gain = ctx.createGain();
+                osc2Gain.gain.setValueAtTime(0.18, now);
+
+                gainNode.gain.setValueAtTime(0.001, now);
+                gainNode.gain.linearRampToValueAtTime(0.45, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.18, now + 0.25);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
+
+                osc1.connect(gainNode);
+                osc2.connect(osc2Gain);
+                osc2Gain.connect(gainNode);
+                gainNode.connect(ctx.destination);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + durationSec + 0.05);
+                osc2.stop(now + durationSec + 0.05);
+            } catch (e) {
+                console.warn('Audio error:', e);
+            }
+        }
+
+        function playSuccessSound() {
+            if (!state.soundEnabled) return;
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((f, idx) => {
+                setTimeout(() => playPianoTone(f, 0.35), idx * 90);
+            });
+        }
+
+        function playWrongSound() {
+            if (!state.soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(190, now);
+                osc.frequency.linearRampToValueAtTime(135, now + 0.28);
+
+                gain.gain.setValueAtTime(0.16, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.32);
+            } catch (e) {}
+        }
+
+        function playMetronomeTick(isHigh = false) {
+            if (!state.soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isHigh ? 1000 : 700, now);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } catch (e) {}
+        }
+
+        function playDecorativeSharp(index) {
+            const sharpFreqs = [277.18, 311.13, 369.99, 415.30, 466.16];
+            playPianoTone(sharpFreqs[index] || 369.99, 0.5);
+        }
+
+        function playCurrentTargetNoteSound() {
+            if (state.currentStaffNote) {
+                playPianoTone(state.currentStaffNote.freq, 1.0);
+            }
+        }
+
+        /**************************************************************
+         * 5. SVG MUSICAL STAFF & CLEF RENDERER (TREBLE & BASS)
+         **************************************************************/
+        function renderMusicalStaffSvg() {
+            const svg = document.getElementById('musicStaffSvg');
+            const note = state.currentStaffNote;
+            if (!svg || !note) return;
+
+            const isTreble = state.mode === 'treble';
+            const keyMeta = SOLFEGE_KEYS.find(k => k.id === note.keyId);
+            const noteFillColor = (state.hintEnabled || state.staffQuestionSolved) ? keyMeta.colorHex : '#1e1b4b';
+
+            const stemDown = note.svgY <= 100;
+            const noteX = 300;
+            const noteY = note.svgY;
+
+            let staffLinesHtml = '';
+            const lineYs = [140, 120, 100, 80, 60];
+            lineYs.forEach((ly, idx) => {
+                const lineNum = idx + 1;
+                const isRefLine = (isTreble && lineNum === 2) || (!isTreble && lineNum === 4);
+                const strokeColor = isRefLine && state.hintEnabled ? '#f59e0b' : '#475569';
+                const strokeWidth = isRefLine && state.hintEnabled ? '3' : '2.2';
+
+                staffLinesHtml += `
+                    <line x1="35" y1="${ly}" x2="465" y2="${ly}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linecap="round" />
+                    <text x="478" y="${ly + 4}" font-size="12" font-weight="800" fill="#94a3b8" text-anchor="middle">${lineNum}</text>
+                `;
+            });
+
+            let clefHtml = '';
+            if (isTreble) {
+                clefHtml = `
+                    <g transform="translate(55, 18)">
+                        <text x="0" y="132" font-size="135" fill="#e11d48" font-family="serif" style="user-select:none;">𝄞</text>
+                        ${state.hintEnabled ? `<circle cx="33" cy="102" r="5" fill="#f59e0b" />` : ''}
+                    </g>
+                `;
+            } else {
+                clefHtml = `
+                    <g>
+                        <circle cx="76" cy="80" r="10" fill="#7c3aed" />
+                        <path d="M 76 80 C 76 54, 118 52, 118 84 C 118 112, 86 132, 65 142" fill="none" stroke="#7c3aed" stroke-width="9" stroke-linecap="round" />
+                        <circle cx="132" cy="70" r="5.5" fill="#e11d48" />
+                        <circle cx="132" cy="90" r="5.5" fill="#e11d48" />
+                    </g>
+                `;
+            }
+
+            let ledgerHtml = '';
+            if (note.ledgerY !== null) {
+                ledgerHtml = `
+                    <line x1="${noteX - 28}" y1="${note.ledgerY}" x2="${noteX + 28}" y2="${note.ledgerY}" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" />
+                `;
+            }
+
+            const stemX = stemDown ? (noteX - 13) : (noteX + 13);
+            const stemY2 = stemDown ? (noteY + 52) : (noteY - 52);            const noteLabel = (state.hintEnabled || state.staffQuestionSolved) ? keyMeta.faName : '؟';
+
+            svg.innerHTML = `
+                <line x1="35" y1="60" x2="35" y2="140" stroke="#334155" stroke-width="4" stroke-linecap="round" />
+                <line x1="465" y1="60" x2="465" y2="140" stroke="#334155" stroke-width="4" stroke-linecap="round" />
+                ${staffLinesHtml}
+                ${clefHtml}
+                ${ledgerHtml}
+                <g class="animate-note-pop" style="transform-origin: ${noteX}px ${noteY}px;">
+                    <ellipse cx="${noteX}" cy="${noteY}" rx="22" ry="16" fill="${noteFillColor}" opacity="0.22" />
+                    <line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemY2}" stroke="${noteFillColor}" stroke-width="4.5" stroke-linecap="round" />
+                    <ellipse cx="${noteX}" cy="${noteY}" rx="16" ry="12" transform="rotate(-18 ${noteX} ${noteY})" fill="${noteFillColor}" stroke="#ffffff" stroke-width="2.5" />
+                    <text x="${noteX}" y="${noteY + 5}" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle">${noteLabel}</text>
+                </g>
+            `;
+
+            const posLabel = document.getElementById('staffPositionLabel');
+            if (posLabel) {
+                posLabel.textContent = `📍 موقعیت نت: ${note.posText}`;
+            }
+        }
+
+        /**************************************************************
+         * 6. PIANO KEYBOARD RENDERER & STRICT INTERACTION LOGIC
+         **************************************************************/
+        function renderPianoKeyboard() {
+            const grid = document.getElementById('pianoKeysGrid');
+            if (!grid) return;
+
+            grid.innerHTML = SOLFEGE_KEYS.map(key => {
+                const isWrong = state.wrongKeysPressed.has(key.id);
+                const isSolvedRight = state.staffQuestionSolved && state.currentStaffNote && state.currentStaffNote.keyId === key.id;
+
+                const badgeColorClass = state.hintEnabled
+                    ? `${key.bgClass} text-white`
+                    : 'bg-slate-200 text-slate-700';
+
+                let extraBtnStyle = 'bg-white hover:bg-slate-50 border-2 border-slate-300';
+                if (isWrong) {
+                    extraBtnStyle = 'bg-rose-100 border-2 border-rose-400 opacity-60';
+                } else if (isSolvedRight) {
+                    extraBtnStyle = 'bg-emerald-100 border-4 border-emerald-500 ring-4 ring-emerald-300';
+                }
+
+                return `
+                    <button
+                        id="pianoKey-${key.id}"
+                        onclick="handlePianoKeyClick('${key.id}')"
+                        class="piano-key-white ${extraBtnStyle} h-36 sm:h-44 rounded-b-2xl rounded-t-lg flex flex-col items-center justify-end pb-3 px-1 relative select-none"
+                    >
+                        ${state.hintEnabled ? `<span class="w-3.5 h-3.5 rounded-full ${key.bgClass} mb-auto mt-14 shadow-sm"></span>` : ''}
+                        <span class="text-[11px] font-bold text-slate-400 mb-1">${key.enName}</span>
+                        <span class="w-full py-1.5 rounded-xl font-black text-sm sm:text-base shadow-sm ${badgeColorClass}">
+                            ${key.faName}
+                        </span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function handlePianoKeyClick(keyId) {
+            const target = state.currentStaffNote;
+            if (!target) return;
+
+            const keyBtn = document.getElementById(`pianoKey-${keyId}`);
+            if (keyBtn) {
+                keyBtn.classList.add('key-pressed');
+                setTimeout(() => keyBtn.classList.remove('key-pressed'), 180);
+            }
+
+            if (keyId === target.keyId) {
+                playPianoTone(target.freq, 0.9);
+
+                if (!state.staffQuestionSolved) {
+                    state.staffQuestionSolved = true;
+                    state.streak += 1;
+                    state.stars += 1;
+                    state.coins += 5;
+
+                    if (state.mode === 'treble') state.levelTreble += 1;
+                    else state.levelBass += 1;
+
+                    saveState();
+                    updateHeaderUI();
+                    playSuccessSound();
+                    launchConfetti();
+
+                    const mascot = getCurrentMascot();
+                    const praiseMsg = mascot.praise[Math.floor(Math.random() * mascot.praise.length)];
+                    setMascotBubble(
+                        'آفرین! درست گفتی! 🎉',
+                        `${praiseMsg} این نت «${target.faName}» (${target.posText}) بود! حالا دکمه زرد رنگ «نت بعدی» رو بزن!`,
+                        'joy'
+                    );
+
+                    const overlayBadge = document.getElementById('correctOverlayBadge');
+                    const nameSpan = document.getElementById('correctNoteNameSpan');
+                    if (overlayBadge && nameSpan) {
+                        nameSpan.textContent = target.faName;
+                        overlayBadge.classList.remove('hidden');
+                    }
+
+                    unlockStaffNextButton();
+                    renderMusicalStaffSvg();
+                    renderPianoKeyboard();
+                }
+            } else {
+                playWrongSound();
+                state.streak = 0;
+                state.wrongKeysPressed.add(keyId);
+                updateHeaderUI();
+
+                const staffCard = document.getElementById('staffCard');
+                if (staffCard) {
+                    staffCard.classList.remove('animate-shake');
+                    void staffCard.offsetWidth;
+                    staffCard.classList.add('animate-shake');
+                }
+
+                const pressedKeyMeta = SOLFEGE_KEYS.find(k => k.id === keyId);
+                setMascotBubble(
+                    'دوباره امتحان کن! 💡',
+                    `نه قشنگم، اون کلید «${pressedKeyMeta.faName}» بود! راهنمایی: ${target.hintText}`,
+                    'shake'
+                );
+
+                renderPianoKeyboard();
+            }
+        }
+
+        function lockStaffNextButton() {
+            const btn = document.getElementById('nextQuestionBtn');
+            const lockBadge = document.getElementById('lockStatusBadge');
+            if (btn) {
+                btn.disabled = true;
+                btn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
+                btn.innerHTML = `<span>🔒</span><span>اول نت درست رو پیدا کن تا قفل باز بشه!</span>`;
+            }
+            if (lockBadge) {
+                lockBadge.className = 'text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-300';
+                lockBadge.textContent = '🔒 تا درست نگی سوال بعدی باز نمیشه!';
+            }
+        }
+
+        function unlockStaffNextButton() {
+            const btn = document.getElementById('nextQuestionBtn');
+            const lockBadge = document.getElementById('lockStatusBadge');
+            if (btn) {
+                btn.disabled = false;
+                btn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 transition-all btn-cartoon bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 border-b-4 border-amber-700 glow-next-btn cursor-pointer';
+                btn.innerHTML = `<span>🎉</span><span>آفرین! بریم سوال بعدی ⬅️</span>`;
+            }
+            if (lockBadge) {
+                lockBadge.className = 'text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-400';
+                lockBadge.textContent = '🔓 قفل باز شد! بریم نت بعدی!';
+            }
+        }
+
+        function loadNewStaffQuestion() {
+            const pool = state.mode === 'treble' ? TREBLE_NOTES : BASS_NOTES;
+            let candidates = pool.filter(n => !state.currentStaffNote || n.code !== state.currentStaffNote.code);
+            if (candidates.length === 0) candidates = pool;
+
+            const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+            state.currentStaffNote = chosen;
+            state.staffQuestionSolved = false;
+            state.wrongKeysPressed.clear();
+
+            const overlayBadge = document.getElementById('correctOverlayBadge');
+            if (overlayBadge) overlayBadge.classList.add('hidden');
+
+            const clefBadge = document.getElementById('clefBadge');
+            const levelText = document.getElementById('levelProgressText');
+            if (state.mode === 'treble') {
+                if (clefBadge) {
+                    clefBadge.textContent = 'کلید سل 𝄞';
+                    clefBadge.className = 'bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
+                }
+                if (levelText) levelText.textContent = `مرحله ${state.levelTreble} (کلید سل)`;
+            } else {
+                if (clefBadge) {
+                    clefBadge.textContent = 'کلید فا 𝄢';
+                    clefBadge.className = 'bg-purple-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
+                }
+                if (levelText) levelText.textContent = `مرحله ${state.levelBass} (کلید فا)`;
+            }
+
+            lockStaffNextButton();
+
+            const clefName = state.mode === 'treble' ? 'کلید سل' : 'کلید فا';
+            setMascotBubble(
+                `سوال جدید در ${clefName} 🎯`,
+                `به خط‌های حامل نگاه کن! این نت که ${chosen.posText} قرار داره، کدوم نته؟ روی پیانو پیداش کن!`,
+                'normal'
+            );
+
+            renderMusicalStaffSvg();
+            renderPianoKeyboard();
+
+            setTimeout(() => {
+                playPianoTone(chosen.freq, 0.75);
+            }, 250);
+        }
+
+        function goToNextStaffQuestion() {
+            if (!state.staffQuestionSolved) return;
+            loadNewStaffQuestion();
+        }
+
+        /**************************************************************
+         * 7. MODE 3: NOTE DURATIONS & RHYTHM (کشش نت‌ها)
+         **************************************************************/
+        function getNoteDurationSvg(durationId, size = 75) {
+            if (durationId === 'whole') {
+                return `
+                    <svg viewBox="0 0 100 100" width="${size}" height="${size}">
+                        <ellipse cx="50" cy="55" rx="22" ry="15" fill="none" stroke="#e11d48" stroke-width="8" transform="rotate(-15 50 55)" />
+                    </svg>
+                `;
+            } else if (durationId === 'half') {
+                return `
+                    <svg viewBox="0 0 100 100" width="${size}" height="${size}">
+                        <line x1="65" y1="68" x2="65" y2="16" stroke="#d97706" stroke-width="6" stroke-linecap="round" />
+                        <ellipse cx="48" cy="70" rx="18" ry="13" fill="#ffffff" stroke="#d97706" stroke-width="7" transform="rotate(-18 48 70)" />
+                    </svg>
+                `;
+            } else if (durationId === 'quarter') {
+                return `
+                    <svg viewBox="0 0 100 100" width="${size}" height="${size}">
+                        <line x1="65" y1="68" x2="65" y2="16" stroke="#059669" stroke-width="6" stroke-linecap="round" />
+                        <ellipse cx="48" cy="70" rx="19" ry="14" fill="#059669" transform="rotate(-18 48 70)" />
+                    </svg>
+                `;
+            } else {
+                return `
+                    <svg viewBox="0 0 100 100" width="${size}" height="${size}">
+                        <line x1="60" y1="68" x2="60" y2="16" stroke="#4f46e5" stroke-width="6" stroke-linecap="round" />
+                        <path d="M 60 16 Q 88 26, 82 52 Q 78 36, 60 32 Z" fill="#4f46e5" />
+                        <ellipse cx="43" cy="70" rx="19" ry="14" fill="#4f46e5" transform="rotate(-18 43 70)" />
+                    </svg>
+                `;
+            }
+        }
+
+        function switchRhythmSubMode(subMode) {
+            state.rhythmSubMode = subMode;
+            const subIds = ['learn', 'quiz', 'hold'];
+            subIds.forEach(id => {
+                const btn = document.getElementById(`rhythmSub-${id}`);
+                if (!btn) return;
+                if (id === subMode) {
+                    btn.className = 'py-2 px-2 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-white shadow transition-all';
+                } else {
+                    btn.className = 'py-2 px-2 rounded-xl font-black text-xs sm:text-sm text-amber-900 hover:bg-amber-100 transition-all';
+                }
+            });
+
+            document.getElementById('rhythmLearnSection').classList.toggle('hidden', subMode !== 'learn');
+            document.getElementById('rhythmQuizSection').classList.toggle('hidden', subMode !== 'quiz');
+            document.getElementById('rhythmQuizSection').classList.toggle('flex', subMode === 'quiz');
+            document.getElementById('rhythmHoldSection').classList.toggle('hidden', subMode !== 'hold');
+            document.getElementById('rhythmHoldSection').classList.toggle('flex', subMode === 'hold');
+
+            if (subMode === 'learn') {
+                renderDurationLearnCards();
+                setMascotBubble('درسنامه کشش نت‌ها 📖', 'روی هر کدوم از نت‌های گرد، سفید، سیاه یا چنگ بزن تا ببینی چند ضرب طول می‌کشه!', 'normal');
+            } else if (subMode === 'quiz') {
+                loadNewRhythmQuizQuestion();
+            } else if (subMode === 'hold') {
+                loadHoldChallenge();
+            }
+        }
+
+        let demoTimerIds = [];
+        function renderDurationLearnCards() {
+            const container = document.getElementById('durationCardsContainer');
+            if (!container) return;
+
+            container.innerHTML = NOTE_DURATIONS.map(d => `
+                <button onclick="playDurationCardDemo('${d.id}')" class="btn-cartoon ${d.lightClass} border-2 border-b-4 rounded-2xl p-3 flex flex-col items-center text-center gap-1 shadow-sm hover:scale-[1.02]">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-inner flex items-center justify-center border">
+                        ${getNoteDurationSvg(d.id, 56)}
+                    </div>
+                    <h4 class="font-black text-sm sm:text-base mt-1">${d.faName}</h4>
+                    <span class="bg-white px-2.5 py-0.5 rounded-full text-xs font-black shadow-sm border">
+                        کشش: ${d.beatsLabel}
+                    </span>
+                    <div class="text-sm my-0.5">${d.apples}</div>
+                    <p class="text-[11px] leading-snug opacity-85 font-semibold">${d.desc}</p>
+                </button>
+            `).join('');
+        }
+
+        function playDurationCardDemo(durationId) {
+            demoTimerIds.forEach(t => clearTimeout(t));
+            demoTimerIds = [];
+
+            const item = NOTE_DURATIONS.find(d => d.id === durationId);
+            if (!item) return;
+
+            for (let i = 1; i <= 4; i++) {
+                const box = document.getElementById(`demoBeat-${i}`);
+                if (box) box.className = 'h-10 rounded-xl bg-slate-800 border-2 border-slate-600 flex items-center justify-center font-black text-sm text-slate-400 transition-all';
+            }
+
+            const statusEl = document.getElementById('demoBeatStatus');
+            if (statusEl) statusEl.textContent = `🔊 در حال اجرای «${item.faName}» (${item.beatsLabel})...`;
+
+            setMascotBubble(item.faName, item.desc, 'joy');
+
+            const beatMs = 650;
+            const totalDurationSec = (item.beats * beatMs) / 1000;
+            playPianoTone(392.00, totalDurationSec);
+
+            const fullBeatsToLight = Math.ceil(item.beats);
+            for (let b = 1; b <= fullBeatsToLight; b++) {
+                const tid = setTimeout(() => {
+                    playMetronomeTick(b === 1);
+                    const box = document.getElementById(`demoBeat-${b}`);
+                    if (box) {
+                        box.className = 'h-10 rounded-xl bg-amber-400 border-2 border-white flex items-center justify-center font-black text-sm text-slate-900 scale-105 shadow-lg transition-all';
+                        box.textContent = item.beats === 0.5 ? 'نیم ضرب!' : `ضرب ${b} ✨`;
+                    }
+                }, (b - 1) * beatMs);
+                demoTimerIds.push(tid);
+            }
+        }
+
+        function loadNewRhythmQuizQuestion() {
+            const candidates = NOTE_DURATIONS.filter(d => !state.currentRhythmQuiz || d.id !== state.currentRhythmQuiz.id);
+            const target = candidates[Math.floor(Math.random() * candidates.length)];
+            state.currentRhythmQuiz = target;
+            state.rhythmQuizSolved = false;
+
+            document.getElementById('rhythmQuizSvgBox').innerHTML = getNoteDurationSvg(target.id, 95);
+            document.getElementById('rhythmQuizApples').textContent = `کشش به اندازه: ${target.apples}`;
+
+            const optionsContainer = document.getElementById('rhythmQuizOptions');
+            optionsContainer.innerHTML = NOTE_DURATIONS.map(opt => `
+                <button id="rhythmOpt-${opt.id}" onclick="handleRhythmQuizAnswer('${opt.id}')"
+                    class="btn-cartoon py-3 px-3 rounded-2xl font-black text-sm sm:text-base bg-white hover:bg-indigo-50 text-indigo-950 border-2 border-b-4 border-indigo-300 shadow flex flex-col items-center gap-1">
+                    <span>${opt.faName}</span>
+                    <span class="text-xs font-extrabold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">${opt.beatsLabel}</span>
+                </button>
+            `).join('');
+
+            const nextBtn = document.getElementById('nextRhythmQuizBtn');
+            nextBtn.disabled = true;
+            nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
+            nextBtn.innerHTML = `<span>🔒</span><span>جواب درست رو انتخاب کن تا سوال بعدی باز بشه!</span>`;
+
+            setMascotBubble('مسابقه کشش نت‌ها ⏱️', 'به شکل این نت نگاه کن! اسمش چیه و چند ضرب کشش داره؟', 'normal');
+        }
+
+        function handleRhythmQuizAnswer(selectedId) {
+            const target = state.currentRhythmQuiz;
+            if (!target) return;
+
+            const btn = document.getElementById(`rhythmOpt-${selectedId}`);
+
+            if (selectedId === target.id) {
+                if (!state.rhythmQuizSolved) {
+                    state.rhythmQuizSolved = true;
+                    state.stars += 1;
+                    state.coins += 5;
+                    state.streak += 1;
+                    state.levelRhythm += 1;
+                    saveState();
+                    updateHeaderUI();
+                    playSuccessSound();
+                    launchConfetti();
+
+                    if (btn) {
+                        btn.className = 'btn-cartoon py-3 px-3 rounded-2xl font-black text-sm sm:text-base bg-emerald-500 text-white border-2 border-b-4 border-emerald-700 shadow-lg flex flex-col items-center gap-1 scale-105';
+                    }
+
+                    setMascotBubble('آفرین! کاملاً درسته! 🌟', `این «${target.faName}» است که به اندازه «${target.beatsLabel}» کشیده میشه!`, 'joy');
+
+                    const nextBtn = document.getElementById('nextRhythmQuizBtn');
+                    nextBtn.disabled = false;
+                    nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 border-b-4 border-amber-700 glow-next-btn cursor-pointer';
+                    nextBtn.innerHTML = `<span>🎉</span><span>عالی بود! سوال بعدی ⬅️</span>`;
+                }
+            } else {
+                playWrongSound();
+                state.streak = 0;
+                updateHeaderUI();
+                if (btn) {
+                    btn.className = 'btn-cartoon py-3 px-3 rounded-2xl font-black text-sm sm:text-base bg-rose-100 text-rose-500 border-2 border-rose-300 opacity-60 flex flex-col items-center gap-1 animate-shake';
+                }
+                setMascotBubble('دقت کن دوست من! 💡', `راهنمایی: ${target.desc}`, 'shake');
+            }
+        }
+
+        function nextRhythmQuizQuestion() {
+            if (!state.rhythmQuizSolved) return;
+            loadNewRhythmQuizQuestion();
+        }
+
+        const HOLD_CHALLENGES = [
+            NOTE_DURATIONS[2],
+            NOTE_DURATIONS[1],
+            NOTE_DURATIONS[0]
+        ];
+
+        function loadHoldChallenge() {
+            state.holdChallengeSolved = false;
+            const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+
+            document.getElementById('holdTargetTitle').textContent = `${target.faName} (${target.beatsLabel})`;
+            document.getElementById('holdTargetSvg').innerHTML = getNoteDurationSvg(target.id, 75);
+            document.getElementById('holdTargetDesc').textContent = `کلید پیانو رو دقیقاً ${target.beats} ضرب نگه دار و بعد رها کن!`;
+            document.getElementById('holdTargetBeatBadge').textContent = `هدف: ${target.beats} ضرب`;
+            document.getElementById('holdLiveCounterText').textContent = 'دکمه بنفش پایین رو نگه دار!';
+
+            resetHoldBeatLights(target.beats);
+
+            const nextBtn = document.getElementById('nextHoldGameBtn');
+            nextBtn.disabled = true;
+            nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
+            nextBtn.innerHTML = `<span>🔒</span><span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>`;
+
+            setMascotBubble('چالش نگه داشتن نت 🎹', `الان نوبت «${target.faName}» است! دکمه بزرگ پیانو رو نگه دار تا ${target.beats} چراغ روشن بشه و بعد رها کن!`, 'normal');
+        }
+
+        function resetHoldBeatLights(targetBeats) {
+            for (let i = 1; i <= 4; i++) {
+                const el = document.getElementById(`holdLight-${i}`);
+                if (!el) continue;
+                const isTargetRange = i <= targetBeats;
+                el.className = `h-11 rounded-xl ${isTargetRange ? 'bg-slate-800 border-2 border-emerald-500/60 text-emerald-300' : 'bg-slate-800/50 border border-slate-700 text-slate-600'} flex flex-col items-center justify-center font-black text-xs transition-all`;
+                el.innerHTML = `<span>ضرب ${i}</span>${i === targetBeats ? '<span class="text-[9px] text-amber-300">🎯 هدف</span>' : ''}`;
+            }
+        }
+
+        let currentHeldBeats = 0;
+
+        function startRhythmHold(e) {
+            if (e && e.cancelable) e.preventDefault();
+            if (state.isHoldingPad) return;
+
+            const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+            state.isHoldingPad = true;
+            currentHeldBeats = 1;
+            resetHoldBeatLights(target.beats);
+
+            const padLabel = document.getElementById('giantHoldPadLabel');
+            if (padLabel) padLabel.textContent = 'نگه داشتی... بشمار! 🎵';
+
+            if (state.soundEnabled) {
+                try {
+                    const ctx = getAudioContext();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(329.63, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.28, ctx.currentTime);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    state.holdOscillator = { osc, gain };
+                } catch (err) {}
+            }
+
+            highlightHoldBeat(1, target.beats);
+            playMetronomeTick(true);
+
+            state.holdIntervalId = setInterval(() => {
+                currentHeldBeats += 1;
+                if (currentHeldBeats <= 4) {
+                    highlightHoldBeat(currentHeldBeats, target.beats);
+                    playMetronomeTick(false);
+                } else {
+                    document.getElementById('holdLiveCounterText').textContent = 'زیاد نگه داشتی! رها کن! 😅';
+                }
+            }, 650);
+        }
+
+        function highlightHoldBeat(beatNum, targetBeats) {
+            const el = document.getElementById(`holdLight-${beatNum}`);
+            if (el) {
+                const isGood = beatNum <= targetBeats;
+                el.className = `h-11 rounded-xl ${isGood ? 'bg-emerald-400 text-slate-900 border-2 border-white' : 'bg-rose-500 text-white border-2 border-white'} flex flex-col items-center justify-center font-black text-xs scale-105 shadow-lg transition-all`;
+            }
+            document.getElementById('holdLiveCounterText').textContent = `شمردن: ${beatNum} ضرب...`;
+        }
+
+        function stopHoldSoundAndTimer() {
+            if (state.holdIntervalId) {
+                clearInterval(state.holdIntervalId);
+                state.holdIntervalId = null;
+            }
+            if (state.holdOscillator) {
+                try {
+                    state.holdOscillator.gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                    state.holdOscillator.osc.stop(audioCtx.currentTime + 0.09);
+                } catch (e) {}
+                state.holdOscillator = null;
+            }
+        }
+
+        function cancelRhythmHoldIfActive(e) {
+            if (state.isHoldingPad) {
+                endRhythmHold(e);
+            }
+        }
+
+        function endRhythmHold(e) {
+            if (e && e.cancelable) e.preventDefault();
+            if (!state.isHoldingPad) return;
+            state.isHoldingPad = false;
+            stopHoldSoundAndTimer();
+
+            const padLabel = document.getElementById('giantHoldPadLabel');
+            if (padLabel) padLabel.textContent = 'اینجا رو نگه دار و بشمار!';
+
+            const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+
+            if (currentHeldBeats === target.beats) {
+                if (!state.holdChallengeSolved) {
+                    state.holdChallengeSolved = true;
+                    state.stars += 1;
+                    state.coins += 5;
+                    state.streak += 1;
+                    saveState();
+                    updateHeaderUI();
+                }
+                playSuccessSound();
+                launchConfetti();
+                document.getElementById('holdLiveCounterText').textContent = `🌟 عالی! دقیقاً ${target.beats} ضرب نگه داشتی!`;
+                setMascotBubble('ریتم عالی! 🎉', `دقیقاً به اندازه «${target.faName}» (${target.beats} ضرب) نگه داشتی! قفل مرحله بعد باز شد!`, 'joy');
+
+                const nextBtn = document.getElementById('nextHoldGameBtn');
+                nextBtn.disabled = false;
+                nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 border-b-4 border-amber-700 glow-next-btn cursor-pointer';
+                nextBtn.innerHTML = `<span>🎉</span><span>آفرین! بریم چالش ریتم بعدی ⬅️</span>`;
+            } else {
+                playWrongSound();
+                const diffMsg = currentHeldBeats < target.beats
+                    ? `زود رها کردی (${currentHeldBeats} ضرب)! باید تا ضرب ${target.beats} نگه داری.`
+                    : `بیشتر از ${target.beats} ضرب نگه داشتی! سر ضرب ${target.beats} رها کن.`;
+                document.getElementById('holdLiveCounterText').textContent = diffMsg;
+                setMascotBubble('دوباره امتحان کن! ⏱️', diffMsg, 'shake');
+            }
+        }
+
+        function nextHoldChallenge() {
+            if (!state.holdChallengeSolved) return;
+            state.currentHoldTargetIdx += 1;
+            loadHoldChallenge();
+        }
+
+        /**************************************************************
+         * 8. MODE SWITCHING, MASCOT UI & TROPHY SHOP
+         **************************************************************/
+        function switchGameMode(newMode) {
+            state.mode = newMode;
+
+            const modes = [
+                { id: 'treble', activeClass: 'bg-gradient-to-b from-pink-500 to-rose-600 text-white border-rose-800 shadow-lg scale-105' },
+                { id: 'bass',   activeClass: 'bg-gradient-to-b from-purple-500 to-indigo-600 text-white border-indigo-800 shadow-lg scale-105' },
+                { id: 'rhythm', activeClass: 'bg-gradient-to-b from-amber-400 to-orange-500 text-white border-orange-700 shadow-lg scale-105' }
+            ];
+
+            modes.forEach(m => {
+                const tab = document.getElementById(`modeTab-${m.id}`);
+                if (!tab) return;
+                if (m.id === newMode) {
+                    tab.className = `btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all ${m.activeClass}`;
+                } else {
+                    tab.className = 'btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow';
+                }
+            });
+
+            const staffArea = document.getElementById('staffGameArea');
+            const rhythmArea = document.getElementById('rhythmGameArea');
+
+            if (newMode === 'treble' || newMode === 'bass') {
+                staffArea.classList.remove('hidden');
+                rhythmArea.classList.add('hidden');
+                loadNewStaffQuestion();
+            } else {
+                staffArea.classList.add('hidden');
+                rhythmArea.classList.remove('hidden');
+                switchRhythmSubMode(state.rhythmSubMode);
+            }
+        }
+
+        function getCurrentMascot() {
+            return MASCOTS.find(m => m.id === state.selectedMascotId) || MASCOTS[0];
+        }
+
+        function setMascotBubble(title, speechText, animType = 'normal') {
+            const titleEl = document.getElementById('bubbleTitle');
+            const speechEl = document.getElementById('mascotSpeech');
+            const avatarEl = document.getElementById('mascotAvatar');
+
+            if (titleEl) titleEl.textContent = title;
+            if (speechEl) speechEl.textContent = speechText;
+
+            if (avatarEl) {
+                avatarEl.classList.remove('animate-joy', 'animate-shake');
+                void avatarEl.offsetWidth;
+                if (animType === 'joy') {
+                    avatarEl.classList.add('animate-joy');
+                    setTimeout(() => avatarEl.classList.remove('animate-joy'), 1400);
+                } else if (animType === 'shake') {
+                    avatarEl.classList.add('animate-shake');
+                }
+            }
+        }
+
+        function updateHeaderUI() {
+            const mascot = getCurrentMascot();
+            document.getElementById('headerMascotIcon').textContent = mascot.emoji;
+            document.getElementById('headerMascotName').textContent = `همراه تو: ${mascot.name}`;
+            document.getElementById('mascotAvatar').textContent = mascot.emoji;
+
+            document.getElementById('starCount').textContent = state.stars;
+            document.getElementById('coinCount').textContent = state.coins;
+            document.getElementById('streakCount').textContent = state.streak;
+            document.getElementById('unlockedBadgeCount').textContent = `${state.unlockedBadges.length}/${TROPHIES.length}`;
+        }
+
+        function toggleHintMode() {
+            state.hintEnabled = !state.hintEnabled;
+            const btn = document.getElementById('hintToggleBtn');
+            const text = document.getElementById('hintBtnText');
+            if (state.hintEnabled) {
+                btn.className = 'bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-emerald-700 flex items-center gap-1 btn-cartoon shadow';
+                text.textContent = 'راهنما: روشن';
+            } else {
+                btn.className = 'bg-slate-400 hover:bg-slate-500 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-slate-600 flex items-center gap-1 btn-cartoon shadow';
+                text.textContent = 'راهنما: خاموش';
+            }
+            if (state.mode !== 'rhythm') {
+                renderMusicalStaffSvg();
+                renderPianoKeyboard();
+            }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            const btn = document.getElementById('soundToggleBtn');
+            if (state.soundEnabled) {
+                icon.textContent = '🔊';
+                btn.className = 'bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-sky-700 flex items-center gap-1 btn-cartoon shadow';
+                playPianoTone(523.25, 0.3);
+            } else {
+                icon.textContent = '🔇';
+                btn.className = 'bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-2xl border-b-4 border-rose-700 flex items-center gap-1 btn-cartoon shadow';
+            }
+        }
+
+        function openMascotModal() {
+            const grid = document.getElementById('mascotListGrid');
+            grid.innerHTML = MASCOTS.map(m => {
+                const isSelected = m.id === state.selectedMascotId;
+                return `
+                    <button onclick="selectMascot('${m.id}')" class="btn-cartoon p-3 rounded-2xl border-4 flex flex-col items-center gap-1.5 ${isSelected ? 'bg-amber-100 border-amber-500 shadow-md' : 'bg-slate-50 border-slate-200 hover:bg-amber-50'}">
+                        <span class="text-5xl">${m.emoji}</span>
+                        <span class="font-black text-sm text-purple-900">${m.name}</span>
+                        <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full ${isSelected ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'}">
+                            ${isSelected ? '✓ انتخاب شده' : 'انتخاب کاراکتر'}
+                        </span>
+                    </button>
+                `;
+            }).join('');
+            const modal = document.getElementById('mascotModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeMascotModal() {
+            const modal = document.getElementById('mascotModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function selectMascot(id) {
+            state.selectedMascotId = id;
+            saveState();
+            updateHeaderUI();
+            const m = getCurrentMascot();
+            setMascotBubble(`سلام از طرف ${m.name}!`, m.greeting, 'joy');
+            playSuccessSound();
+            closeMascotModal();
+        }
+
+        function openTrophyModal() {
+            renderTrophyModalContent();
+            const modal = document.getElementById('trophyModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTrophyModal() {
+            const modal = document.getElementById('trophyModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function renderTrophyModalContent() {
+            document.getElementById('modalCoinBalance').textContent = state.coins;
+            document.getElementById('modalStarBalance').textContent = state.stars;
+
+            const grid = document.getElementById('trophyGrid');
+            grid.innerHTML = TROPHIES.map(t => {
+                const isUnlocked = state.unlockedBadges.includes(t.id);
+                const canAfford = state.coins >= t.cost;
+
+                return `
+                    <div class="p-3 rounded-2xl border-2 flex flex-col items-center text-center gap-1.5 ${isUnlocked ? 'bg-gradient-to-b from-yellow-50 to-amber-100 border-amber-400 shadow' : 'bg-slate-100 border-slate-300 opacity-85'}">
+                        <div class="w-14 h-14 rounded-2xl bg-white shadow-inner flex items-center justify-center text-3xl ${isUnlocked ? '' : 'grayscale opacity-50'}">
+                            ${t.emoji}
+                        </div>
+                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${t.name}</h4>
+                        <p class="text-[11px] text-slate-500 leading-tight">${t.desc}</p>
+                        ${
+                            isUnlocked
+                            ? `<span class="mt-auto bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-xl w-full">✓ باز شده!</span>`
+                            : `<button onclick="buyTrophy('${t.id}')" ${canAfford ? '' : 'disabled'} class="mt-auto btn-cartoon w-full py-1.5 px-2 rounded-xl font-black text-xs border-b-4 ${canAfford ? 'bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-600' : 'bg-slate-300 text-slate-500 border-slate-400 cursor-not-allowed'}">
+                                🔓 باز کردن (${t.cost} 🪙)
+                               </button>`
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buyTrophy(trophyId) {
+            const trophy = TROPHIES.find(t => t.id === trophyId);
+            if (!trophy || state.unlockedBadges.includes(trophyId)) return;
+            if (state.coins < trophy.cost) {
+                playWrongSound();
+                return;
+            }
+            state.coins -= trophy.cost;
+            state.unlockedBadges.push(trophyId);
+            saveState();
+            updateHeaderUI();
+            renderTrophyModalContent();
+            playSuccessSound();
+            launchConfetti();
+        }
+
+        function openApkModal() {
+            const modal = document.getElementById('apkModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeApkModal() {
+            const modal = document.getElementById('apkModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        /**************************************************************
+         * 9. CONFETTI CELEBRATION ENGINE (CANVAS)
+         **************************************************************/
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimId = null;
+
+        function resizeConfettiCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfettiCanvas);
+
+        function launchConfetti() {
+            resizeConfettiCanvas();
+            const colors = ['#f43f5e', '#f59e0b', '#10b981', '#3b82f6', '#a855f7', '#ec4899', '#facc15'];
+            for (let i = 0; i < 55; i++) {
+                confettiParticles.push({
+                    x: window.innerWidth / 2 + (Math.random() - 0.5) * 180,
+                    y: window.innerHeight * 0.45,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: -Math.random() * 14 - 4,
+                    size: Math.random() * 8 + 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    vRot: (Math.random() - 0.5) * 12,
+                    life: 1.0
+                });
+            }
+            if (!confettiAnimId) {
+                animateConfetti();
+            }
+        }
+
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            confettiParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.42;
+                p.rotation += p.vRot;
+                p.life -= 0.015;
+
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate((p.rotation * Math.PI) / 180);
+                confettiCtx.globalAlpha = Math.max(0, p.life);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+                confettiCtx.restore();
+            });
+
+            confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < confettiCanvas.height + 30);
+            if (confettiParticles.length > 0) {
+                confettiAnimId = requestAnimationFrame(animateConfetti);
+            } else {
+                confettiAnimId = null;
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }
+        }
+
+        /**************************************************************
+         * 10. INITIALIZE APPLICATION ON WINDOW LOAD
+         **************************************************************/
+        window.onload = function () {
+            loadSavedState();
+            updateHeaderUI();
+            switchGameMode('treble');
+        };
+    </script>
+</body>
+</html>
