@@ -204,10 +204,7 @@
                     <span id="soundIcon">🔊</span>
                 </button>
 
-                <button onclick="openApkModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs sm:text-sm py-2 px-2.5 rounded-2xl border-b-4 border-purple-900 flex items-center gap-1 btn-cartoon shadow" title="راهنمای دریافت فایل APK">
-                    <span>📲</span>
-                    <span class="hidden sm:inline">نصب اپ</span>
-                </button>
+
             </div>
         </header>
 
@@ -520,36 +517,6 @@
             <div id="trophyGrid" class="grid grid-cols-2 gap-3">
                 <!-- Populated via JS -->
             </div>
-        </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- MODAL 3: APK & MOBILE INSTALL GUIDE                      -->
-    <!-- ======================================================== -->
-    <div id="apkModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-5 border-4 border-purple-400 shadow-2xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto animate-note-pop">
-            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-2">
-                <h3 class="font-black text-base sm:text-lg text-purple-900">📲 راهنمای تبدیل به فایل APK و نصب روی گوشی</h3>
-                <button onclick="closeApkModal()" class="w-9 h-9 rounded-full bg-rose-100 text-rose-600 font-black text-lg flex items-center justify-center">✕</button>
-            </div>
-            <div class="text-xs sm:text-sm space-y-3 text-slate-700 leading-relaxed font-medium">
-                <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-3">
-                    <p class="font-black text-purple-900 mb-1">روش اول: تبدیل ۱ دقیقه‌ای به فایل APK اندروید (بدون برنامه‌نویسی)</p>
-                    <ol class="list-decimal list-inside space-y-1">
-                        <li>کد این صفحه را با نام <code class="bg-white px-1.5 py-0.5 rounded border text-purple-700 font-bold">index.html</code> ذخیره کنید.</li>
-                        <li>نرم‌افزار رایگان <b>Website 2 APK Builder</b> (روی ویندوز) یا سایت <b>webintoapp.com</b> را باز کنید.</li>
-                        <li>گزینه <b>Local HTML Website</b> را انتخاب کرده و فایل <code class="bg-white px-1.5 py-0.5 rounded border text-purple-700 font-bold">index.html</code> را به آن بدهید.</li>
-                        <li>دکمه <b>Generate APK</b> را بزنید تا فایل نصبی اندروید با آیکون دلخواه شما ساخته شود!</li>
-                    </ol>
-                </div>
-                <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3">
-                    <p class="font-black text-emerald-900 mb-1">روش دوم: نصب مستقیم روی گوشی (PWA)</p>
-                    <p>اگر این فایل را در مرورگر کروم گوشی باز کنید و از منوی سه نقطه بالا گزینه <b>Add to Home Screen (افزودن به صفحه اصلی)</b> را بزنید، دقیقاً مثل یک بازی تمام‌صفحه روی گوشی نصب می‌شود و بدون اینترنت هم کار می‌کند!</p>
-                </div>
-            </div>
-            <button onclick="closeApkModal()" class="w-full py-2.5 bg-purple-600 text-white font-black rounded-2xl border-b-4 border-purple-800 btn-cartoon">
-                متوجه شدم، بریم سراغ بازی! 🎹
-            </button>
         </div>
     </div>
 
@@ -1866,17 +1833,6 @@
             renderTrophyModalContent();
             playSuccessSound();
             launchConfetti();
-        }
-
-        function openApkModal() {
-            const modal = document.getElementById('apkModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-        function closeApkModal() {
-            const modal = document.getElementById('apkModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
         }
 
         /**************************************************************
