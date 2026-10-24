@@ -83,7 +83,7 @@ final class SupportTools {
                         first.getClassName() + ":" + first.getLineNumber();
                 storage.edit().putString("last_native_error",
                         "native_exception " + limit(type, 50) + " " + limit(location, 120))
-                        .apply();
+                        .commit();
             } catch (Exception ignored) { }
             if (previous != null) {
                 previous.uncaughtException(thread, problem);
