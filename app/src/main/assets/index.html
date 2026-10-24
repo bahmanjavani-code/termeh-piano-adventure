@@ -1008,7 +1008,7 @@
             }
 
             const stemX = stemDown ? (noteX - 13) : (noteX + 13);
-            const stemY2 = stemDown ? (noteY + 52) : (noteY - 52);            const noteLabel = (state.hintEnabled || state.staffQuestionSolved) ? keyMeta.faName : '؟';
+            const stemY2 = stemDown ? (noteY + 52) : (noteY - 52);            const noteLabel = ''; // Never reveal the answer inside the note head.
 
             svg.innerHTML = `
                 <line x1="35" y1="60" x2="35" y2="140" stroke="#334155" stroke-width="4" stroke-linecap="round" />
@@ -1020,7 +1020,6 @@
                     <ellipse cx="${noteX}" cy="${noteY}" rx="22" ry="16" fill="${noteFillColor}" opacity="0.22" />
                     <line x1="${stemX}" y1="${noteY}" x2="${stemX}" y2="${stemY2}" stroke="${noteFillColor}" stroke-width="4.5" stroke-linecap="round" />
                     <ellipse cx="${noteX}" cy="${noteY}" rx="16" ry="12" transform="rotate(-18 ${noteX} ${noteY})" fill="${noteFillColor}" stroke="#ffffff" stroke-width="2.5" />
-                    <text x="${noteX}" y="${noteY + 5}" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle">${noteLabel}</text>
                 </g>
             `;
 
@@ -1894,7 +1893,7 @@ window.isModeUnlocked=function(mode){if(mode==='treble')return true;return mode=
 window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const result=getMastery(source);const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Mastery '+result.score+'% / '+goal+'%. Accuracy, response speed and note variety count. Complete at least 80 first attempts and pass the final 20-question assessment with 90% accuracy. Premium purchase is not available yet.':'تسلط: '+result.score+'٪ از '+goal+'٪. دقت، سرعت و تنوع نت‌ها محاسبه می‌شود. دست‌کم ۸۰ تلاش اول و قبولی در آزمون ۲۰ پرسشی پایانی با دقت ۹۰٪ لازم است. خرید نسخه ویژه هنوز فعال نیست.'};
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');pendingMode=null};
 window.showParentGate=function(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;document.getElementById('parentMath').textContent=a+' × '+b+' + 13 = ?';document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
-window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent='لطفاً کمی بعد تلاش کنید / Try later';return}if(Number(document.getElementById('parentAnswer').value)===answer&&document.getElementById('parentAnswer').value!==''){attempts=0;msg.textContent='بخش والدین هنوز در حال توسعه است. پرداخت یا ثبت‌نام فعال نیست. / Parent account and payments are coming soon.';}else{attempts++;msg.textContent='پاسخ نادرست / Incorrect answer';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;}showParentGate();msg.textContent='پاسخ نادرست / Incorrect answer';}};
+window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const raw=document.getElementById('parentAnswer').value.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));if(raw!=='' && Number(raw)===answer){attempts=0;msg.textContent='✅ تأیید شد. بخش حساب والدین و خرید هنوز فعال نشده است. / Verified. Parent account and payments are not available yet.';document.getElementById('parentAnswer').value='';return;}attempts++;msg.textContent='❌ پاسخ نادرست است / Incorrect answer';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;msg.textContent='تلاش‌های زیاد؛ یک دقیقه صبر کنید / Too many attempts; wait one minute';}};
 })();
 </script></body>
 </html>
