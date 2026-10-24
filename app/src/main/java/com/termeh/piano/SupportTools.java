@@ -81,7 +81,7 @@ final class SupportTools {
                         ? problem.getStackTrace()[0] : null;
                 String location = first == null ? "unknown" :
                         first.getClassName() + ":" + first.getLineNumber();
-                storage.edit().putString("last_native_error",
+                storage.edit().putString("last_native_crash",
                         "native_exception " + limit(type, 50) + " " + limit(location, 120))
                         .commit();
             } catch (Exception ignored) { }
@@ -95,12 +95,12 @@ final class SupportTools {
     }
 
     void recordWebError(int line) {
-        prefs.edit().putString("last_native_error", "webview_console_error index.html:" + line)
+        prefs.edit().putString("last_web_error", "webview_console_error index.html:" + line)
                 .apply();
     }
 
     void recordRendererCrash() {
-        prefs.edit().putString("last_native_error", "webview_renderer_exited").apply();
+        prefs.edit().putString("last_renderer_error", "webview_renderer_exited").apply();
     }
 
     static String limit(String value, int max) {
@@ -114,7 +114,9 @@ final class SupportTools {
         String report = "Termeh Piano — parent-submitted error report\n"
                 + "Version: " + installedVersionName() + " (" + installedVersion() + ")\n"
                 + "Android API: " + Build.VERSION.SDK_INT + "\n"
-                + "Native event: " + prefs.getString("last_native_error", "none") + "\n"
+                + "Native crash: " + prefs.getString("last_native_crash", "none") + "\n"
+                + "WebView console: " + prefs.getString("last_web_error", "none") + "\n"
+                + "WebView renderer: " + prefs.getString("last_renderer_error", "none") + "\n"
                 + "Web events: " + limit(eventSummary, 1200) + "\n\n"
                 + "Please describe what happened (do not add children's personal data):\n";
         Intent email = new Intent(Intent.ACTION_SENDTO);
