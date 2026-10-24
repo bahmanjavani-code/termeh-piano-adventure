@@ -54,10 +54,10 @@ const support=fs.readFileSync('app/src/main/java/com/termeh/piano/SupportTools.j
 const policy=JSON.parse(fs.readFileSync('config/android-update.json','utf8'));
 const gradle=fs.readFileSync('app/build.gradle','utf8');
 assert.equal(policy.schema,1);
-const currentVersion=Number(gradle.match(/versionCode\\s+(\\d+)/)[1]);
+const currentVersion=Number(gradle.split('versionCode ')[1].trim().split(/\s+/)[0]);
 assert(policy.latestVersionCode>=currentVersion,'Update policy must cover current build');
 assert(policy.minimumVersionCode<=currentVersion,'Current beta must not be forced to update');
-assert(policy.storeUrl==='' || /^https:\\/\\/cafebazaar\\.ir\\/app\\/com\\.termeh\\.piano$/.test(policy.storeUrl));
+assert(policy.storeUrl==='' || (new URL(policy.storeUrl).origin==='https://cafebazaar.ir' && new URL(policy.storeUrl).pathname==='/app/com.termeh.piano'));
 assert(manifest.includes('android.permission.INTERNET'),'Native update check requires normal Internet permission');
 assert(activity.includes('setBlockNetworkLoads(true)'),'WebView must not make network requests');
 assert(activity.includes('new SupportTools(this)'),'Native parent support entry points missing');
