@@ -330,6 +330,7 @@
                     <span id="nextBtnText">اول نت درست رو پیدا کن تا قفل باز بشه!</span>
                 </button>
             </div>
+            <button id="examStartBtn" type="button" onclick="beginFinalAssessment()" disabled style="border-radius:14px;padding:11px;background:#5b21b6;color:white;font-weight:800;opacity:.9">🎓 آزمون پایانی / Final Assessment</button>
         </main>
 
         <!-- ======================================================== -->
@@ -583,8 +584,9 @@
             holdStartTime: 0,
             holdIntervalId: null,
             holdOscillator: null,
-            mastery: {treble:{attempts:[],started:0},bass:{attempts:[],started:0}},
-            staffStartedAt: 0
+            mastery: {treble:{attempts:[],examPassed:false},bass:{attempts:[],examPassed:false}},
+            staffStartedAt: 0,
+            exam: null
         };
 
         function loadSavedState() {
@@ -592,7 +594,7 @@
                 const raw = localStorage.getItem('notAmoozKidsState_v1');
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    if(parsed.mastery && typeof parsed.mastery === 'object') { for(const k of ['treble','bass']) {const v=parsed.mastery[k]; if(v && Array.isArray(v.attempts)) state.mastery[k].attempts=v.attempts.slice(-240).filter(x=>x && typeof x.correct==='boolean' && typeof x.ms==='number' && typeof x.note==='string'); } }
+                    if(parsed.mastery && typeof parsed.mastery === 'object') { for(const k of ['treble','bass']) {const v=parsed.mastery[k]; if(v && Array.isArray(v.attempts)) { state.mastery[k].attempts=v.attempts.slice(-240).filter(x=>x && typeof x.correct==='boolean' && typeof x.ms==='number' && typeof x.note==='string'); state.mastery[k].examPassed=v.examPassed===true; } } }
                     state.stars = parsed.stars || 0;
                     state.coins = parsed.coins || 0;
                     state.levelTreble = parsed.levelTreble || 1;
@@ -961,7 +963,7 @@
 
             const isTreble = state.mode === 'treble';
             const keyMeta = SOLFEGE_KEYS.find(k => k.id === note.keyId);
-            const noteFillColor = state.staffQuestionSolved ? keyMeta.colorHex : '#1e1b4b'; // No color-coded answer before solving
+            const noteFillColor = state.staffQuestionSolved && !(state.exam && state.exam.active) ? keyMeta.colorHex : '#1e1b4b'; // No color-coded answer before solving
 
             const stemDown = note.svgY <= 100;
             const noteX = 300;
@@ -971,7 +973,7 @@
             const lineYs = [140, 120, 100, 80, 60];
             lineYs.forEach((ly, idx) => {
                 const lineNum = idx + 1;
-                const isRefLine = (isTreble && lineNum === 2) || (!isTreble && lineNum === 4);
+                const isRefLine = !(state.exam && state.exam.active) && ((isTreble && lineNum === 2) || (!isTreble && lineNum === 4));
                 const strokeColor = isRefLine && state.hintEnabled ? '#f59e0b' : '#475569';
                 const strokeWidth = isRefLine && state.hintEnabled ? '3' : '2.2';
 
@@ -1071,6 +1073,7 @@
             const target = state.currentStaffNote;
             if (!target) return;
 
+            if (state.exam && state.exam.active) { submitExamAnswer(keyId); return; }
             const keyBtn = document.getElementById(`pianoKey-${keyId}`);
             if (keyBtn) {
                 keyBtn.classList.add('key-pressed');
@@ -1131,7 +1134,7 @@
                 const pressedKeyMeta = SOLFEGE_KEYS.find(k => k.id === keyId);
                 setMascotBubble(
                     'دوباره امتحان کن! 💡',
-                    `نه قشنگم، اون کلید «${pressedKeyMeta.faName}» بود! راهنمایی: ${target.hintText}`,
+                    localStorage.getItem('termeh_language') === 'en' ? 'Not quite. Count the lines from bottom to top and try another key.' : 'هنوز درست نیست. خط‌ها را از پایین به بالا بشمار و دوباره تلاش کن.',
                     'shake'
                 );
 
@@ -1172,7 +1175,8 @@
             let candidates = pool.filter(n => !state.currentStaffNote || n.code !== state.currentStaffNote.code);
             if (candidates.length === 0) candidates = pool;
 
-            const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+            const examNote = state.exam && state.exam.active ? state.exam.questions[state.exam.index] : null;
+            const chosen = examNote || candidates[Math.floor(Math.random() * candidates.length)];
             state.currentStaffNote = chosen;
             state.staffStartedAt = performance.now();
             state.staffQuestionSolved = false;
@@ -1199,22 +1203,23 @@
 
             lockStaffNextButton();
 
-            const clefName = state.mode === 'treble' ? 'کلید سل' : 'کلید فا';
+            const inExam = state.exam && state.exam.active;
+            const en = localStorage.getItem('termeh_language') === 'en';
+            const clefName = state.mode === 'treble' ? (en ? 'Treble clef' : 'کلید سل') : (en ? 'Bass clef' : 'کلید فا');
             setMascotBubble(
-                `سوال جدید در ${clefName} 🎯`,
-                `به خط‌های حامل نگاه کن! این نت که ${chosen.posText} قرار داره، کدوم نته؟ روی پیانو پیداش کن!`,
+                inExam ? (en ? 'Final assessment 🎯' : 'آزمون پایانی 🎯') : (en ? 'New question: ' + clefName + ' 🎯' : 'سوال جدید در ' + clefName + ' 🎯'),
+                inExam ? (en ? 'Question ' + (state.exam.index + 1) + ' of 20. Choose the note name. No hints.' : 'سؤال ' + (state.exam.index + 1) + ' از ۲۰. نام نت را انتخاب کن. بدون راهنمایی.') : (en ? 'Read the note on the staff and tap its name on the piano.' : 'به حامل نگاه کن و نام نت را روی پیانو انتخاب کن.'),
                 'normal'
             );
 
             renderMusicalStaffSvg();
             renderPianoKeyboard();
 
-            setTimeout(() => {
-                playPianoTone(chosen.freq, 0.75);
-            }, 250);
+            // The answer sound is played after a correct response, not before it.
         }
 
         function goToNextStaffQuestion() {
+            if (state.exam && state.exam.active) return;
             if (!state.staffQuestionSolved) return;
             loadNewStaffQuestion();
         }
@@ -1567,6 +1572,60 @@
          **************************************************************/
 
         // Mastery is an educational local metric, NOT a secure paid entitlement.
+
+        function updateExamButton() {
+            const btn=document.getElementById('examStartBtn');
+            if(!btn) return;
+            const en=localStorage.getItem('termeh_language')==='en';
+            const result=getMastery(state.mode);
+            if(state.exam && state.exam.active) {
+                btn.textContent=en?'Assessment: '+(state.exam.index+1)+'/20 — Cancel':'آزمون: '+(state.exam.index+1)+' از ۲۰ — انصراف';
+                btn.disabled=false;
+            } else {
+                btn.textContent=(en?'🎓 Final assessment':'🎓 آزمون پایانی')+' ('+result.score+'%)';
+                btn.disabled=result.attempts<80 || result.score<(state.mode==='treble'?85:90) || result.examPassed;
+                if(result.examPassed) {btn.textContent=en?'✅ Assessment passed':'✅ آزمون قبول شد';}
+            }
+        }
+        function shuffled(source) {
+            const a=source.slice();
+            for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+            return a;
+        }
+        function beginFinalAssessment() {
+            if(!['treble','bass'].includes(state.mode))return;
+            if(state.exam && state.exam.active){state.exam=null;loadNewStaffQuestion();updateExamButton();return;}
+            const score=getMastery(state.mode);
+            if(score.attempts<80 || score.score<(state.mode==='treble'?85:90) || score.examPassed)return;
+            const pool=state.mode==='treble'?TREBLE_NOTES:BASS_NOTES;
+            const list=[];while(list.length<20)list.push(...shuffled(pool));
+            state.exam={active:true,mode:state.mode,questions:shuffled(list.slice(0,20)),index:0,correct:0,busy:false,answers:[]};
+            loadNewStaffQuestion();updateExamButton();
+        }
+        function submitExamAnswer(keyId) {
+            const e=state.exam;
+            if(!e || !e.active || e.busy || !state.currentStaffNote)return;
+            e.busy=true;
+            const note=state.currentStaffNote;
+            const right=keyId===note.keyId;
+            if(right)e.correct++;
+            e.answers.push({note:note.code,correct:right,ms:Math.round(performance.now()-state.staffStartedAt)});
+            e.index++;
+            if(e.index>=20){
+                const passed=e.correct>=18;
+                if(passed){state.mastery[e.mode].examPassed=true;saveState();}
+                const en=localStorage.getItem('termeh_language')==='en';
+                const message=en?'Assessment: '+e.correct+'/20 correct. '+(passed?'Passed!':'Practice and try again.'):'آزمون: '+e.correct+' پاسخ درست از ۲۰. '+(passed?'قبول شدی!':'بیشتر تمرین کن و دوباره امتحان بده.');
+                state.exam=null;
+                updateExamButton();
+                loadNewStaffQuestion();
+                setMascotBubble(passed?(en?'Congratulations! 🎉':'آفرین! 🎉'):(en?'Keep practicing 💪':'به تمرین ادامه بده 💪'),message,passed?'joy':'normal');
+                return;
+            }
+            loadNewStaffQuestion();
+            updateExamButton();
+            e.busy=false;
+        }
         function recordMasteryAttempt(mode, correct, note, ms, firstTry) {
             if (!['treble','bass'].includes(mode)) return;
             const history=state.mastery[mode].attempts;
@@ -1585,14 +1644,14 @@
             const notePool=mode==='treble'?TREBLE_NOTES:BASS_NOTES;
             const diversity=new Set(correct.map(x=>x.note)).size/Math.max(1,new Set(notePool.map(x=>x.code)).size);
             const score=Math.round(100*(.5*accuracy+.3*speed+.2*Math.min(1,diversity)));
-            const exam=h.slice(-20);
-            const examPassed=exam.length===20&&exam.filter(x=>x.correct).length>=18;
+            const examPassed=state.mastery[mode].examPassed===true;
             const target=mode==='treble'?85:90;
             return {score,passed:h.length>=80&&score>=target&&examPassed,examPassed,attempts:h.length};
         }
 
         function switchGameMode(newMode) {
             if (typeof isModeUnlocked === 'function' && !isModeUnlocked(newMode)) { showUnlock(newMode); return; }
+            if (state.exam && state.exam.active && state.mode !== newMode) { state.exam=null; }
             state.mode = newMode;
 
             const modes = [
@@ -1618,6 +1677,7 @@
                 staffArea.classList.remove('hidden');
                 rhythmArea.classList.add('hidden');
                 loadNewStaffQuestion();
+                updateExamButton();
             } else {
                 staffArea.classList.add('hidden');
                 rhythmArea.classList.remove('hidden');
@@ -1662,6 +1722,7 @@
         }
 
         function toggleHintMode() {
+            if (state.exam && state.exam.active) return;
             state.hintEnabled = !state.hintEnabled;
             const btn = document.getElementById('hintToggleBtn');
             const text = document.getElementById('hintBtnText');
