@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "minimumVersionCode": 5,
+  "latestVersionCode": 5,
+  "storeUrl": "",
+  "notes": "Beta configuration: no public Bazaar listing; do not enable mandatory updates before a verified listing exists."
+}
