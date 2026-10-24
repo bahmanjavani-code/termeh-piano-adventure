@@ -8,7 +8,45 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>ماجراجویی پیانوی ترمه | نت‌آموز کوچولو</title>
 
-    <!-- Offline bundled styles -->
+<script>
+// Minimal child-privacy-preserving diagnostics: only error category, script line and time.
+// No typed text, answer content, stack trace, device ID or personal information is saved.
+(function(){
+  const KEY='termeh_local_errors_v1';
+  const allowedTypes=new Set(['javascript','promise']);
+  function read(){
+    try { const list=JSON.parse(localStorage.getItem(KEY)||'[]'); return Array.isArray(list)?list.slice(-8):[]; }
+    catch(e){return [];}
+  }
+  function note(category,line){
+    if(!allowedTypes.has(category))return;
+    const data=read();data.push({type:category,line:Math.max(0,Math.min(999999,Number(line)||0)),time:new Date().toISOString()});
+    try{localStorage.setItem(KEY,JSON.stringify(data.slice(-8)));}catch(e){}
+  }
+  window.addEventListener('error',function(e){note('javascript',e.lineno);});
+  window.addEventListener('unhandledrejection',function(){note('promise',0);});
+  window.termehDiagnosticSummary=function(){
+    return read().map(x=>x.type+' / line '+x.line+' / '+x.time).join('\n') || 'No locally recorded JavaScript errors.';
+  };
+  window.termehReportErrors=function(){
+    // Report ONLY after a parent passes the parental gate. Opens the device mail app;
+    // no error is transmitted unless the parent explicitly sends the email.
+    const events=window.termehDiagnosticSummary().slice(0,1100);
+    window.location.href='termeh-support://report?events='+encodeURIComponent(events);
+  };
+  window.termehCheckUpdates=function(){
+    window.location.href='termeh-support://updates';
+  };
+  window.termehShowErrorCount=function(){
+    const el=document.getElementById('parentReportCount');
+    if(!el)return;
+    const n=read().length;
+    el.textContent=localStorage.getItem('termeh_language')==='en'?
+      'Saved local diagnostics: '+n:'خطاهای ثبت‌شده روی گوشی: '+n;
+  };
+})();
+</script>
+        <!-- Offline bundled styles -->
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="offline.css">
 
@@ -2001,6 +2039,15 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 <button class="action" disabled>☁️ <span class="only-fa">پشتیبان‌گیری — به‌زودی</span><span class="only-en">Backup — Coming soon</span></button>
 <button class="action" disabled>🔄 <span class="only-fa">بازیابی پیشرفت — به‌زودی</span><span class="only-en">Restore — Coming soon</span></button>
 <button class="action" disabled>🚪 <span class="only-fa">خروج از حساب — وارد نشده‌اید</span><span class="only-en">Sign out — Not signed in</span></button>
+
+<div role="group" aria-label="Support and app updates" style="margin-top:14px;border-top:2px solid #ddd;padding-top:12px">
+<h3><span class="only-fa">🛠️ پشتیبانی و به‌روزرسانی</span><span class="only-en">🛠️ Support & updates</span></h3>
+<p id="parentReportCount" style="font-size:13px"></p>
+<button class="action" type="button" onclick="termehReportErrors()">✉️ <span class="only-fa">گزارش خطا با ایمیل</span><span class="only-en">Email error report</span></button>
+<p class="notice"><span class="only-fa">ابتدا متن گزارش را در برنامه ایمیل بررسی کنید. هیچ اطلاعاتی بدون ارسال شما فرستاده نمی‌شود. آدرس گیرنده را بعداً وارد کنید.</span><span class="only-en">Review the report in your email app before sending. Nothing is sent automatically. Enter your support email address as the recipient.</span></p>
+<button class="action" type="button" onclick="termehCheckUpdates()">🔄 <span class="only-fa">بررسی نسخه جدید</span><span class="only-en">Check for updates</span></button>
+<p class="notice"><span class="only-fa">بررسی آپدیت به اینترنت نیاز دارد. بازی و پیشرفت آفلاین کار می‌کنند. تا انتشار در فروشگاه، آپدیت اجباری فعال نیست.</span><span class="only-en">Update checks require an internet connection. Lessons work offline. Forced updates are disabled until the app is live in the store.</span></p>
+</div>
 <p class="notice"><span class="only-fa">حساب آنلاین و خرید هنوز راه‌اندازی نشده‌اند. هیچ رمز عبور یا اطلاعات کودک در این صفحه دریافت نمی‌شود.</span><span class="only-en">Online accounts and purchases are not available yet. No passwords or child data are collected here.</span></p>
 </div></div></div>
 <script>
@@ -2011,7 +2058,7 @@ const normalize=s=>s.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).
 function question(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;el('hubMath').textContent=a+' × '+b+' + 13 = ?';el('hubAnswer').value='';}
 window.openParentHub=function(){closeUnlock();el('parentHub').classList.add('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubGateMessage').textContent='';question();};
 window.closeParentHub=function(){el('parentHub').classList.remove('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubAnswer').value='';};
-window.verifyParentHub=function(){const msg=el('hubGateMessage');if(Date.now()<lockUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';return;}failures++;msg.textContent='پاسخ نادرست / Incorrect answer';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent='یک دقیقه صبر کنید / Wait one minute';}};
+window.verifyParentHub=function(){const msg=el('hubGateMessage');if(Date.now()<lockUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();return;}failures++;msg.textContent='پاسخ نادرست / Incorrect answer';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent='یک دقیقه صبر کنید / Wait one minute';}};
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
 })();
