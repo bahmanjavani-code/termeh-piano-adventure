@@ -1041,6 +1041,7 @@
         function handlePianoKeyClick(keyId) {
             const target = state.currentStaffNote;
             if (!target) return;
+            if (state.staffQuestionSolved) { if (keyId === target.keyId) playPianoTone(target.freq, 0.5); return; }
 
             if (state.exam && state.exam.active) { submitExamAnswer(keyId); return; }
             const keyBtn = document.getElementById(`pianoKey-${keyId}`);
@@ -1361,7 +1362,7 @@
 
         function handleRhythmQuizAnswer(selectedId) {
             const target = state.currentRhythmQuiz;
-            if (!target) return;
+            if (!target || state.rhythmQuizSolved) return;
 
             const btn = document.getElementById(`rhythmOpt-${selectedId}`);
 
