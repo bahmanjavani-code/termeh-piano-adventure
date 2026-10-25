@@ -34,7 +34,7 @@ final class SupportTools {
     private static final String POLICY_URL =
             "https://raw.githubusercontent.com/bahmanjavani-code/termeh-piano-adventure/main/config/android-update.json";
     // Populate after the developer provides a dedicated support email.
-    private static final String SUPPORT_EMAIL = "";
+    private static final String SUPPORT_EMAIL = "bahman.javani@gmail.com";
     private static final long CHECK_INTERVAL_MS = 6L * 60L * 60L * 1000L;
     private static boolean nativeCrashRecorderInstalled = false;
 
