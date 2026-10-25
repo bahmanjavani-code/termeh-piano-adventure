@@ -58,6 +58,7 @@ const { chromium }=require('playwright-core');
     assert(await page.locator('#parentWelcome').isVisible(),'First-launch parent notice missing');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Notice must not auto-accept');
     assert((await page.locator('#welcomePrivacy').getAttribute('href')).includes('/en/privacy.html'),'Wrong privacy policy language');
+    assert((await page.locator('#welcomeTerms').getAttribute('href')).includes('/en/terms.html'),'Wrong Terms of Use language');
     await assertEnglishScreen('first-launch parent notice');
     await page.locator('#welcomeAccepted').check();
     assert(await page.locator('#welcomeContinue').isEnabled(),'Parent confirmation should enable continue');
