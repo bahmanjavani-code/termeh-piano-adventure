@@ -1,6 +1,6 @@
 # Secure premium content: architecture and implementation boundary
 
-Status: **design + isolated developer encryption prototype only**, NOT a working purchase system. Current beta still bundles existing treble, bass and rhythm code and lesson data in `app/src/main/assets/index.html`. The application is **not yet protected against repackaging**. The new tooling below is intentionally **not invoked by the Android app**.
+Status: **variant-based free-content split + isolated encryption prototype**, NOT a working purchase system. The **release** APK includes only five introductory treble notes, while the **debug** APK contains publicly known preview test fixtures for advanced treble, bass and rhythm. Those previews, along with earlier repository history, are NOT secret content. Secure billing, protected new paid content, verified key delivery and offline paid activation are **not yet implemented**. The encryption prototype is not invoked by Android.
 
 ## Product requirements
 
@@ -13,7 +13,7 @@ Status: **design + isolated developer encryption prototype only**, NOT a working
 
 ## Security model: deliver CONTENT, not an installable APK
 
-1. **Split content:** free APK contains game engine and intro lessons only; unique advanced note banks, rhythm lessons and premium content live outside the distributed free APK. Move them out of `index.html` as **data**, not untrusted executable JavaScript. Existing beta code does *not* yet satisfy this condition.
+1. **Split content:** the free **release** APK currently contains the engine and five intro treble notes only; the **debug** build loads advanced *public fixture data* from `app/src/debug/assets/premium-preview.js`. The release stub `app/src/release/assets/premium-preview.js` contains no protected data. **NEXT:** keep genuinely new commercial lessons in a private storage system and deliver them solely as authenticated encrypted JSON data (not as executable JavaScript); remove debug preview assets from any commercial build.
 2. **Prepare pack:** encrypt the private JSON lesson pack using a fresh 256-bit AES key in **AES-256-GCM**. Use a unique 96-bit nonce. Authenticate package name, SKU and pack format as additional authenticated data. The encrypted `.tpk` can be placed on a CDN.
 3. **Parent buys:** the Android-native host calls Bazaar's official Poolakey billing flow for the non-consumable SKU. Do not consume the purchase. Never rely on WebView JavaScript/localStorage to claim a paid entitlement.
 4. **Server verifies:** client sends the purchase token through an HTTPS connection to a backend. The backend uses Bazaar's purchase-verification API, verifies ownership status, package name and product ID, checks refunds or cancellation, applies anti-replay/abuse controls and stores any private API credentials exclusively on the backend.
@@ -54,7 +54,7 @@ The CLI outputs a random content key to a mode-0600 file and writes an encrypted
 - Bazaar app registration, published signing identity and real permanent product SKU.
 - Real Poolakey integration and verified purchase/restore testing on Android.
 - Backend API with purchase verification, encrypted pack delivery and key management.
-- Extract actual premium content from `index.html` into a private pack; ensure free APK contains no premium assets.
+- Supply genuinely private commercial lesson data (rather than already-public debug preview content), encrypt it, and deploy it on a protected backend; confirm released free APK contains no premium assets.
 - Android Keystore key wrapping, validated offline pack loading and native entitlement bridge.
 - QA for offline return, fresh installs, refunds, lost devices, reinstall, and in-app privacy.
 - Clear privacy/store policy and support commitments.
