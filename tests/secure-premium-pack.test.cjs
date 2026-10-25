@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
 const {seal,open,SKU,PACKAGE_NAME}=require('../tools/secure-premium-pack.cjs');
+const {getBetaLessonFixture}=require('../tools/export-beta-lesson-fixture.cjs');
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'termeh-premium-'));
 const file=name=>path.join(root,name);
@@ -53,7 +54,21 @@ try{
   // CLI must not accidentally overwrite an existing private key.
   assert.throws(()=>seal(file('input.json'),file('another.tpk'),file('license.key')));
   assert(!fs.existsSync(file('another.tpk')));
-  console.log('PASS: AES-256-GCM pack roundtrip; wrong keys, corruption, SKU tampering and key overwrite refused.');
+  // Exercise the real lesson pack schema with PUBLIC debug fixtures (NOT paid secrets).
+  const beta=getBetaLessonFixture();
+  assert.equal(beta.schema,1);
+  assert.equal(beta.packageName,PACKAGE_NAME);
+  assert.equal(beta.productId,SKU);
+  assert.equal(beta.trebleExtra.length,6);
+  assert.equal(beta.bass.length,10);
+  assert.equal(beta.durations.length,4);
+  fs.writeFileSync(file('beta-demo.json'),JSON.stringify(beta));
+  seal(file('beta-demo.json'),file('beta-demo.tpk'),file('beta-demo.key'));
+  const encrypted=fs.readFileSync(file('beta-demo.tpk'),'utf8');
+  assert(!encrypted.includes('G2')&&!encrypted.includes('whole'),'No plaintext note definitions in encrypted fixture');
+  open(file('beta-demo.tpk'),file('beta-demo.key'),file('beta-restored.json'));
+  assert.deepEqual(JSON.parse(fs.readFileSync(file('beta-restored.json'),'utf8')),beta);
+  console.log('PASS: beta lesson schema and authenticated AES pack, tamper protection and safe key handling.');
 }finally{
   fs.rmSync(root,{recursive:true,force:true});
 }
