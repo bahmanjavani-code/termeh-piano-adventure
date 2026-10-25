@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 10,
+  "latestVersionCode": 11,
   "storeUrl": "",
-  "notes": "1.3.5 beta: bilingual one-time parent notice. No mandatory update before official store release."
+  "notes": "1.3.6 beta: production-style free-only lesson assets, debug full preview, parent terms. No forced update before store launch."
 }
