@@ -3,6 +3,7 @@
 'use strict';
 const fs=require('node:fs');
 const path=require('node:path');
+const os=require('node:os');
 const assert=require('node:assert/strict');
 const { chromium }=require('playwright-core');
 
@@ -11,6 +12,18 @@ const { chromium }=require('playwright-core');
   const executablePath=bins.find(f=>fs.existsSync(f));
   assert(executablePath,'Chrome/Chromium required for UI smoke test');
   const browser=await chromium.launch({executablePath,headless:true,args:['--no-sandbox','--allow-file-access-from-files']});
+  // Reconstruct each variant's bundled assets exactly as Gradle packages them.
+  const dirs=[];
+  function createAssets(variant) {
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'termeh-'+variant+'-'));
+    dirs.push(dir);
+    fs.copyFileSync('app/src/main/assets/index.html',path.join(dir,'index.html'));
+    fs.copyFileSync('app/src/main/assets/offline.css',path.join(dir,'offline.css'));
+    fs.copyFileSync('app/src/'+variant+'/assets/premium-preview.js',path.join(dir,'premium-preview.js'));
+    return 'file://'+path.join(dir,'index.html');
+  }
+  const debugUrl=createAssets('debug');
+  const releaseUrl=createAssets('release');
   const errors=[];
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}});
@@ -38,7 +51,7 @@ const { chromium }=require('playwright-core');
       });
       assert.deepEqual(leaks,[],'Persian text in English UI ('+stage+'): '+leaks.join(' | '));
     }
-    await page.goto('file://'+path.resolve('app/src/main/assets/index.html'));
+    await page.goto(debugUrl);
     await page.locator("button[onclick=\"chooseLanguage('en')\"]").click();
     await page.waitForTimeout(300);
     // A parent must acknowledge once, after choosing the language, before the child can play.
@@ -54,6 +67,9 @@ const { chromium }=require('playwright-core');
     await page.waitForTimeout(200);
     assert(!(await page.locator('#parentWelcome').isVisible()),'Parent notice must not reappear after acceptance');
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
+    assert.equal(await page.evaluate(()=>TREBLE_NOTES.length),11,'Debug preview should include advanced treble');
+    assert.equal(await page.evaluate(()=>BASS_NOTES.length),10,'Debug preview should include bass');
+    assert.equal(await page.evaluate(()=>NOTE_DURATIONS.length),4,'Debug preview should include rhythm');
     await assertEnglishScreen('initial staff');
     assert(await page.locator('#musicStaffSvg ellipse').count()>0,'Staff note not rendered');
     let key=await page.evaluate(()=>state.currentStaffNote.keyId);
@@ -129,7 +145,25 @@ const { chromium }=require('playwright-core');
     await assertEnglishScreen('rhythm hold');
     await page.reload();
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en','English preference not persisted');
+    // A different release asset is packaged for paying/non-paying production users.
+    // The release must remain free and must NOT embed premium lesson definitions.
+    const freePage=await browser.newPage({viewport:{width:390,height:844}});
+    freePage.on('pageerror',e=>errors.push('release '+e.message));
+    await freePage.goto(releaseUrl);
+    await freePage.locator("button[onclick=\"chooseLanguage('en')\"]").click();
+    await freePage.locator('#welcomeAccepted').check();
+    await freePage.locator('#welcomeContinue').click();
+    assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
+    assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
+    assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
+    await freePage.evaluate(()=>{
+      state.mastery.treble.attempts=Array.from({length:80},()=>({correct:true,note:'G4',ms:800,at:Date.now()}));
+      state.mastery.treble.examPassed=true;
+    });
+    assert(!(await freePage.evaluate(()=>isModeUnlocked('bass'))),'Local progress must not unlock missing paid lessons');
+    await freePage.locator('#modeTab-bass').click();
+    assert(await freePage.locator('#unlockOverlay').evaluate(x=>x.classList.contains('open')),'Free release must show locked premium lesson notice');
     assert(!errors.length,'Browser JavaScript errors: '+errors.join(' | '));
     console.log('PASS: English flow, correct/wrong note, parent gate, independent exams, bass/rhythm unlock and persistence.');
-  }finally{await browser.close()}
+  }finally{await browser.close();for(const dir of dirs)fs.rmSync(dir,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exit(1)});
