@@ -2029,6 +2029,7 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <button id="buyPremiumBtn" class="action" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
   <button id="restorePremiumBtn" class="action" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
   <button id="checkBazaarBtn" class="action" type="button" onclick="checkBazaarOwnership()">🔎 <span class="only-fa">بررسی آزمایشی حساب بازار (بدون خرید)</span><span class="only-en">Check Bazaar connection (no payment)</span></button>
+  <button id="checkEncryptedPackBtn" class="action" type="button" onclick="checkEncryptedDemoPack()">🔐 <span class="only-fa">آزمایش قفل رمزگذاری درس نمونه (بدون خرید)</span><span class="only-en">Test encrypted sample lesson lock (no payment)</span></button>
   <p id="bazaarBillingStatus" role="status" style="font-size:13px;color:#475569"></p>
   <p style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
 </section>
@@ -2062,10 +2063,18 @@ window.termehBazaarStatus=function(code){
     checking:['در حال بررسی محلی خریدهای حساب بازار…','Checking locally verified Bazaar purchases…'],
     owned_unverified:['خریدی با این شناسه پیدا شد، اما هنوز تأیید سرور و فعال‌سازی نداریم.','An owned item was found, but server verification and activation are not ready.'],
     not_found:['خرید فعالی برای نسخه کامل پیدا نشد.','No lifetime purchase was found.'],
+    demo_pack_ok:['✅ قفل AES-256 درس نمونه با موفقیت بررسی شد؛ این خرید یا آنلاک نیست.','✅ Sample lesson AES-256 lock verified; no purchase or unlock occurred.'],
+    demo_pack_failed:['❌ بررسی رمزگذاری درس نمونه موفق نبود.','❌ Encrypted sample lesson check failed.'],
     query_failed:['بررسی خرید انجام نشد؛ بعداً دوباره امتحان کنید.','Purchase lookup failed; try again later.']
   };
   const pair=messages[code]||messages.unavailable;
   el('bazaarBillingStatus').textContent=pair[en?1:0];
+};
+// Demo-only native AES-GCM authenticated-pack check; no entitlement is issued.
+window.checkEncryptedDemoPack=function(){
+  const bridge=window.TermehBazaar;
+  if(!bridge){window.termehBazaarStatus('demo_pack_failed');return;}
+  try{bridge.checkEncryptedDemoPack();}catch(err){window.termehBazaarStatus('demo_pack_failed');}
 };
 window.checkBazaarOwnership=function(){
   const bridge=window.TermehBazaar;
