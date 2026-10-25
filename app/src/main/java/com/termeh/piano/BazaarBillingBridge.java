@@ -11,6 +11,7 @@ import ir.cafebazaar.poolakey.Connection;
 import ir.cafebazaar.poolakey.config.PaymentConfiguration;
 import ir.cafebazaar.poolakey.config.SecurityCheck;
 import ir.cafebazaar.poolakey.entity.PurchaseInfo;
+import ir.cafebazaar.poolakey.entity.PurchaseState;
 import kotlin.Unit;
 
 /**
@@ -92,7 +93,8 @@ final class BazaarBillingBridge {
                         boolean ownsSku = false;
                         for (PurchaseInfo purchase : purchases) {
                             if (PACKAGE_ID.equals(purchase.getPackageName())
-                                    && LIFETIME_SKU.equals(purchase.getProductId())) {
+                                    && LIFETIME_SKU.equals(purchase.getProductId())
+                                    && purchase.getPurchaseState() == PurchaseState.PURCHASED) {
                                 ownsSku = true;
                                 break;
                             }
