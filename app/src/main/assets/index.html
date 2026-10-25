@@ -2028,6 +2028,8 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <p style="font-size:12px;color:#6b7280"><span class="only-fa">این قیمت برنامه‌ریزی‌شده است؛ قیمت نهایی باید در کافه‌بازار ثبت و تأیید شود.</span><span class="only-en">Planned price only. Final price must be configured and confirmed in Cafe Bazaar.</span></p>
   <button id="buyPremiumBtn" class="action" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
   <button id="restorePremiumBtn" class="action" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
+  <button id="checkBazaarBtn" class="action" type="button" onclick="checkBazaarOwnership()">🔎 <span class="only-fa">بررسی آزمایشی حساب بازار (بدون خرید)</span><span class="only-en">Check Bazaar connection (no payment)</span></button>
+  <p id="bazaarBillingStatus" role="status" style="font-size:13px;color:#475569"></p>
   <p style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
 </section>
 
@@ -2049,6 +2051,31 @@ const normalize=s=>s.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).
 function question(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;el('hubMath').textContent=a+' × '+b+' + 13 = ?';el('hubAnswer').value='';}
 window.openParentHub=function(){closeUnlock();el('parentHub').classList.add('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubGateMessage').textContent='';question();};
 window.closeParentHub=function(){el('parentHub').classList.remove('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubAnswer').value='';};
+// Parent-only diagnostic of SDK connection and locally checked purchases.
+// No payment UI, no purchase-token transfer to JavaScript, and no premium unlock.
+window.termehBazaarStatus=function(code){
+  const en=localStorage.getItem('termeh_language')==='en';
+  const messages={
+    not_configured:['کلید عمومی بازار هنوز تنظیم نشده است.','Bazaar public verification key is not configured yet.'],
+    ready:['اتصال بازار آماده است؛ خرید همچنان غیرفعال است.','Bazaar connected; payments remain disabled.'],
+    unavailable:['ارتباط با بازار در دسترس نیست.','Bazaar is unavailable.'],
+    checking:['در حال بررسی محلی خریدهای حساب بازار…','Checking locally verified Bazaar purchases…'],
+    owned_unverified:['خریدی با این شناسه پیدا شد، اما هنوز تأیید سرور و فعال‌سازی نداریم.','An owned item was found, but server verification and activation are not ready.'],
+    not_found:['خرید فعالی برای نسخه کامل پیدا نشد.','No lifetime purchase was found.'],
+    query_failed:['بررسی خرید انجام نشد؛ بعداً دوباره امتحان کنید.','Purchase lookup failed; try again later.']
+  };
+  const pair=messages[code]||messages.unavailable;
+  el('bazaarBillingStatus').textContent=pair[en?1:0];
+};
+window.checkBazaarOwnership=function(){
+  const bridge=window.TermehBazaar;
+  if(!bridge){window.termehBazaarStatus('unavailable');return;}
+  try {
+    const current=bridge.status();
+    if(current!=='ready'){window.termehBazaarStatus(current);return;}
+    bridge.checkOwnedPurchase(); // NEVER charges or unlocks.
+  } catch(err){window.termehBazaarStatus('unavailable');}
+};
 window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
