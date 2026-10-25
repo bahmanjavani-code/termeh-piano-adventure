@@ -34,6 +34,8 @@ jobs:
         run: node tests/no-host-billing-guard.test.cjs
       - name: Verify encrypted offline demo lesson fixture and AES-GCM tamper detection
         run: node tests/encrypted-apk-demo.test.cjs
+      - name: Check isolated Android Keystore entitlement vault (no payment)
+        run: node tests/offline-keystore-vault.test.cjs
       - name: Run UI smoke tests
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
