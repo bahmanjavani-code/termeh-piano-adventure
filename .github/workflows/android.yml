@@ -33,6 +33,8 @@ jobs:
         run: node tests/secure-activation.test.cjs
       - name: Guard serverless purchase flow until paid content and restore QA are ready
         run: node tests/no-host-billing-guard.test.cjs
+      - name: Verify encrypted offline demo lesson fixture and AES-GCM tamper detection
+        run: node tests/encrypted-apk-demo.test.cjs
       - name: Check Bazaar public RSA format without revealing value
         run: node tests/bazaar-public-key.test.cjs
       - name: Build debug APK with runner Android SDK
