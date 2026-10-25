@@ -4,6 +4,9 @@ on:
 jobs:
   signed-release:
     runs-on: ubuntu-latest
+    env:
+      # RSA verification key is public (not a merchant secret). Empty means billing disabled.
+      TERMEH_BAZAAR_RSA_PUBLIC_KEY: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
     permissions:
       contents: read
     steps:
