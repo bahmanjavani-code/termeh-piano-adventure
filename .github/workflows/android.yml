@@ -29,6 +29,8 @@ jobs:
           node-version: '22'
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
         run: node tests/secure-premium-pack.test.cjs
+      - name: Test safe offline premium entitlement core (mocks only, never charge)
+        run: node tests/secure-activation.test.cjs
       - name: Check Bazaar public RSA format without revealing value
         run: node tests/bazaar-public-key.test.cjs
       - name: Build debug APK with runner Android SDK
