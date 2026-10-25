@@ -1949,6 +1949,8 @@
 <div id="languageGate"><div class="card"><div style="font-size:70px">🎹🌈</div><h2 style="color:#6d28d9">ماجراجویی پیانوی ترمه<br><span style="font-size:20px">Termeh's Piano Adventure</span></h2><p>زبان بازی را انتخاب کن / Choose your language</p><button onclick="chooseLanguage('fa')">🇮🇷 فارسی</button><button onclick="chooseLanguage('en')">🇬🇧 English</button></div></div><button id="langSwitcher" onclick="resetLanguage()">🌐 FA / EN</button>
 <script>
 (function(){
+// Product configuration is informational only until Cafe Bazaar billing is integrated.
+const TERMEH_PREMIUM_PRODUCT_ID = "termeh_premium_lifetime";
 const phrases=[
 ["انتخاب کاراکتر","Choose buddy"],
 ["✓ انتخاب شده","✓ Selected"],
@@ -2039,6 +2041,16 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 <button class="action" disabled>☁️ <span class="only-fa">پشتیبان‌گیری — به‌زودی</span><span class="only-en">Backup — Coming soon</span></button>
 <button class="action" disabled>🔄 <span class="only-fa">بازیابی پیشرفت — به‌زودی</span><span class="only-en">Restore — Coming soon</span></button>
 <button class="action" disabled>🚪 <span class="only-fa">خروج از حساب — وارد نشده‌اید</span><span class="only-en">Sign out — Not signed in</span></button>
+
+<section id="premiumOffer" aria-label="Premium plan" style="padding:14px 12px;margin:20px 0;border:2px solid #c4b5fd;border-radius:18px;background:#f5f3ff;text-align:center">
+  <h3 style="font-size:20px;font-weight:900;margin:0 0 10px">🌟 <span class="only-fa">نسخه کامل Termeh Piano</span><span class="only-en">Full Termeh Piano</span></h3>
+  <p style="font-size:15px;margin:6px 0"><span class="only-fa">🎹 درس‌های اولیه رایگان؛ ارتقا به نسخه کامل با خرید یک‌باره و دائمی، بدون اشتراک ماهانه</span><span class="only-en">🎹 Start learning for free; unlock premium lessons with a one-time purchase, no subscription.</span></p>
+  <p style="font-size:22px;font-weight:900;color:#5b21b6;margin:8px 0"><span class="only-fa">۹۹٬۰۰۰ تومان</span><span class="only-en">99,000 toman</span></p>
+  <p style="font-size:12px;color:#6b7280"><span class="only-fa">این قیمت برنامه‌ریزی‌شده است؛ قیمت نهایی باید در کافه‌بازار ثبت و تأیید شود.</span><span class="only-en">Planned price only. Final price must be configured and confirmed in Cafe Bazaar.</span></p>
+  <button id="buyPremiumBtn" class="action" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
+  <button id="restorePremiumBtn" class="action" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
+  <p style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
+</section>
 
 <div role="group" aria-label="Support and app updates" style="margin-top:14px;border-top:2px solid #ddd;padding-top:12px">
 <h3><span class="only-fa">🛠️ پشتیبانی و به‌روزرسانی</span><span class="only-en">🛠️ Support & updates</span></h3>
