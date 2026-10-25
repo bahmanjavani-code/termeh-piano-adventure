@@ -567,6 +567,8 @@
     <!-- ======================================================== -->
     <!-- JAVASCRIPT: AUDIO SYNTHESIZER, MUSIC ENGINE & GAME LOGIC -->
     <!-- ======================================================== -->
+    <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
+    <script src="premium-preview.js"></script>
     <script>
         /**************************************************************
          * 1. PERSISTENT STATE & REWARD DATA
@@ -697,159 +699,62 @@
         // MODE 1: TREBLE CLEF NOTES (کلید سل)
         const TREBLE_NOTES = [
             {
-                code: 'C4', keyId: 'C', faName: 'دو (میانی)', freq: 261.63, svgY: 160, ledgerY: 160,
-                posText: 'روی خط کمکی پایین',
-                hintText: 'این نت یک خط کوچولوی کمکی زیر خطوط حامل داره! اولین نت یعنی «دو» (قرمز) است.'
+                "code": "C4",
+                "keyId": "C",
+                "faName": "دو (میانی)",
+                "freq": 261.63,
+                "svgY": 160,
+                "ledgerY": 160,
+                "posText": "روی خط کمکی پایین",
+                "hintText": "این نت یک خط کوچولوی کمکی زیر خطوط حامل داره! اولین نت یعنی «دو» (قرمز) است."
             },
             {
-                code: 'D4', keyId: 'D', faName: 'ر', freq: 293.66, svgY: 150, ledgerY: null,
-                posText: 'چسبیده به زیر خط اول',
-                hintText: 'این نت درست زیر خط اول نشسته و یک پله بالاتر از دو است، یعنی نت «ر» (نارنجی)!'
+                "code": "D4",
+                "keyId": "D",
+                "faName": "ر",
+                "freq": 293.66,
+                "svgY": 150,
+                "ledgerY": null,
+                "posText": "چسبیده به زیر خط اول",
+                "hintText": "این نت درست زیر خط اول نشسته و یک پله بالاتر از دو است، یعنی نت «ر» (نارنجی)!"
             },
             {
-                code: 'E4', keyId: 'E', faName: 'می', freq: 329.63, svgY: 140, ledgerY: null,
-                posText: 'روی خط اول',
-                hintText: 'در کلید سل، نتی که روی خط اول (پایین‌ترین خط) می‌شینه نت «می» (زرد) است!'
+                "code": "E4",
+                "keyId": "E",
+                "faName": "می",
+                "freq": 329.63,
+                "svgY": 140,
+                "ledgerY": null,
+                "posText": "روی خط اول",
+                "hintText": "در کلید سل، نتی که روی خط اول (پایین‌ترین خط) می‌شینه نت «می» (زرد) است!"
             },
             {
-                code: 'F4', keyId: 'F', faName: 'فا', freq: 349.23, svgY: 130, ledgerY: null,
-                posText: 'بین خط ۱ و ۲',
-                hintText: 'این نت در فضای خالی اول (بین خط ۱ و ۲) قرار گرفته، یعنی نت «فا» (سبز)!'
+                "code": "F4",
+                "keyId": "F",
+                "faName": "فا",
+                "freq": 349.23,
+                "svgY": 130,
+                "ledgerY": null,
+                "posText": "بین خط ۱ و ۲",
+                "hintText": "این نت در فضای خالی اول (بین خط ۱ و ۲) قرار گرفته، یعنی نت «فا» (سبز)!"
             },
             {
-                code: 'G4', keyId: 'G', faName: 'سل', freq: 392.00, svgY: 120, ledgerY: null,
-                posText: 'روی خط دوم (خط کلید سل)',
-                hintText: 'کلید سل از روی خط دوم شروع میشه! پس نت روی خط دوم «سل» (آبی) است!'
-            },
-            {
-                code: 'A4', keyId: 'A', faName: 'لا', freq: 440.00, svgY: 110, ledgerY: null,
-                posText: 'بین خط ۲ و ۳',
-                hintText: 'این نت بین خط دوم و سوم نشسته (یک پله بالاتر از سل)، یعنی نت «لا» (نیلی)!'
-            },
-            {
-                code: 'B4', keyId: 'B', faName: 'سی', freq: 493.88, svgY: 100, ledgerY: null,
-                posText: 'روی خط سوم (خط وسط)',
-                hintText: 'در کلید سل، نتی که دقیقاً روی خط سوم (وسط) قرار داره نت «سی» (بنفش) است!'
-            },
-            {
-                code: 'C5', keyId: 'C', faName: 'دو (بالا)', freq: 523.25, svgY: 90, ledgerY: null,
-                posText: 'بین خط ۳ و ۴',
-                hintText: 'این نت بین خط سوم و چهارم نشسته و صدای زیرتری داره: نت «دو» (قرمز)!'
-            },
-            {
-                code: 'D5', keyId: 'D', faName: 'ر (بالا)', freq: 587.33, svgY: 80, ledgerY: null,
-                posText: 'روی خط چهارم',
-                hintText: 'در کلید سل، نتی که روی خط چهارم قرار داره نت «ر» (نارنجی) است!'
-            },
-            {
-                code: 'E5', keyId: 'E', faName: 'می (بالا)', freq: 659.25, svgY: 70, ledgerY: null,
-                posText: 'بین خط ۴ و ۵',
-                hintText: 'این نت در فضای بین خط چهارم و پنجم نشسته: نت «می» (زرد)!'
-            },
-            {
-                code: 'F5', keyId: 'F', faName: 'فا (بالا)', freq: 698.46, svgY: 60, ledgerY: null,
-                posText: 'روی خط پنجم (خط آخر)',
-                hintText: 'بالاترین خط (خط پنجم) در کلید سل مربوط به نت «فا» (سبز) است!'
+                "code": "G4",
+                "keyId": "G",
+                "faName": "سل",
+                "freq": 392,
+                "svgY": 120,
+                "ledgerY": null,
+                "posText": "روی خط دوم (خط کلید سل)",
+                "hintText": "کلید سل از روی خط دوم شروع میشه! پس نت روی خط دوم «سل» (آبی) است!"
             }
-        ];
+        ].concat(window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.trebleExtra : []);
 
         // MODE 2: BASS CLEF NOTES (کلید فا)
-        const BASS_NOTES = [
-            {
-                code: 'G2', keyId: 'G', faName: 'سل', freq: 98.00, svgY: 140, ledgerY: null,
-                posText: 'روی خط اول (در کلید فا)',
-                hintText: 'یادت باشه در کلید فا جای نت‌ها فرق داره! روی خط اولِ کلید فا، نت «سل» (آبی) می‌شینه!'
-            },
-            {
-                code: 'A2', keyId: 'A', faName: 'لا', freq: 110.00, svgY: 130, ledgerY: null,
-                posText: 'بین خط ۱ و ۲ (در کلید فا)',
-                hintText: 'در کلید فا، فضای بین خط اول و دوم مربوط به نت «لا» (نیلی) است!'
-            },
-            {
-                code: 'B2', keyId: 'B', faName: 'سی', freq: 123.47, svgY: 120, ledgerY: null,
-                posText: 'روی خط دوم (در کلید فا)',
-                hintText: 'در کلید فا، نتی که روی خط دوم قرار می‌گیره نت «سی» (بنفش) است!'
-            },
-            {
-                code: 'C3', keyId: 'C', faName: 'دو', freq: 130.81, svgY: 110, ledgerY: null,
-                posText: 'بین خط ۲ و ۳ (در کلید فا)',
-                hintText: 'در کلید فا، فضای بین خط دوم و سوم خانهٔ نت «دو» (قرمز) است!'
-            },
-            {
-                code: 'D3', keyId: 'D', faName: 'ر', freq: 146.83, svgY: 100, ledgerY: null,
-                posText: 'روی خط سوم / وسط (در کلید فا)',
-                hintText: 'در کلید فا، خط سوم (خط وسط) متعلق به نت «ر» (نارنجی) است!'
-            },
-            {
-                code: 'E3', keyId: 'E', faName: 'می', freq: 164.81, svgY: 90, ledgerY: null,
-                posText: 'بین خط ۳ و ۴ (در کلید فا)',
-                hintText: 'یک پله پایین‌تر از خط چهارم (بین خط ۳ و ۴ در کلید فا)، نت «می» (زرد) قرار داره!'
-            },
-            {
-                code: 'F3', keyId: 'F', faName: 'فا (خط کلید فا)', freq: 174.61, svgY: 80, ledgerY: null,
-                posText: 'روی خط چهارم (بین دو نقطه کلید فا!)',
-                hintText: 'راز بزرگ کلید فا: خط چهارم که بین دو تا نقطهٔ کلید فا قرار داره، همیشه نت «فا» (سبز) است!'
-            },
-            {
-                code: 'G3', keyId: 'G', faName: 'سل (بالا)', freq: 196.00, svgY: 70, ledgerY: null,
-                posText: 'بین خط ۴ و ۵ (در کلید فا)',
-                hintText: 'یک پله بالاتر از خط چهارم (فا)، یعنی بین خط ۴ و ۵، نت «سل» (آبی) قرار داره!'
-            },
-            {
-                code: 'A3', keyId: 'A', faName: 'لا (بالا)', freq: 220.00, svgY: 60, ledgerY: null,
-                posText: 'روی خط پنجم (در کلید فا)',
-                hintText: 'در کلید فا، بالاترین خط (خط پنجم) خانهٔ نت «لا» (نیلی) است!'
-            },
-            {
-                code: 'C4', keyId: 'C', faName: 'دو میانی', freq: 261.63, svgY: 40, ledgerY: 40,
-                posText: 'روی خط کمکی بالای کلید فا',
-                hintText: 'این نت با یک خط کمکی بالای خطوط کلید فا نوشته میشه و همون «دو میانی» (قرمز) است!'
-            }
-        ];
+        const BASS_NOTES = window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.bass : []; // Absent from release APK until verified download.
 
         // MODE 3: NOTE DURATIONS (کشش نت‌ها)
-        const NOTE_DURATIONS = [
-            {
-                id: 'whole',
-                faName: 'نت گِرد',
-                beats: 4,
-                beatsLabel: '۴ ضرب',
-                apples: '🍎 🍎 🍎 🍎',
-                desc: 'مثل یک دایره توخالی بدون دسته است و از همه طولانی‌تر کشیده میشه (۴ شماره کامل)!',
-                color: 'from-rose-500 to-pink-600',
-                lightClass: 'bg-rose-50 border-rose-300 text-rose-900'
-            },
-            {
-                id: 'half',
-                faName: 'نت سفید',
-                beats: 2,
-                beatsLabel: '۲ ضرب',
-                apples: '🍎 🍎',
-                desc: 'شکم سفید و توخالی داره ولی برعکس نت گرد، یک دسته هم داره و ۲ شماره کشیده میشه!',
-                color: 'from-amber-400 to-orange-500',
-                lightClass: 'bg-amber-50 border-amber-300 text-amber-900'
-            },
-            {
-                id: 'quarter',
-                faName: 'نت سیاه',
-                beats: 1,
-                beatsLabel: '۱ ضرب',
-                apples: '🍎',
-                desc: 'شکم پر و سیاه با یک دسته داره و به اندازه ۱ شماره (یک قدم) کشیده میشه!',
-                color: 'from-emerald-500 to-teal-600',
-                lightClass: 'bg-emerald-50 border-emerald-300 text-emerald-900'
-            },
-            {
-                id: 'eighth',
-                faName: 'نت چنگ',
-                beats: 0.5,
-                beatsLabel: 'نیم ضرب (½)',
-                apples: '🍏 (نصف سیب)',
-                desc: 'شبیه نت سیاه است اما بالای دسته‌اش یک پرچم (چنگک) قشنگ داره و خیلی سریع (نیم ضرب) اجرا میشه!',
-                color: 'from-indigo-500 to-purple-600',
-                lightClass: 'bg-indigo-50 border-indigo-300 text-indigo-900'
-            }
-        ];
+        const NOTE_DURATIONS = window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.durations : []; // Production premium content arrives only after purchase verification.
 
         /**************************************************************
          * 4. WEB AUDIO API SOUND ENGINE (REAL PIANO FREQUENCIES & SFX)
@@ -2080,8 +1985,8 @@ document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getIt
 <script>
 (function(){
 const thresholds={bass:85,rhythm:90};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
-window.isModeUnlocked=function(mode){if(mode==='treble')return true;return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed};
-window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const result=getMastery(source);const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Mastery '+result.score+'% / '+goal+'%. Accuracy, response speed and note variety count. Complete at least 80 first attempts and pass the final 20-question assessment with 90% accuracy. Premium purchase is not available yet.':'تسلط: '+result.score+'٪ از '+goal+'٪. دقت، سرعت و تنوع نت‌ها محاسبه می‌شود. دست‌کم ۸۰ تلاش اول و قبولی در آزمون ۲۰ پرسشی پایانی با دقت ۹۰٪ لازم است. خرید نسخه ویژه هنوز فعال نیست.'};
+window.isModeUnlocked=function(mode){if(mode==='treble')return true; if(!window.TERMEH_DEBUG_PREMIUM)return false; return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed};
+window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';if(!window.TERMEH_DEBUG_PREMIUM){document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒';document.getElementById('unlockText').textContent=localStorage.getItem('termeh_language')==='en'?'These lessons are not included in the free release. Purchases are disabled until secure payment, download and restore are ready. Starter lessons remain free.':'درس‌های ویژه داخل نسخه رایگان نیستند. تا آماده‌شدن پرداخت امن، دانلود و بازیابی خرید، فروش غیرفعال است. درس‌های مقدماتی رایگان می‌مانند.';return;}document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const result=getMastery(source);const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Mastery '+result.score+'% / '+goal+'%. Accuracy, response speed and note variety count. Complete at least 80 first attempts and pass the final 20-question assessment with 90% accuracy. Premium purchase is not available yet.':'تسلط: '+result.score+'٪ از '+goal+'٪. دقت، سرعت و تنوع نت‌ها محاسبه می‌شود. دست‌کم ۸۰ تلاش اول و قبولی در آزمون ۲۰ پرسشی پایانی با دقت ۹۰٪ لازم است. خرید نسخه ویژه هنوز فعال نیست.'};
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');document.getElementById('parentChallenge').style.display='none';pendingMode=null};
 document.getElementById('unlockOverlay').addEventListener('click',function(e){if(e.target===this)closeUnlock()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeUnlock()});
