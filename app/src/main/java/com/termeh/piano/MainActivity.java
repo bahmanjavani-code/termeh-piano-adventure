@@ -1,6 +1,8 @@
 package com.termeh.piano;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.ActivityNotFoundException;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -53,6 +55,18 @@ public class MainActivity extends Activity {
                         support.checkUpdates(true);
                     }
                     return true;
+                }
+                if ("https".equals(uri.getScheme()) && "bahmanjavani-code.github.io".equals(uri.getHost())) {
+                    String page = uri.getPath();
+                    if ("/termeh-piano-adventure/privacy.html".equals(page)
+                            || "/termeh-piano-adventure/en/privacy.html".equals(page)
+                            || "/termeh-piano-adventure/terms.html".equals(page)
+                            || "/termeh-piano-adventure/en/terms.html".equals(page)) {
+                        try {
+                            startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, uri), "Open policy / نمایش شرایط"));
+                        } catch (ActivityNotFoundException ignored) { }
+                        return true;
+                    }
                 }
                 // No navigation outside the packaged home page.
                 return !START_PAGE.equals(link);
