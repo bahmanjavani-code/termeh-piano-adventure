@@ -28,6 +28,8 @@ jobs:
         run: node tests/quality.test.cjs
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
         run: node tests/secure-premium-pack.test.cjs
+      - name: Test safe offline premium entitlement core (mocks only, never charge)
+        run: node tests/secure-activation.test.cjs
       - name: Run UI smoke tests
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
