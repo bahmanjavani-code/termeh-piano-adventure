@@ -1109,7 +1109,7 @@
                     const mascot = getCurrentMascot();
                     const praiseMsg = localStorage.getItem('termeh_language')==='en' ? 'Excellent note reading! 🌟' : mascot.praise[Math.floor(Math.random() * mascot.praise.length)];
                     setMascotBubble(
-                        'آفرین! درست گفتی! 🎉',
+                        isEnglish() ? 'Great! Correct! 🎉' : 'آفرین! درست گفتی! 🎉',
                         localStorage.getItem('termeh_language')==='en' ? `${praiseMsg} The answer was ${target.code}. Tap Next Note to continue!` : `${praiseMsg} این نت «${target.faName}» (${target.posText}) بود! حالا دکمه زرد رنگ «نت بعدی» رو بزن!`,
                         'joy'
                     );
@@ -1141,7 +1141,7 @@
 
                 const pressedKeyMeta = SOLFEGE_KEYS.find(k => k.id === keyId);
                 setMascotBubble(
-                    'دوباره امتحان کن! 💡',
+                    isEnglish() ? 'Try again! 💡' : 'دوباره امتحان کن! 💡',
                     localStorage.getItem('termeh_language') === 'en' ? 'Not quite. Count the lines from bottom to top and try another key.' : 'هنوز درست نیست. خط‌ها را از پایین به بالا بشمار و دوباره تلاش کن.',
                     'shake'
                 );
@@ -1197,13 +1197,13 @@
             const levelText = document.getElementById('levelProgressText');
             if (state.mode === 'treble') {
                 if (clefBadge) {
-                    clefBadge.textContent = 'کلید سل 𝄞';
+                    clefBadge.textContent = isEnglish() ? 'Treble clef 𝄞' : 'کلید سل 𝄞';
                     clefBadge.className = 'bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
                 if (levelText) levelText.textContent = localStorage.getItem('termeh_language')==='en' ? `Level ${state.levelTreble} (Treble clef)` : `مرحله ${state.levelTreble} (کلید سل)`;
             } else {
                 if (clefBadge) {
-                    clefBadge.textContent = 'کلید فا 𝄢';
+                    clefBadge.textContent = isEnglish() ? 'Bass clef 𝄢' : 'کلید فا 𝄢';
                     clefBadge.className = 'bg-purple-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
                 if (levelText) levelText.textContent = localStorage.getItem('termeh_language')==='en' ? `Level ${state.levelBass} (Bass clef)` : `مرحله ${state.levelBass} (کلید فا)`;
@@ -1996,9 +1996,17 @@ const phrases=[
 ['🎼 نت را از روی حامل پیدا کن','🎼 Find the note on the staff'],['لطفاً گوشی را به والدین بدهید.','Please hand the phone to a parent.'],['حساب والدین','Parent Account'],['وضعیت حساب: مهمان','Account status: Guest'],['تمرین بدون ثبت‌نام امکان‌پذیر است.','Practice without registration is available.'],['پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.','Progress is currently stored only on this device.'],['تأیید والدین','Verify parent'],['پاسخ نادرست','Incorrect answer'],['یک دقیقه صبر کنید','Wait one minute'],['ورود','Sign in'],['ثبت‌نام','Register'],['پشتیبان‌گیری','Backup'],['بازیابی پیشرفت','Restore progress'],['خروج از حساب','Sign out'],['به‌زودی','Coming soon'],['وارد نشده‌اید','Not signed in'],['حساب آنلاین و خرید هنوز راه‌اندازی نشده‌اند.','Online accounts and purchases are not available yet.'],['هیچ رمز عبور یا اطلاعات کودک در این صفحه دریافت نمی‌شود.','No passwords or child data are collected here.'],['بستن','Close'],['باندی پیانیست','Pandy the Pianist'],['به خط‌های حامل نگاه کن!','Look at the staff!'],['این نت که روی','This note is on'],['قرار داره، کدوم نته؟','— which note is it?'],['روی پیانو پیداش کن!','Find it on the piano!'],['موقعیت نت:','Note position:'],['روی خط اول','on the first line'],['روی خط دوم','on the second line'],['روی خط سوم','on the third line'],['روی خط چهارم','on the fourth line'],['روی خط پنجم','on the fifth line'],['بین خط اول و دوم','between lines 1 and 2'],['بین خط دوم و سوم','between lines 2 and 3'],['بین خط سوم و چهارم','between lines 3 and 4'],['بین خط چهارم و پنجم','between lines 4 and 5'],['زیر خط اول','below the first line'],['بالای خط پنجم','above the fifth line'],['خط وسط','middle line'],['خط اول','first line'],['خط دوم','second line'],['خط سوم','third line'],['خط چهارم','fourth line'],['خط پنجم','fifth line'],['آفرین!','Great!'],['هورا!!!','Hooray!'],['چه گوش موسیقی قشنگ و دقیقی داری!','What a great musical ear!'],['نت بعدی','Next note'],['بزن!','Tap!'],['قفل باز شد!','Unlocked!'],['(خط وسط)','(middle line)'],['(فضای اول)','(first space)'],['(فضای دوم)','(second space)'],['(فضای سوم)','(third space)'],['(فضای چهارم)','(fourth space)'],['رو پیدا کن','find it'],['برویم سوال بعدی','Next question'],['آموزش','Lesson'],['سوال','Question'],
 ['ماجراجویی پیانوی ترمه','Termeh’s Piano Adventure'],['نت‌آموز کوچولو','Little Music Explorer'],['همراه تو:','Your buddy:'],['قفسه جوایز','Trophy Room'],['راهنما: روشن','Hints: ON'],['راهنما: خاموش','Hints: OFF'],['مود کلید سل','Treble Clef'],['مود کلید فا','Bass Clef'],['کشش نت‌ها','Note Durations'],['تغییر دوست','Change Buddy'],['این کدوم نُته؟','Which note is this?'],['شنیدن صدای نت','Hear the note'],['روی کلید درستِ پیانو بزن:','Tap the correct piano key:'],['تا درست نگی سوال بعدی باز نمیشه!','Get it right to unlock the next question!'],['اول نت درست رو پیدا کن تا قفل باز بشه!','Find the correct note to unlock!'],['آفرین! بریم سوال بعدی','Great! Next question'],['قفل باز شد! بریم نت بعدی!','Unlocked! Next note!'],['درسنامه صوتی','Learn & Listen'],['مسابقه ضرب‌ها','Beat Quiz'],['بازی نگه داشتن نت','Hold the Note'],['سوال جدید','New Question'],['مرحله','Level'],['کشش:','Duration:'],['نت گرد','Whole note'],['نت سفید','Half note'],['نت سیاه','Quarter note'],['نت چنگ','Eighth note'],['دو (میانی)','Middle C'],['دو میانی','Middle C'],['دو (بالا)','High C'],['ر (بالا)','High D'],['می (بالا)','High E'],['فا (بالا)','High F'],['درست گفتی','Correct!'],['دوباره امتحان کن','Try again'],['سکه‌های تو:','Your coins:'],['ستاره‌ها:','Stars:'],['آماده‌ای؟','Ready?'],['هدف:','Target:'],['اینجا رو نگه دار و بشمار!','Hold here and count!'],['متوجه شدم، بریم سراغ بازی!','Got it! Let’s play!'],['دوست موسیقی‌دان خودت رو انتخاب کن!','Choose your musical buddy!'],['قفسه جوایز و استیکرها','Trophies & Stickers'],['راهنمای تبدیل به فایل APK و نصب روی گوشی','Android installation guide'],['کلید سل','Treble clef'],['کلید فا','Bass clef'],['ضرب','beat'],['روی خط','on line'],['بین خطوط','between lines']
 ];
+const phrasePairs=phrases.slice().sort((a,b)=>b[0].length-a[0].length); // Longest phrases first: avoid mixing Persian and English in partial matches.
 let observer;let current='fa';
-function translate(root){if(current!=='en')return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(node=>{if(node.parentElement&&['SCRIPT','STYLE','TEXTAREA','INPUT'].includes(node.parentElement.tagName))return;let out=node.nodeValue;for(const [fa,en] of phrases)out=out.split(fa).join(en);if(out!==node.nodeValue)node.nodeValue=out;});}
-window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }};
+function translate(root){if(current!=='en')return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(node=>{if(node.parentElement&&['SCRIPT','STYLE','TEXTAREA','INPUT'].includes(node.parentElement.tagName))return;let out=node.nodeValue;for(const [fa,en] of phrasePairs)out=out.split(fa).join(en);if(out!==node.nodeValue)node.nodeValue=out;});}
+window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
+// Static translation alone cannot update HTML created before language selection.
+// Rebuild the active exercise and piano keys in the selected language.
+if (typeof state!=='undefined' && state.currentStaffNote) {
+  updateHeaderUI();
+  if(state.mode==='treble'||state.mode==='bass') switchGameMode(state.mode);
+  else switchRhythmSubMode(state.rhythmSubMode);
+}};
 window.resetLanguage=function(){localStorage.removeItem('termeh_language');location.reload()};
 document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getItem('termeh_language');if(saved==='en'||saved==='fa')chooseLanguage(saved)});
 })();
@@ -2070,7 +2078,7 @@ const normalize=s=>s.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).
 function question(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;el('hubMath').textContent=a+' × '+b+' + 13 = ?';el('hubAnswer').value='';}
 window.openParentHub=function(){closeUnlock();el('parentHub').classList.add('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubGateMessage').textContent='';question();};
 window.closeParentHub=function(){el('parentHub').classList.remove('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubAnswer').value='';};
-window.verifyParentHub=function(){const msg=el('hubGateMessage');if(Date.now()<lockUntil){msg.textContent='لطفاً یک دقیقه صبر کنید / Please wait one minute';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();return;}failures++;msg.textContent='پاسخ نادرست / Incorrect answer';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent='یک دقیقه صبر کنید / Wait one minute';}};
+window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
 })();
