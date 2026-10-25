@@ -83,7 +83,7 @@ jobs:
           AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
           APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -1)"
           "$APKSIGNER" verify --verbose --print-certs "$APK"
-          ACTUAL_CERT="$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 | tr -d '[:space:]')"
+          # apksigner output labels vary by installed build-tools version (e.g.\n          # "Signer #1 certificate ..." versus "V2 Signer: certificate ...").\n          # Extract the public certificate digest independent of that prefix.\n          ACTUAL_CERT="$("$APKSIGNER" verify --print-certs "$APK" | awk '/certificate SHA-256 digest:/ {print $NF; exit}' | tr 'A-F' 'a-f' | tr -d '[:space:]')"\n          if ! [[ "$ACTUAL_CERT" =~ ^[0-9a-f]{64}$ ]]; then\n            echo "::error::Could not read SHA-256 signing certificate digest from APK"\n            exit 1\n          fi
           EXPECTED_CERT="${{ steps.signing_cert.outputs.sha256 }}"
           if [ "$ACTUAL_CERT" != "$EXPECTED_CERT" ]; then
             echo "::error::APK signature does not match the approved release signing key"
