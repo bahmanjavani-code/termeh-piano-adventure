@@ -1,0 +1,59 @@
+// Developer-only AES-GCM content-pack regression tests. No secrets are committed.
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const {seal,open,SKU,PACKAGE_NAME}=require('../tools/secure-premium-pack.cjs');
+
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'termeh-premium-'));
+const file=name=>path.join(root,name);
+try{
+  const sample={
+    schema:1,
+    productId:SKU,
+    lessons:[{id:'rhythm_private_example',title:'Private premium fixture — not real production content'}]
+  };
+  fs.writeFileSync(file('input.json'),JSON.stringify(sample),'utf8');
+  seal(file('input.json'),file('pack.tpk'),file('license.key'));
+  const envelope=JSON.parse(fs.readFileSync(file('pack.tpk'),'utf8'));
+  assert.equal(envelope.productId,SKU);
+  assert.equal(envelope.packageName,PACKAGE_NAME);
+  assert(!fs.readFileSync(file('pack.tpk'),'utf8').includes('Private premium fixture'),
+    'Premium plaintext must never be present inside encrypted pack');
+  assert.equal(fs.readFileSync(file('license.key'),'utf8').trim().length,64,
+    'Generated AES content key must be 32 bytes');
+  if(process.platform!=='win32'){
+    const mode=fs.statSync(file('license.key')).mode&0o777;
+    assert.equal(mode&0o077,0,'Key must not be group/world readable');
+  }
+  open(file('pack.tpk'),file('license.key'),file('unpacked.json'));
+  assert.deepEqual(JSON.parse(fs.readFileSync(file('unpacked.json'),'utf8')),sample);
+
+  // An independent key must NEVER decrypt another purchase's pack.
+  fs.writeFileSync(file('wrong.key'),'aa'.repeat(32));
+  assert.throws(()=>open(file('pack.tpk'),file('wrong.key'),file('wrong.json')));
+  assert(!fs.existsSync(file('wrong.json')),'No plaintext when authentication fails');
+
+  // Ciphertext modification must be caught before writing content.
+  const changed=structuredClone(envelope);
+  const cipher=Buffer.from(changed.ciphertext,'base64');
+  cipher[0]^=1;
+  changed.ciphertext=cipher.toString('base64');
+  fs.writeFileSync(file('tampered.tpk'),JSON.stringify(changed));
+  assert.throws(()=>open(file('tampered.tpk'),file('license.key'),file('tampered.json')));
+  assert(!fs.existsSync(file('tampered.json')));
+
+  // Cannot swap a pack to another package or SKU.
+  const changedSku={...envelope,productId:'other_product'};
+  fs.writeFileSync(file('wrong-sku.tpk'),JSON.stringify(changedSku));
+  assert.throws(()=>open(file('wrong-sku.tpk'),file('license.key'),file('wrong-sku.json')));
+  assert(!fs.existsSync(file('wrong-sku.json')));
+
+  // CLI must not accidentally overwrite an existing private key.
+  assert.throws(()=>seal(file('input.json'),file('another.tpk'),file('license.key')));
+  assert(!fs.existsSync(file('another.tpk')));
+  console.log('PASS: AES-256-GCM pack roundtrip; wrong keys, corruption, SKU tampering and key overwrite refused.');
+}finally{
+  fs.rmSync(root,{recursive:true,force:true});
+}
