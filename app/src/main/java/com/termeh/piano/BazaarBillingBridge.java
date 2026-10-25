@@ -21,8 +21,9 @@ import kotlin.Unit;
  * It NEVER starts checkout, consumes the lifetime SKU, unlocks content,
  * stores purchase tokens, or hands purchase receipts to WebView JavaScript.
  *
- * No paid functionality may be enabled until server-side Bazaar verification,
- * authenticated premium data delivery and cross-device restore are implemented.
+ * The owner selected local Poolakey verification without a server; this has
+ * limited resistance to patched APKs. No paid functionality may be enabled
+ * until authenticated lesson decoding, offline ownership and restore are tested.
  */
 final class BazaarBillingBridge {
     static final String PACKAGE_ID = "com.termeh.piano";
@@ -77,7 +78,7 @@ final class BazaarBillingBridge {
         return connected ? "ready" : "unavailable";
     }
 
-    /** Read-only query. Results are NOT an entitlement until verified by our future backend. */
+    /** Read-only query. Results are NOT an entitlement until the native ownership gate is complete. */
     @JavascriptInterface
     public void checkOwnedPurchase() {
         activity.runOnUiThread(() -> {
@@ -99,8 +100,8 @@ final class BazaarBillingBridge {
                                 break;
                             }
                         }
-                        // Local RSA signature checking is enabled above, but a real entitlement
-                        // still requires private-server receipt verification and content delivery.
+                        // Local RSA signature checking is enabled. Still no entitlement:
+                        // checkout, encrypted real lessons and offline restore are unfinished.
                         publishStatus(ownsSku ? "owned_unverified" : "not_found");
                         return Unit.INSTANCE;
                     });
