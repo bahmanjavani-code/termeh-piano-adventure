@@ -19,7 +19,7 @@
 ```sh
 keytool -genkeypair -keystore termeh-release.jks -storetype PKCS12 \
   -alias termeh_piano_release -keyalg RSA -keysize 3072 \
-  -validity 12000 -dname "CN=Termeh Piano, O=Termeh Piano, C=IR"
+  -validity 12000 -dname "CN=Termeh Piano, O=Termeh Piano"
 ```
 
 برنامه Java از شما رمز طولانی برای keystore می‌خواهد. در حالت PKCS12 رمز کلید و فایل یکی باشد؛ هیچ رمز آماده‌ای مثل 123456 استفاده نکنید. اسم مستعار (`alias`) **`termeh_piano_release`** است.
