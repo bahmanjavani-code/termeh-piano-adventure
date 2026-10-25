@@ -116,6 +116,19 @@ final class BazaarBillingBridge {
         });
     }
 
+    /**
+     * Parent-screen only cryptographic self-test; works OFFLINE and never unlocks.
+     * PUBLIC dummy AES key + dummy encrypted content are only for QA, not sales.
+     */
+    @JavascriptInterface
+    public void checkEncryptedDemoPack() {
+        activity.runOnUiThread(() -> {
+            if (destroyed) return;
+            publishStatus(PremiumPackDemo.verify(activity.getAssets())
+                    ? "demo_pack_ok" : "demo_pack_failed");
+        });
+    }
+
     private void publishStatus(String status) {
         activity.runOnUiThread(() -> {
             if (destroyed) return;
