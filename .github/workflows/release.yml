@@ -56,6 +56,12 @@ jobs:
           set -euo pipefail
           APK="app/build/outputs/apk/release/app-release.apk"
           test -s "$APK"
+          # Never publish beta-only advanced lesson fixtures inside a commercial APK.
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'release-free'
+          if unzip -p "$APK" assets/premium-preview.js | grep -Eq '(debug-full-preview|trebleExtra|beatsLabel)'; then
+            echo "::error::Premium debug lesson content is bundled in release APK"
+            exit 1
+          fi
           AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
           APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -1)"
           "$APKSIGNER" verify --verbose --print-certs "$APK"
