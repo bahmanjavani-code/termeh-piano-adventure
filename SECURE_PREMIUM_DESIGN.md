@@ -1,6 +1,8 @@
 # Secure premium content: architecture and implementation boundary
 
-Status: **variant-based free-content split + isolated encryption prototype**, NOT a working purchase system. The **release** APK includes only five introductory treble notes, while the **debug** APK contains publicly known preview test fixtures for advanced treble, bass and rhythm. Those previews, along with earlier repository history, are NOT secret content. Secure billing, protected new paid content, verified key delivery and offline paid activation are **not yet implemented**. The encryption prototype is not invoked by Android.
+> **Architecture update (owner decision, beta 1.3.8):** The owner chose a **no-host, local Poolakey verification** route, accepting weaker protection from reverse engineering. See [NO_HOST_BILLING_PLAN_FA.md](NO_HOST_BILLING_PLAN_FA.md) for the CURRENT roadmap. The server-verification and device-key delivery model described below is a **previous, optional stronger design**, not a required dependency for this selected build. A noncommercial AES-GCM **dummy** pack is now bundled in APK and verified by Android's native `PremiumPackReader`; its test key is PUBLIC, and it does not unlock any paid lessons. Checkout is still disabled. Real paid content and restoration do not exist yet.
+
+Status: **variant-based free-content split + isolated encryption prototype**, NOT a working purchase system. The **release** APK includes only five introductory treble notes, while the **debug** APK contains publicly known preview test fixtures for advanced treble, bass and rhythm. Those previews, along with earlier repository history, are NOT secret content. Secure billing, protected new paid content, verified key delivery and offline paid activation are **not yet implemented**. The noncommercial AES-GCM encrypted dummy fixture is now exercised by Android (parent-only self-test); this is NOT paid activation.
 
 ## Product requirements
 
