@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 12,
+  "latestVersionCode": 13,
   "storeUrl": "",
-  "notes": "1.3.7 beta QA: Bazaar RSA public-key validation, read-only ownership diagnostics. Payments remain disabled; no forced update before store launch."
+  "notes": "1.3.8 beta QA: native AES-GCM encrypted dummy lesson pack + offline parent diagnostic. Purchases and premium unlock remain disabled; no forced update before Bazaar release."
 }
