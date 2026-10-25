@@ -7,6 +7,7 @@ jobs:
     env:
       # RSA verification key is public (not a merchant secret). Empty means billing disabled.
       TERMEH_BAZAAR_RSA_PUBLIC_KEY: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
+      TERMEH_REQUIRE_BAZAAR_RSA_KEY: '1'
     permissions:
       contents: read
     steps:
@@ -31,6 +32,8 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
           node tests/browser-smoke.cjs
+      - name: Check Bazaar public RSA format without revealing value
+        run: node tests/bazaar-public-key.test.cjs
       - name: Configure secret signing material
         shell: bash
         env:
