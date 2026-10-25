@@ -1,0 +1,21 @@
+# Private billing verification material and encrypted-content source must NOT enter source control.
+premium_private/
+server_secrets/
+*.key
+*.jks
+*.keystore
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+
+# Local generated content packs, exported results, and release files
+*.tpk
+*.apk
+*.aab
+app/build/
+build/
+.gradle/
+node_modules/
+*.log
