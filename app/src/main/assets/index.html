@@ -246,6 +246,12 @@
             </div>
         </header>
 
+        <!-- Language and parental access live in the page flow, never over piano keys. -->
+        <div id="utilityBar" class="flex items-center justify-end gap-2" role="group" aria-label="Language and parent controls">
+            <button id="parentLaunch" type="button" onclick="openParentHub()">👨‍👩‍👧 <span class="only-fa">والدین</span><span class="only-en">Parents</span></button>
+            <button id="langSwitcher" onclick="resetLanguage()">🌐 FA / EN</button>
+        </div>
+
         <!-- MODE SELECTOR TABS (3 Modes) -->
         <nav class="grid grid-cols-3 gap-2">
             <button id="modeTab-treble" onclick="switchGameMode('treble')" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-gradient-to-b from-pink-500 to-rose-600 text-white border-rose-800 shadow-lg scale-105">
@@ -1945,13 +1951,17 @@
             switchGameMode('treble');
         };
     </script>
-<style>#languageGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#60a5fa,#8b5cf6,#f472b6);display:flex;align-items:center;justify-content:center;padding:24px}#languageGate.hide{display:none}#languageGate .card{max-width:420px;width:100%;background:white;border:5px solid #fde68a;border-radius:32px;text-align:center;padding:30px 18px;box-shadow:0 18px 45px #312e8166}#languageGate button{display:block;width:100%;font-size:21px;font-weight:900;border-radius:20px;padding:18px;margin-top:14px;background:#7c3aed;color:white;box-shadow:0 5px 0 #4c1d95}#languageGate button:last-child{background:#ec4899;box-shadow:0 5px 0 #9d174d}#langSwitcher{position:fixed;bottom:10px;right:10px;z-index:35;background:#fff;color:#5b21b6;border:2px solid #c4b5fd;border-radius:15px;padding:8px 12px;font-weight:900}html[lang=en] body{direction:ltr}</style>
-<div id="languageGate"><div class="card"><div style="font-size:70px">🎹🌈</div><h2 style="color:#6d28d9">ماجراجویی پیانوی ترمه<br><span style="font-size:20px">Termeh's Piano Adventure</span></h2><p>زبان بازی را انتخاب کن / Choose your language</p><button onclick="chooseLanguage('fa')">🇮🇷 فارسی</button><button onclick="chooseLanguage('en')">🇬🇧 English</button></div></div><button id="langSwitcher" onclick="resetLanguage()">🌐 FA / EN</button>
+<style>#languageGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#60a5fa,#8b5cf6,#f472b6);display:flex;align-items:center;justify-content:center;padding:24px}#languageGate.hide{display:none}#languageGate .card{max-width:420px;width:100%;background:white;border:5px solid #fde68a;border-radius:32px;text-align:center;padding:30px 18px;box-shadow:0 18px 45px #312e8166}#languageGate button{display:block;width:100%;font-size:21px;font-weight:900;border-radius:20px;padding:18px;margin-top:14px;background:#7c3aed;color:white;box-shadow:0 5px 0 #4c1d95}#languageGate button:last-child{background:#ec4899;box-shadow:0 5px 0 #9d174d}#langSwitcher{position:static;z-index:auto;min-height:44px;background:#fff;color:#5b21b6;border:2px solid #c4b5fd;border-radius:15px;padding:8px 12px;font-weight:900}html[lang=en] body{direction:ltr}</style>
+<div id="languageGate"><div class="card"><div style="font-size:70px">🎹🌈</div><h2 style="color:#6d28d9">ماجراجویی پیانوی ترمه<br><span style="font-size:20px">Termeh's Piano Adventure</span></h2><p>زبان بازی را انتخاب کن / Choose your language</p><button onclick="chooseLanguage('fa')">🇮🇷 فارسی</button><button onclick="chooseLanguage('en')">🇬🇧 English</button></div></div>
 <script>
 (function(){
 // Product configuration is informational only until Cafe Bazaar billing is integrated.
 const TERMEH_PREMIUM_PRODUCT_ID = "termeh_premium_lifetime";
 const phrases=[
+['روی هر کارت بزن تا صدای کشش نت و شمردن ضرب‌ها رو بشنوی!','Tap any card to hear its note duration and count the beats!'],
+['این نت اسمش چیه و چند ضرب کشش داره؟','What is this note called, and how many beats does it last?'],
+['(نصف سیب)','(half an apple)'],
+['چالش ریتم','Rhythm challenge'],
 ["انتخاب کاراکتر","Choose buddy"],
 ["✓ انتخاب شده","✓ Selected"],
 ["✓ باز شده!","✓ Unlocked!"],
@@ -2030,15 +2040,18 @@ window.checkParentGate=function(){const msg=document.getElementById('parentMessa
 })();
 </script><style>
 html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
+#staffHintPill{flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;text-align:center;color:#334155}
+#staffPositionLabel{max-width:100%;line-height:1.4;background:#fff!important;color:#422006!important;border-color:#d97706!important}
+#staffHintPill .text-slate-400{color:#475569!important;line-height:1.4}
 #parentHub{position:fixed;inset:0;z-index:95;background:#1e1b4bdd;display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
 #parentHub.open{display:flex}#parentHub .panel{position:relative;width:100%;max-width:440px;max-height:90dvh;overflow-y:auto;box-sizing:border-box;background:white;border:4px solid #fcd34d;border-radius:26px;padding:20px;text-align:center;color:#293449;box-shadow:0 18px 42px #0005}
 #parentHub .close{position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:42px;height:42px;font-size:26px;z-index:2}
 #parentHub .action{display:block;width:100%;margin:10px 0;padding:13px;border:0;border-radius:14px;background:#7c3aed;color:white;font-weight:bold;font-size:16px}
 #parentHub .action:disabled{background:#cbd5e1;color:#475569;opacity:1}
 #parentHub .notice{padding:12px;border-radius:14px;background:#fef3c7;font-size:14px;line-height:1.8}
-#parentLaunch{position:fixed;right:16px;bottom:92px;z-index:45;border:2px solid white;border-radius:20px;background:#6d28d9;color:white;padding:9px 13px;font-weight:800;box-shadow:0 3px 12px #0004}
+#parentLaunch{position:static;z-index:auto;min-height:44px;border:2px solid white;border-radius:20px;background:#6d28d9;color:white;padding:9px 13px;font-weight:800;box-shadow:0 3px 12px #0004}
 </style>
-<button id="parentLaunch" type="button" onclick="openParentHub()">👨‍👩‍👧 <span class="only-fa">والدین</span><span class="only-en">Parents</span></button>
+
 <div id="parentHub" role="dialog" aria-modal="true" aria-label="Parent account"><div class="panel"><button class="close" type="button" aria-label="بستن / Close" onclick="closeParentHub()">×</button>
 <h2>👨‍👩‍👧 <span class="only-fa">حساب والدین</span><span class="only-en">Parent Account</span></h2>
 <p class="notice">🎹 <span class="only-fa">تمرین بدون ثبت‌نام امکان‌پذیر است. پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.</span><span class="only-en">Play without an account. Progress is currently saved on this device only.</span></p>
