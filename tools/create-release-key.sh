@@ -27,7 +27,7 @@ echo 'When prompted to enter key password, reuse the store password (PKCS12).'
 keytool -genkeypair \
   -keystore "$keystore" -storetype PKCS12 \
   -alias "$alias_name" -keyalg RSA -keysize 3072 -validity 12000 \
-  -dname "CN=Termeh Piano, O=Termeh Piano, C=IR"
+  -dname "CN=Termeh Piano, O=Termeh Piano"
 chmod 600 "$keystore"
 echo
 echo 'Signing key successfully generated on this device.'
