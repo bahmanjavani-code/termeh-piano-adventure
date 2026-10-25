@@ -2,7 +2,7 @@
 
 **Approved business model:** free download + a one-time, lifetime in-app purchase for **99,000 toman**, no subscription. The price is a proposed storefront price, not an in-app authority and not yet configured in Cafe Bazaar.
 
-## Current 1.3.2-beta behavior
+## Current 1.3.4-beta behavior
 - Free users can play existing note-reading practice. The existing educational milestones for treble, bass and rhythm **remain accessible in this beta for testing**.
 - The parent hub (behind an arithmetic challenge) displays a non-interactive preview of the lifetime upgrade. The purchase/restore buttons are deliberately disabled.
 - **No real billing SDK, sale, payment receipt, entitlement, or purchase restore exists yet**. Beta progress unlocks are training achievements only. The beta must not be published as a monetized production version.
@@ -19,6 +19,13 @@
 - After verified lifetime purchase: full advanced note banks, bass clef, rhythm quiz and hold challenges, and all premium education stages. Progress-based assessments remain instructional, not payment entitlements.
 - **Do not lock existing customers out by a silent change:** finalize trial content and store description, decide preservation policy for beta progress, and notify testers before enabling premium gates.
 - A parent must be able to restore a genuine purchase after reinstalling or moving devices (via the same Bazaar account) without buying again.
+
+## Encryption groundwork (prototype; not yet enforced)
+
+- A development-only Node.js tool `tools/secure-premium-pack.cjs` can encrypt a JSON data pack with AES-256-GCM using a fresh key that stays **outside** the APK and public repository.
+- The roundtrip and tamper-resistance checks live in `tests/secure-premium-pack.test.cjs`; the build runs this test.
+- This does not mean current lessons are protected. The current self-contained HTML still contains the advanced lessons, and no server has yet verified a Bazaar receipt or distributed a secret key.
+- Real deployment requires the work described in [SECURE_PREMIUM_DESIGN.md](SECURE_PREMIUM_DESIGN.md), including removing premium lesson data from the free APK, native Keystore offline activation, backend purchase verification and online restoration.
 
 ## Required implementation milestones
 1. Finish creating Termeh Piano in the Cafe Bazaar developer dashboard under Android application ID `com.termeh.piano` and upload a **properly signed candidate APK**, not the current CI debug APK. Keep the permanent release keystore secure for all later updates.
