@@ -4,7 +4,13 @@ android {
     namespace 'com.termeh.piano'
     compileSdk 35
 
+    buildFeatures { buildConfig true }
+
     defaultConfig {
+        // Bazaar's RSA verification key is PUBLIC. No merchant/API private secret belongs in the APK.
+        def bazaarKey = (System.getenv('TERMEH_BAZAAR_RSA_PUBLIC_KEY') ?: '').replaceAll('\\s+', '')
+        if (!(bazaarKey ==~ /[A-Za-z0-9+\/=]{0,4096}/)) throw new GradleException('Invalid Bazaar public key characters')
+        buildConfigField 'String', 'BAZAAR_RSA_PUBLIC_KEY', '"' + bazaarKey + '"'
         applicationId 'com.termeh.piano'
         minSdk 26
         targetSdk 35
@@ -38,4 +44,11 @@ android {
             signingConfig signingConfigs.release
         }
     }
+}
+
+// This stage wires the official billing SDK for read-only ownership checks.
+// Checkouts and premium content delivery remain DISABLED until verified backend is live.
+dependencies {
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'com.github.cafebazaar.Poolakey:poolakey:2.3.0'
 }
