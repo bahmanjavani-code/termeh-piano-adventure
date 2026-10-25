@@ -87,6 +87,12 @@ jobs:
           APK="app/build/outputs/apk/release/app-release.apk"
           test -s "$APK"
           # Never publish beta-only advanced lesson fixtures inside a commercial APK.
+          # QA only: encrypted noncommercial demo must be packed without plaintext.
+          unzip -p "$APK" assets/premium-demo-pack.json | grep -q '"ciphertext"'
+          if unzip -p "$APK" assets/premium-demo-pack.json | grep -q 'encrypted_demo_only'; then
+            echo "::error::Demo lesson plaintext leaked into APK pack"
+            exit 1
+          fi
           unzip -p "$APK" assets/premium-preview.js | grep -q 'release-free'
           if unzip -p "$APK" assets/premium-preview.js | grep -Eq '(debug-full-preview|trebleExtra|beatsLabel)'; then
             echo "::error::Premium debug lesson content is bundled in release APK"
