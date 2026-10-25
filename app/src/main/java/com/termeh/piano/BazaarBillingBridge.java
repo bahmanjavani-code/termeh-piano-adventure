@@ -20,6 +20,8 @@ import kotlin.Unit;
  * This bridge only checks locally verified ownership in a parent-only area.
  * It NEVER starts checkout, consumes the lifetime SKU, unlocks content,
  * stores purchase tokens, or hands purchase receipts to WebView JavaScript.
+ * Two self-tests verify noncommercial AES content and disposable Keystore
+ * storage without creating any purchase entitlement.
  *
  * The owner selected local Poolakey verification without a server; this has
  * limited resistance to patched APKs. No paid functionality may be enabled
@@ -127,6 +129,23 @@ final class BazaarBillingBridge {
             if (destroyed) return;
             publishStatus(PremiumPackDemo.verify(activity.getAssets())
                     ? "demo_pack_ok" : "demo_pack_failed");
+        });
+    }
+
+    /**
+     * Parent-only Android Keystore health check. Tests a disposable AES-GCM
+     * encrypted record and clears its separate key/prefs afterwards.
+     * Does NOT create, modify, or unlock a premium purchase entitlement.
+     */
+    @JavascriptInterface
+    public void checkOfflineVaultDemo() {
+        activity.runOnUiThread(() -> {
+            if (destroyed) return;
+            publishStatus("vault_checking");
+            new Thread(() -> {
+                boolean passed = new OfflineLicenseVault(activity).disposableSelfTest();
+                publishStatus(passed ? "vault_demo_ok" : "vault_demo_failed");
+            }, "termeh-disposable-keystore-test").start();
         });
     }
 
