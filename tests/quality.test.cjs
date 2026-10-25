@@ -82,4 +82,22 @@ assert(support.includes('installNativeCrashRecorder'),'Native crash summaries mu
 assert(html.includes('termehReportErrors'),'Parent-only email report control missing');
 assert(html.includes('termehCheckUpdates'),'Parent-only update check control missing');
 assert(html.includes('No locally recorded JavaScript errors.'),'Minimal JS diagnostics missing');
+// Phase-one Bazaar billing is read-only, parent gated and deliberately fail-closed.
+const billing=fs.readFileSync('app/src/main/java/com/termeh/piano/BazaarBillingBridge.java','utf8');
+const settings=fs.readFileSync('settings.gradle','utf8');
+assert(settings.includes('https://jitpack.io'),'Official Poolakey repository missing');
+assert(gradle.includes('com.github.cafebazaar.Poolakey:poolakey:2.3.0'),'Poolakey version must be pinned');
+assert(gradle.includes('BAZAAR_RSA_PUBLIC_KEY'),'Public RSA build setting missing');
+assert(activity.includes('new BazaarBillingBridge(this, web)'),'Native billing bridge missing');
+assert(billing.includes('new SecurityCheck.Enable(key)'),'Local RSA verification must be enabled');
+assert(billing.includes('getPurchasedProducts('),'Non-consumable ownership query missing');
+assert(billing.includes('LIFETIME_SKU.equals(purchase.getProductId())'),'Owned SKU must be checked');
+assert(billing.includes('PACKAGE_ID.equals(purchase.getPackageName())'),'Owned package must be checked');
+assert(!billing.includes('payment.consumeProduct('),'Lifetime products must NEVER be consumed');
+assert(!billing.includes('payment.purchaseProduct('),'Checkout must not start until server verifier is ready');
+assert(!billing.includes('localStorage'),'Local storage is not a payment entitlement');
+assert(html.includes('id="buyPremiumBtn"') && html.includes('id="restorePremiumBtn"'));
+assert(/id="buyPremiumBtn"[^>]*disabled/.test(html),'Unverified purchase flow must be disabled');
+assert(/id="restorePremiumBtn"[^>]*disabled/.test(html),'Unverified restore must be disabled');
+assert(html.includes('window.checkBazaarOwnership'),'Parent read-only query UI missing');
 console.log('PASS: JS syntax, 21 clef-note definitions, pitch frequency, staff positions, rhythm values, permissions, answer leakage and independent exam.');
