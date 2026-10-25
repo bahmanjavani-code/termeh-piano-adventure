@@ -26,6 +26,23 @@ jobs:
         run: node tests/secure-premium-pack.test.cjs
       - name: Build debug APK with runner Android SDK
         run: gradle --no-daemon :app:assembleDebug
+      - name: Verify premium lesson previews are debug-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'debug-full-preview'
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'trebleExtra'
+          # Make Gradle merge release assets without creating or signing a release APK.
+          gradle --no-daemon :app:mergeReleaseAssets
+          RELEASE_ASSET="$(find app/build/intermediates -type f -path '*/release/*' -name 'premium-preview.js' | head -1)"
+          test -n "$RELEASE_ASSET"
+          grep -q 'release-free' "$RELEASE_ASSET"
+          if grep -Eq '(trebleExtra|debug-full-preview|beatsLabel)' "$RELEASE_ASSET"; then
+            echo "::error::Paid beta lessons leaked into release assets"
+            exit 1
+          fi
+          echo "Release APK assets will not contain test-only premium lessons."
       - name: Verify final APK has no camera, microphone or location permissions
         shell: bash
         run: |
