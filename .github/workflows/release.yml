@@ -12,6 +12,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Test safe signing-key handling with a disposable key
+        run: bash tests/release-signing.test.sh
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
@@ -44,6 +46,22 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/termeh-release.jks"
           chmod 600 "$RUNNER_TEMP/termeh-release.jks"
           echo "TERMEH_KEYSTORE_FILE=$RUNNER_TEMP/termeh-release.jks" >> "$GITHUB_ENV"
+      - name: Verify original release key and certificate identity
+        id: signing_cert
+        shell: bash
+        env:
+          TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
+          TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
+          TERMEH_RELEASE_CERT_SHA256: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          FINGERPRINT="$(bash tools/check-release-key.sh)"
+          echo "sha256=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "### Termeh Piano release certificate" >> "$GITHUB_STEP_SUMMARY"
+          echo "Public SHA-256 fingerprint: \`$FINGERPRINT\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
+            echo "::warning::First signing run: set repository variable TERMEH_RELEASE_CERT_SHA256 to the fingerprint above before future updates."
+          fi
       - name: Build release APK using signed keystore
         env:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
@@ -65,6 +83,17 @@ jobs:
           AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
           APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -1)"
           "$APKSIGNER" verify --verbose --print-certs "$APK"
+          ACTUAL_CERT="$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 | tr -d '[:space:]')"
+          EXPECTED_CERT="${{ steps.signing_cert.outputs.sha256 }}"
+          if [ "$ACTUAL_CERT" != "$EXPECTED_CERT" ]; then
+            echo "::error::APK signature does not match the approved release signing key"
+            exit 1
+          fi
+          "$AAPT" dump badging "$APK" | grep -q "package: name='com.termeh.piano'"
+          if "$AAPT" dump badging "$APK" | grep -q 'application-debuggable'; then
+            echo "::error::Release APK must never be debuggable"
+            exit 1
+          fi
           "$AAPT" dump badging "$APK" | grep 'targetSdkVersion:' | tee /tmp/termeh-target.txt
           grep -q "targetSdkVersion:'35'" /tmp/termeh-target.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/termeh-permissions.txt
@@ -76,7 +105,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: Termeh-Piano-SIGNED-RELEASE-CANDIDATE
+          name: Termeh-Piano-SIGNED-QA-CANDIDATE-DO-NOT-PUBLISH
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -84,7 +113,7 @@ jobs:
         env:
           URL: ${{ steps.upload.outputs.artifact-url }}
         run: |
-          echo "### Signed release candidate (NOT yet published)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Signed QA candidate — DO NOT PUBLISH (billing and restoration unfinished)" >> "$GITHUB_STEP_SUMMARY"
           echo "[Download signed candidate]($URL)" >> "$GITHUB_STEP_SUMMARY"
       - name: Remove temporary signing key
         if: always()
