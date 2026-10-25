@@ -2030,6 +2030,7 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <button id="restorePremiumBtn" class="action" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
   <button id="checkBazaarBtn" class="action" type="button" onclick="checkBazaarOwnership()">🔎 <span class="only-fa">بررسی آزمایشی حساب بازار (بدون خرید)</span><span class="only-en">Check Bazaar connection (no payment)</span></button>
   <button id="checkEncryptedPackBtn" class="action" type="button" onclick="checkEncryptedDemoPack()">🔐 <span class="only-fa">آزمایش قفل رمزگذاری درس نمونه (بدون خرید)</span><span class="only-en">Test encrypted sample lesson lock (no payment)</span></button>
+  <button id="checkOfflineVaultBtn" class="action" type="button" onclick="checkOfflineVaultDemo()">🗝️ <span class="only-fa">آزمایش نگهداری امن مجوز آفلاین (بدون خرید)</span><span class="only-en">Test protected offline license storage (no payment)</span></button>
   <p id="bazaarBillingStatus" role="status" style="font-size:13px;color:#475569"></p>
   <p style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
 </section>
@@ -2065,10 +2066,19 @@ window.termehBazaarStatus=function(code){
     not_found:['خرید فعالی برای نسخه کامل پیدا نشد.','No lifetime purchase was found.'],
     demo_pack_ok:['✅ قفل AES-256 درس نمونه با موفقیت بررسی شد؛ این خرید یا آنلاک نیست.','✅ Sample lesson AES-256 lock verified; no purchase or unlock occurred.'],
     demo_pack_failed:['❌ بررسی رمزگذاری درس نمونه موفق نبود.','❌ Encrypted sample lesson check failed.'],
+    vault_checking:['در حال آزمایش ذخیره‌سازی امن اندروید…','Testing Android secure offline storage…'],
+    vault_demo_ok:['✅ کلید امن گوشی و ذخیره‌سازی آفلاین آزمایش شدند؛ این خرید یا فعال‌سازی نیست.','✅ Device Keystore and offline storage passed; no purchase or activation occurred.'],
+    vault_demo_failed:['❌ آزمایش نگهداری امن آفلاین موفق نبود.','❌ Offline secure storage test failed.'],
     query_failed:['بررسی خرید انجام نشد؛ بعداً دوباره امتحان کنید.','Purchase lookup failed; try again later.']
   };
   const pair=messages[code]||messages.unavailable;
   el('bazaarBillingStatus').textContent=pair[en?1:0];
+};
+// An isolated, disposable Keystore self-test. No paid entitlement is written.
+window.checkOfflineVaultDemo=function(){
+  const bridge=window.TermehBazaar;
+  if(!bridge){window.termehBazaarStatus('vault_demo_failed');return;}
+  try{bridge.checkOfflineVaultDemo();}catch(err){window.termehBazaarStatus('vault_demo_failed');}
 };
 // Demo-only native AES-GCM authenticated-pack check; no entitlement is issued.
 window.checkEncryptedDemoPack=function(){
