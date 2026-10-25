@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 13,
+  "latestVersionCode": 14,
   "storeUrl": "",
-  "notes": "1.3.8 beta QA: native AES-GCM encrypted dummy lesson pack + offline parent diagnostic. Purchases and premium unlock remain disabled; no forced update before Bazaar release."
+  "notes": "1.3.9 beta QA: parent-only disposable Android Keystore encrypted offline storage check. Real purchase, restore and premium unlock remain disabled; no forced update."
 }
