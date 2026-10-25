@@ -12,8 +12,8 @@
 
 ## New: parent support reports and minimum-version policy (version 1.3.1-beta)
 
-- Parent hub now offers **Email error report** after the parent challenge. Error categories, line numbers, app version and Android API are collected locally. An Android mail composer opens; **the parent must review and tap Send**. No reports are auto-sent, and no recipient address has yet been configured.
-- For a prefilled recipient, set `SUPPORT_EMAIL` in `SupportTools.java` to a dedicated public support mailbox after owner approval. Never embed mailbox credentials in the APK.
+- Parent hub now offers **Email error report** after the parent challenge. Error categories, line numbers, app version and Android API are collected locally. An Android mail composer opens; **the parent must review and tap Send**. No reports are auto-sent. The parent-review email composer is configured with the owner's provided support mailbox.
+- The prefilled parent-reviewed recipient is configured in `SupportTools.java`. Never embed mailbox credentials or SMTP passwords in the APK.
 - **Automatic crash alert emails are NOT active.** For production, provision a service such as Firebase Crashlytics with parent-consent design and child privacy disclosure; configure email alerts in its dashboard, and test fatal, non-fatal and ANR reporting. Ensure no personal data or children's answers enter diagnostic events.
 - Android native startup performs an HTTPS fetch of `config/android-update.json` from GitHub raw, at most once per six hours on success; the WebView remains offline-only. This sends a standard network request (including the device's network IP) to GitHub; disclose it in the privacy policy. If GitHub is unreachable (or the repository isn't publicly readable) no new update policy can be received; choose a reliable production endpoint before launch.
 - JSON keys: `schema: 1`, `minimumVersionCode`, `latestVersionCode`, `storeUrl`. Only a valid HTTPS `https://cafebazaar.ir/app/com.termeh.piano` URL can trigger an update gate. Current beta has an empty URL, so **forced updates are not active**.
@@ -25,12 +25,12 @@
 ## Blockers before public commercial release
 1. **Cafe Bazaar billing**: Create a permanent/non-consumable SKU in the developer console, implement purchase via the supported Bazaar Android billing SDK, server-verify receipts and entitlement ownership, handle pending/canceled/refunded purchases, restore purchase without requiring in-app registration. The current HTML must never be trusted as proof of payment.
 2. **Optional parent account**: Choose a verified HTTPS identity and backup provider, integrate real sign-in / sign-out / registration, opt-in cloud sync, session invalidation, rate limiting, account deletion, and privacy controls. The current buttons are deliberately disabled. Do not request child names, ages, photographs, contacts, location, or audio.
-3. **Signing**: Create/secure a long-lived release keystore. Configure repository Actions secrets:
+3. **Signing**: Create/secure a long-lived developer-owned release keystore using the private [SIGNING_SETUP_FA.md](SIGNING_SETUP_FA.md) instructions, not ephemeral test keys. Configure repository Actions secrets:
    - `TERMEH_KEYSTORE_BASE64`
    - `TERMEH_KEYSTORE_PASSWORD`
    - `TERMEH_KEY_ALIAS`
    - `TERMEH_KEY_PASSWORD`
-   Never commit the keystore or passwords and never paste them into chat.
+   Never commit the keystore or passwords and never paste them into chat. Also pin public `TERMEH_RELEASE_CERT_SHA256` under **Repository variables**. CI builds the production variant with a disposable key to check packaging, then deletes that artifact without uploading; only the manual `release.yml` workflow can use the user's permanent keystore.
 4. **Store listing and child privacy**: Approved privacy policy, support contact, transparent feature/price descriptions, store declarations for apps intended for children, parent review of purchase prompts, and Bazaar policy review.
 5. **Device testing**: Signed APK installation/upgrade, Play Protect scans, offline/airplane mode, Persian/English switching, long lessons, font and screen sizes, Android back navigation, accessibility, restore after reinstall, purchases with official test transactions, refunds, and performance on real devices.
 6. **Music review**: Independent review by a qualified teacher, including staff positioning, treble and bass clefs, pitch/octaves, metronome timing, note-duration representation, and terminology in Persian/English. Automated music tests are necessary but not sufficient.
