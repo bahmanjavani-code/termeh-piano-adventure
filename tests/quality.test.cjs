@@ -11,15 +11,26 @@ for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)){
   new vm.Script(match[1],{filename:'index inline script '+(++scriptCount)});
 }
 assert(scriptCount>=3,'Unexpected or missing scripts');
-function array(name){
-  const rx=new RegExp('const '+name+' = (\\[[\\s\\S]*?\\n        \\]);');
-  const m=html.match(rx);
-  assert(m,'Missing '+name);
-  return vm.runInNewContext('('+m[1]+')');
-}
-const treble=array('TREBLE_NOTES');
-const bass=array('BASS_NOTES');
-const durations=array('NOTE_DURATIONS');
+// The release APK must contain ONLY introductory treble note data.
+const freeMatch=html.match(/const TREBLE_NOTES = (\\[[\\s\\S]*?\\n        \\])\\.concat/);
+assert(freeMatch,'Missing free note list in common HTML');
+const freeTreble=vm.runInNewContext('('+freeMatch[1]+')');
+const debugAsset=fs.readFileSync('app/src/debug/assets/premium-preview.js','utf8');
+const releaseAsset=fs.readFileSync('app/src/release/assets/premium-preview.js','utf8');
+const dc={window:{}};vm.runInNewContext(debugAsset,dc);
+const rc={window:{}};vm.runInNewContext(releaseAsset,rc);
+const preview=dc.window.TERMEH_DEBUG_PREMIUM;
+assert(preview && Array.isArray(preview.trebleExtra));
+assert.equal(rc.window.TERMEH_DEBUG_PREMIUM,null,'Release must have NO premium content');
+assert.equal(rc.window.TERMEH_CONTENT_VARIANT,'release-free');
+assert.equal(dc.window.TERMEH_CONTENT_VARIANT,'debug-full-preview');
+assert.deepEqual(Array.from(freeTreble,n=>n.code),['C4','D4','E4','F4','G4']);
+assert(!html.includes("code: 'G2'"),'Bass content leaked into common release HTML');
+assert(!html.includes("id: 'whole'"),'Rhythm content leaked into common release HTML');
+assert(!releaseAsset.includes('code') && !releaseAsset.includes('beatsLabel'),'Release fixture must be empty');
+const treble=Array.from(freeTreble).concat(Array.from(preview.trebleExtra));
+const bass=Array.from(preview.bass);
+const durations=Array.from(preview.durations);
 assert.equal(treble.length,11);
 assert.equal(bass.length,10);
 const trebleExpected=['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'];
