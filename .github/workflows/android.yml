@@ -14,6 +14,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Test safe signing-key handling with a disposable key
+        run: bash tests/release-signing.test.sh
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
