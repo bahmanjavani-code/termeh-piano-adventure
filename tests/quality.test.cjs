@@ -93,6 +93,7 @@ assert(billing.includes('new SecurityCheck.Enable(key)'),'Local RSA verification
 assert(billing.includes('getPurchasedProducts('),'Non-consumable ownership query missing');
 assert(billing.includes('LIFETIME_SKU.equals(purchase.getProductId())'),'Owned SKU must be checked');
 assert(billing.includes('PACKAGE_ID.equals(purchase.getPackageName())'),'Owned package must be checked');
+assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),'Refunded purchases must not be treated as owned');
 assert(!billing.includes('payment.consumeProduct('),'Lifetime products must NEVER be consumed');
 assert(!billing.includes('payment.purchaseProduct('),'Checkout must not start until server verifier is ready');
 assert(!billing.includes('localStorage'),'Local storage is not a payment entitlement');
