@@ -65,7 +65,9 @@ try{
   fs.writeFileSync(file('beta-demo.json'),JSON.stringify(beta));
   seal(file('beta-demo.json'),file('beta-demo.tpk'),file('beta-demo.key'));
   const encrypted=fs.readFileSync(file('beta-demo.tpk'),'utf8');
-  assert(!encrypted.includes('G2')&&!encrypted.includes('whole'),'No plaintext note definitions in encrypted fixture');
+  const packed=JSON.parse(encrypted);
+  assert(!('bass' in packed)&&!('trebleExtra' in packed)&&!('durations' in packed),'Premium plaintext arrays must not be present in pack envelope');
+  assert(!encrypted.includes('"hintText"')&&!encrypted.includes('"beatsLabel"'),'No plaintext lesson fields in encrypted pack');
   open(file('beta-demo.tpk'),file('beta-demo.key'),file('beta-restored.json'));
   assert.deepEqual(JSON.parse(fs.readFileSync(file('beta-restored.json'),'utf8')),beta);
   console.log('PASS: beta lesson schema and authenticated AES pack, tamper protection and safe key handling.');
