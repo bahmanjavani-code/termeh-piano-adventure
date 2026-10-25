@@ -1,6 +1,6 @@
 package com.termeh.piano;
 
-import android.app.Activity;
+import androidx.activity.ComponentActivity;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
 import android.app.AlertDialog;
@@ -17,10 +17,11 @@ import android.webkit.WebViewClient;
 import android.webkit.RenderProcessGoneDetail;
 import android.net.Uri;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ComponentActivity {
     private static final String START_PAGE = "file:///android_asset/index.html";
     private WebView web;
     private SupportTools support;
+    private BazaarBillingBridge billing;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -41,6 +42,10 @@ public class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setSafeBrowsingEnabled(true);
         settings.setBlockNetworkLoads(true); // WebView never loads Internet resources.
+
+        // Packaged offline page only; read-only billing status, no checkout through JS.
+        billing = new BazaarBillingBridge(this, web);
+        web.addJavascriptInterface(billing, "TermehBazaar");
 
         web.setWebViewClient(new WebViewClient() {
             private boolean handleLink(String link) {
@@ -115,6 +120,7 @@ public class MainActivity extends Activity {
         web.loadUrl(START_PAGE);
         support.enforceCachedPolicy();
         support.checkUpdates(false);
+        billing.start();
     }
 
     @Override protected void onResume() {
@@ -134,6 +140,7 @@ public class MainActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        if (billing != null) { billing.shutdown(); billing = null; }
         if (web != null) { web.destroy(); web = null; }
         super.onDestroy();
     }
