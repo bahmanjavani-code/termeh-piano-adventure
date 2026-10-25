@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
       - name: Run music theory and privacy checks
         run: node tests/quality.test.cjs
+      - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
+        run: node tests/secure-premium-pack.test.cjs
       - name: Run UI smoke tests
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
