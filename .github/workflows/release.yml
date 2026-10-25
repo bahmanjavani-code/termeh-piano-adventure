@@ -32,6 +32,8 @@ jobs:
         run: node tests/secure-activation.test.cjs
       - name: Guard serverless purchase flow until paid content and restore QA are ready
         run: node tests/no-host-billing-guard.test.cjs
+      - name: Verify encrypted offline demo lesson fixture and AES-GCM tamper detection
+        run: node tests/encrypted-apk-demo.test.cjs
       - name: Run UI smoke tests
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
