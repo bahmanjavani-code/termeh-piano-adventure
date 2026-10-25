@@ -1953,6 +1953,56 @@
     </script>
 <style>#languageGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#60a5fa,#8b5cf6,#f472b6);display:flex;align-items:center;justify-content:center;padding:24px}#languageGate.hide{display:none}#languageGate .card{max-width:420px;width:100%;background:white;border:5px solid #fde68a;border-radius:32px;text-align:center;padding:30px 18px;box-shadow:0 18px 45px #312e8166}#languageGate button{display:block;width:100%;font-size:21px;font-weight:900;border-radius:20px;padding:18px;margin-top:14px;background:#7c3aed;color:white;box-shadow:0 5px 0 #4c1d95}#languageGate button:last-child{background:#ec4899;box-shadow:0 5px 0 #9d174d}#langSwitcher{position:static;z-index:auto;min-height:44px;background:#fff;color:#5b21b6;border:2px solid #c4b5fd;border-radius:15px;padding:8px 12px;font-weight:900}html[lang=en] body{direction:ltr}</style>
 <div id="languageGate"><div class="card"><div style="font-size:70px">🎹🌈</div><h2 style="color:#6d28d9">ماجراجویی پیانوی ترمه<br><span style="font-size:20px">Termeh's Piano Adventure</span></h2><p>زبان بازی را انتخاب کن / Choose your language</p><button onclick="chooseLanguage('fa')">🇮🇷 فارسی</button><button onclick="chooseLanguage('en')">🇬🇧 English</button></div></div>
+<style>
+#parentWelcome{position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(20,19,56,.92);box-sizing:border-box}
+#parentWelcome.open{display:flex}
+#parentWelcome .panel{width:100%;max-width:490px;max-height:92dvh;overflow-y:auto;box-sizing:border-box;background:white;border:4px solid #fbbf24;border-radius:24px;padding:20px;color:#1e293b;box-shadow:0 20px 45px #0006;text-align:start;line-height:1.7}
+#parentWelcome h2{font-size:23px;font-weight:900;color:#5b21b6;text-align:center;margin:0 0 12px}
+#parentWelcome p{font-size:14px;margin:10px 0}
+#parentWelcome .notice{background:#fef3c7;border-radius:12px;padding:10px 12px}
+#parentWelcome label{display:flex;align-items:flex-start;gap:10px;padding:12px;border:2px solid #ddd6fe;border-radius:12px;margin-top:14px;font-weight:700}
+#parentWelcome input{width:23px;height:23px;flex-shrink:0;margin-top:4px;accent-color:#6d28d9}
+#parentWelcome button{width:100%;min-height:48px;background:#6d28d9;color:white;font-weight:900;border:0;border-radius:14px;margin-top:12px;padding:10px}
+#parentWelcome button:disabled{background:#94a3b8;color:#1e293b;cursor:not-allowed}
+#parentWelcome a{color:#1d4ed8;text-decoration:underline;font-weight:700}
+</style>
+<div id="parentWelcome" role="dialog" aria-modal="true" aria-labelledby="welcomeHeading">
+<div class="panel">
+<h2 id="welcomeHeading">👨‍👩‍👧 <span class="only-fa">سخنی با والدین</span><span class="only-en">A note to parents</span></h2>
+<p><span class="only-fa">لطفاً پیش از سپردن گوشی به کودک، این نکات را بخوانید.</span><span class="only-en">Please read this information before handing the phone to your child.</span></p>
+<p class="notice">🛍️ <strong><span class="only-fa">خرید اختیاری:</span><span class="only-en">Optional purchases:</span></strong> <span class="only-fa">درس‌های مقدماتی رایگان هستند. خرید یک‌باره و دائمی بخش‌های پیشرفته با قیمت پیشنهادی ۹۹٬۰۰۰ تومان برنامه‌ریزی شده است. خرید فقط با اقدام والدین و تأیید فروشگاه انجام می‌شود. در این نسخه آزمایشی خرید غیرفعال است و پولی دریافت نمی‌شود.</span><span class="only-en">Starter lessons are free. A one-time lifetime purchase for advanced lessons is planned at 99,000 toman. Purchases will require parent action and store confirmation. Purchases are disabled in this beta; no money is collected.</span></p>
+<p>🔒 <strong><span class="only-fa">امنیت کودک:</span><span class="only-en">Child safety:</span></strong> <span class="only-fa">خرید و تنظیمات والدین برای بزرگسالان است. اطلاعات پرداخت را در اختیار کودک نگذارید.</span><span class="only-en">Purchases and parent settings are for adults. Keep payment credentials away from children.</span></p>
+<p>💾 <strong><span class="only-fa">پیشرفت و حریم خصوصی:</span><span class="only-en">Progress and privacy:</span></strong> <span class="only-fa">پیشرفت فعلاً فقط روی این دستگاه ذخیره می‌شود و ممکن است با حذف برنامه یا پاک‌کردن داده‌ها از بین برود. درس‌های اصلی آفلاین کار می‌کنند؛ بررسی به‌روزرسانی ممکن است اینترنت بخواهد.</span><span class="only-en">Progress is stored on this device and may be lost after uninstalling or clearing data. Core lessons work offline; update checks may use the internet.</span></p>
+<p>📧 <strong><span class="only-fa">گزارش خطا:</span><span class="only-en">Error reports:</span></strong> <span class="only-fa">ایمیل گزارش خطا فقط با بازبینی و ارسال والدین فرستاده می‌شود، نه خودکار.</span><span class="only-en">Error emails are sent only when a parent reviews and sends them, never automatically.</span></p>
+<p>📄 <a id="welcomePrivacy" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html" target="_blank" rel="noopener noreferrer"><span class="only-fa">سیاست حریم خصوصی</span><span class="only-en">Privacy policy</span></a></p>
+<label><input id="welcomeAccepted" type="checkbox" onchange="document.getElementById('welcomeContinue').disabled=!this.checked"><span class="only-fa">من والد یا سرپرست کودک هستم و نکات بالا را خوانده‌ام.</span><span class="only-en">I am the child's parent or guardian and have read the information above.</span></label>
+<button id="welcomeContinue" type="button" disabled onclick="confirmParentWelcome()"><span class="only-fa">تأیید والدین و شروع بازی 🎹</span><span class="only-en">Parent confirmation — Start playing 🎹</span></button>
+</div></div>
+<script>
+(function(){
+'use strict';
+const KEY='termeh_parent_welcome_v1';
+let acceptedThisSession=false;
+window.showParentWelcomeIfNeeded=function(){
+  let accepted=acceptedThisSession;
+  try{accepted=accepted||localStorage.getItem(KEY)==='accepted'}catch(e){}
+  const dialog=document.getElementById('parentWelcome');
+  if(accepted){dialog.classList.remove('open');return}
+  document.getElementById('welcomeAccepted').checked=false;
+  document.getElementById('welcomeContinue').disabled=true;
+  document.getElementById('welcomePrivacy').href=document.documentElement.lang==='en'
+    ?'https://bahmanjavani-code.github.io/termeh-piano-adventure/en/privacy.html'
+    :'https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html';
+  dialog.classList.add('open');
+};
+window.confirmParentWelcome=function(){
+  if(!document.getElementById('welcomeAccepted').checked)return;
+  acceptedThisSession=true;
+  try{localStorage.setItem(KEY,'accepted')}catch(e){}
+  document.getElementById('parentWelcome').classList.remove('open');
+};
+})();
+</script>
 <script>
 (function(){
 // Product configuration is informational only until Cafe Bazaar billing is integrated.
@@ -2009,7 +2059,7 @@ const phrases=[
 const phrasePairs=phrases.slice().sort((a,b)=>b[0].length-a[0].length); // Longest phrases first: avoid mixing Persian and English in partial matches.
 let observer;let current='fa';
 function translate(root){if(current!=='en')return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(node=>{if(node.parentElement&&['SCRIPT','STYLE','TEXTAREA','INPUT'].includes(node.parentElement.tagName))return;let out=node.nodeValue;for(const [fa,en] of phrasePairs)out=out.split(fa).join(en);if(out!==node.nodeValue)node.nodeValue=out;});}
-window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
+window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');window.showParentWelcomeIfNeeded();if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
 // Static translation alone cannot update HTML created before language selection.
 // Rebuild the active exercise and piano keys in the selected language.
 if (typeof state!=='undefined' && state.currentStaffNote) {
