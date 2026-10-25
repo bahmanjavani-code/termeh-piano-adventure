@@ -41,6 +41,18 @@ const { chromium }=require('playwright-core');
     await page.goto('file://'+path.resolve('app/src/main/assets/index.html'));
     await page.locator("button[onclick=\"chooseLanguage('en')\"]").click();
     await page.waitForTimeout(300);
+    // A parent must acknowledge once, after choosing the language, before the child can play.
+    assert(await page.locator('#parentWelcome').isVisible(),'First-launch parent notice missing');
+    assert(await page.locator('#welcomeContinue').isDisabled(),'Notice must not auto-accept');
+    assert((await page.locator('#welcomePrivacy').getAttribute('href')).includes('/en/privacy.html'),'Wrong privacy policy language');
+    await assertEnglishScreen('first-launch parent notice');
+    await page.locator('#welcomeAccepted').check();
+    assert(await page.locator('#welcomeContinue').isEnabled(),'Parent confirmation should enable continue');
+    await page.locator('#welcomeContinue').click();
+    assert(!(await page.locator('#parentWelcome').isVisible()),'Parent notice should close after explicit confirmation');
+    await page.reload();
+    await page.waitForTimeout(200);
+    assert(!(await page.locator('#parentWelcome').isVisible()),'Parent notice must not reappear after acceptance');
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
     await assertEnglishScreen('initial staff');
     assert(await page.locator('#musicStaffSvg ellipse').count()>0,'Staff note not rendered');
