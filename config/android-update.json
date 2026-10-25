@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 7,
+  "latestVersionCode": 8,
   "storeUrl": "",
-  "notes": "Beta builds for UI testing: no forced update; no official Bazaar app URL yet."
+  "notes": "1.3.3 beta localized UI. Do not force updates before a live official Bazaar store listing exists."
 }
