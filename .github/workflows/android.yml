@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
+        run: node tests/secure-premium-pack.test.cjs
       - name: Build debug APK with runner Android SDK
         run: gradle --no-daemon :app:assembleDebug
       - name: Verify final APK has no camera, microphone or location permissions
