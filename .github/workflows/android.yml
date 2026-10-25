@@ -44,6 +44,12 @@ jobs:
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
+          # QA only: encrypted noncommercial demo must be packed without plaintext.
+          unzip -p "$APK" assets/premium-demo-pack.json | grep -q '"ciphertext"'
+          if unzip -p "$APK" assets/premium-demo-pack.json | grep -q 'encrypted_demo_only'; then
+            echo "::error::Demo lesson plaintext leaked into APK pack"
+            exit 1
+          fi
           unzip -p "$APK" assets/premium-preview.js | grep -q 'debug-full-preview'
           unzip -p "$APK" assets/premium-preview.js | grep -q 'trebleExtra'
           # Make Gradle merge release assets without creating or signing a release APK.
