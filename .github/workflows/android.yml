@@ -35,6 +35,8 @@ jobs:
         run: node tests/no-host-billing-guard.test.cjs
       - name: Verify encrypted offline demo lesson fixture and AES-GCM tamper detection
         run: node tests/encrypted-apk-demo.test.cjs
+      - name: Check isolated Android Keystore entitlement vault (no payment)
+        run: node tests/offline-keystore-vault.test.cjs
       - name: Check Bazaar public RSA format without revealing value
         run: node tests/bazaar-public-key.test.cjs
       - name: Build debug APK with runner Android SDK
