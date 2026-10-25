@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 6,
+  "latestVersionCode": 7,
   "storeUrl": "",
-  "notes": "Beta configuration. Forced updates stay OFF without a published official Cafe Bazaar store listing URL. Offline mode remains available."
+  "notes": "Beta builds for UI testing: no forced update; no official Bazaar app URL yet."
 }
