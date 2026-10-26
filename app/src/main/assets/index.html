@@ -1235,8 +1235,8 @@
                 }
                 if(levelText){
                     const stage=getMastery('treble').stage,notes=getActiveTrebleNotes().length;
-                    levelText.textContent=isEnglish()?`Practice stage ${Math.min(3,stage)}/3 · ${notes} notes`:
-                        `تمرین ${Math.min(3,stage)} از ۳ · ${notes} نت`;
+                    levelText.textContent=isEnglish()?`Treble lesson ${state.trebleNoteTier}/${TermehNoteCurriculum.maxTier(TREBLE_NOTES)} · ${notes} notes`:
+                        `درس ${state.trebleNoteTier} از ${TermehNoteCurriculum.maxTier(TREBLE_NOTES)} · ${notes} نت`;
                 }
             } else {
                 if (clefBadge) {
@@ -1792,8 +1792,14 @@
             const level=document.getElementById('levelProgressText');
             if(level && !(state.exam&&state.exam.active)){
                 const noteCount=state.mode==='treble'?getActiveTrebleNotes().length:result.noteCount;
-                level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3 · ${noteCount} notes`:
-                    `تمرین ${Math.min(3,result.stage)} از ۳ · ${noteCount} نت`;
+                if(state.mode==='treble'){
+                    const count=TermehNoteCurriculum.maxTier(TREBLE_NOTES);
+                    level.textContent=en?`Treble lesson ${state.trebleNoteTier}/${count} · ${noteCount} notes`:
+                        `درس ${state.trebleNoteTier} از ${count} · ${noteCount} نت`;
+                }else{
+                    level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3 · ${noteCount} notes`:
+                        `تمرین ${Math.min(3,result.stage)} از ۳ · ${noteCount} نت`;
+                }
             }
         }
         let masteryDetailsTimer=null;
