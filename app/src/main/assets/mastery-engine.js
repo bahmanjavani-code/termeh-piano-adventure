@@ -67,21 +67,31 @@
       &&accuracy60>=.90&&medianMs<=FLUENCY_MEDIAN_MS&&roundsPassed===3
       &&minCorrect>=9&&hasEveryRecentNote;
     const stage=fluent?4:accurate?3:intro?2:1;
+    const noteCoverage=(target)=>codes.reduce(
+      (sum,code)=>sum+clamp(correctByNote[code]/target,0,1),0
+    )/codes.length;
     let goal=INTRO_ATTEMPTS,done=Math.min(h.length,INTRO_ATTEMPTS),stageFraction=0;
+    // Give visible partial credit for careful practice, even if the weakest
+    // note still blocks stage graduation. No one gains exam access from score.
     if(stage===1){
-      stageFraction=Math.min(1,h.length/INTRO_ATTEMPTS,minCorrect/2);
+      stageFraction=.6*clamp(h.length/INTRO_ATTEMPTS,0,1)+.4*noteCoverage(2);
     }else if(stage===2){
       goal=ACCURACY_ATTEMPTS;done=Math.min(h.length,ACCURACY_ATTEMPTS);
-      stageFraction=Math.min(1,h.length/ACCURACY_ATTEMPTS,accuracy40/.85,minCorrect/5);
+      stageFraction=.4*clamp(h.length/ACCURACY_ATTEMPTS,0,1)
+        +.3*clamp(accuracy40/.85,0,1)+.3*noteCoverage(5);
     }else if(stage===3){
       goal=FLUENCY_ATTEMPTS;done=Math.min(h.length,FLUENCY_ATTEMPTS);
-      stageFraction=Math.min(1,h.length/FLUENCY_ATTEMPTS,accuracy60/.90,
-        FLUENCY_MEDIAN_MS/Math.max(1,medianMs),minCorrect/9,roundsPassed/3,
-        hasEveryRecentNote?1:.95);
+      stageFraction=.22*clamp(h.length/FLUENCY_ATTEMPTS,0,1)
+        +.2*clamp(accuracy60/.90,0,1)
+        +.16*clamp(FLUENCY_MEDIAN_MS/Math.max(1,medianMs),0,1)
+        +.16*(roundsPassed/3)
+        +.16*noteCoverage(9)
+        +.1*(recentCodes.size/codes.length);
     }else{
       goal=FLUENCY_ATTEMPTS;done=FLUENCY_ATTEMPTS;stageFraction=1;
     }
-    const score=stage===4?100:Math.min(99,Math.round(
+    const ceiling=stage===1?24:stage===2?59:99;
+    const score=stage===4?100:Math.min(ceiling,Math.round(
       (stage===1?0:stage===2?25:60)+(stage===1?25:stage===2?35:39)*clamp(stageFraction,0,1)
     ));
     const weakest=codes.slice().sort((a,b)=>{
