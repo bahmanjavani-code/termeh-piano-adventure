@@ -51,6 +51,8 @@ android {
 // Real checkout and paid-content unlock remain DISABLED pending lesson and restore QA.
 dependencies {
     implementation 'androidx.activity:activity:1.9.3'
+    // Offline, parent-consented daily reminder; no exact alarms or backend.
+    implementation 'androidx.work:work-runtime:2.11.2'
     implementation 'com.github.cafebazaar.Poolakey:poolakey:2.3.0'
 }
 
