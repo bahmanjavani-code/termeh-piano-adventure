@@ -522,7 +522,7 @@ const { chromium }=require('playwright-core');
     // End-user release regression: purchase success is NOT the same as
     // completion of treble practice. This is a browser-only UI MOCK, not
     // a payment, receipt, purchase-verification or lesson-decryption test.
-    assert.equal(await freePage.locator('#modeTab-bass').getAttribute('aria-disabled'),'true');
+    assert.equal(await freePage.locator('#modeTab-bass').getAttribute('data-locked'),'true');
     assert((await freePage.locator('#modeAccess-bass').innerText()).includes('Premium'));
     assert((await freePage.locator('#modeAccess-rhythm').innerText()).includes('Premium'));
     await freePage.locator('#modeTab-bass').click();
