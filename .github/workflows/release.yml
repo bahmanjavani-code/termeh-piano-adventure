@@ -7,10 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       allow_controlled_real_checkout:
-        description: 'Danger: allow real Bazaar test payment only if authorized secrets and variables are set'
+        description: 'I understand a real Bazaar test may charge 990,000 IRR; DO NOT publish'
         type: boolean
         default: false
         required: true
+      owner_payment_acknowledgement:
+        description: 'For REAL payment tests ONLY, type I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES'
+        type: string
+        default: ''
+        required: false
 jobs:
   signed-release:
     runs-on: ubuntu-latest
@@ -95,7 +100,7 @@ jobs:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_RELEASE_CERT_SHA256: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
-          CONTROLLED_CHECKOUT_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
+          CONTROLLED_CHECKOUT_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
         run: |
           set -euo pipefail
           if [ "$CONTROLLED_CHECKOUT_REQUESTED" = '1' ] && [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
@@ -114,8 +119,8 @@ jobs:
         env:
           MERCHANT_PUBLIC_RSA: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
           ORIGINAL_CERT_PIN: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
-          CHECKOUT_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
-          OWNER_AUTHORIZATION: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
+          CHECKOUT_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
+          OWNER_AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || '' }}
         run: |
           set -euo pipefail
           echo "### Cafe Bazaar controlled payment readiness" >> "$GITHUB_STEP_SUMMARY"
@@ -166,9 +171,25 @@ jobs:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_KEY_PASSWORD: ${{ secrets.TERMEH_KEY_PASSWORD }}
-          TERMEH_ENABLE_LIVE_CHECKOUT: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
-          TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
+          TERMEH_ENABLE_LIVE_CHECKOUT: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
+          TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || '' }}
         run: gradle --no-daemon :app:assembleRelease
+      - name: Validate payment capability in built release without starting any payment
+        shell: bash
+        env:
+          EXPECTED_CHECKOUT: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
+        run: |
+          set -euo pipefail
+          BUILDCONFIG="app/build/generated/source/buildConfig/release/com/termeh/piano/BuildConfig.java"
+          test -s "$BUILDCONFIG"
+          if [ "$EXPECTED_CHECKOUT" = '1' ]; then
+            grep -Eq 'BAZAAR_CHECKOUT_ENABLED = true;' "$BUILDCONFIG"
+            grep -Eq 'PAID_PACK_STAGED = true;' "$BUILDCONFIG"
+            echo "Controlled real-payment capability compiled; actual charging still requires a separate parent action inside Bazaar." >> "$GITHUB_STEP_SUMMARY"
+          else
+            grep -Eq 'BAZAAR_CHECKOUT_ENABLED = false;' "$BUILDCONFIG"
+            echo "No-payment build; checkout compiled OFF." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Verify APK signature, Android target, and privacy
         shell: bash
         run: |
@@ -226,7 +247,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: Termeh-Piano-SIGNED-QA-CANDIDATE-DO-NOT-PUBLISH
+          name: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && 'Termeh-Piano-CONTROLLED-REAL-PAYMENT-TEST-DO-NOT-PUBLISH' || 'Termeh-Piano-SIGNED-QA-CANDIDATE-DO-NOT-PUBLISH' }}
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -234,8 +255,8 @@ jobs:
         env:
           URL: ${{ steps.upload.outputs.artifact-url }}
         run: |
-          echo "### Signed QA candidate — DO NOT PUBLISH (real merchant, refund/restore, phone and teaching QA unfinished)" >> "$GITHUB_STEP_SUMMARY"
-          echo "[Download signed candidate]($URL)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Signed candidate — DO NOT PUBLISH until merchant purchase, restore and refund QA pass" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Download signed test candidate]($URL)" >> "$GITHUB_STEP_SUMMARY"
       - name: Remove temporary signing and paid-content material
         if: always()
         run: |
