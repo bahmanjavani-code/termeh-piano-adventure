@@ -20,6 +20,15 @@ assert(bridge.includes('entitlementEpoch.incrementAndGet()')&&
        bridge.includes('entitlementEpoch.get() != version'),
   'A stale background read must not unlock lessons after an online ownership denial');
 assert(!bridge.includes('payment.consumeProduct('),'Lifetime purchases must never be consumed');
+// Regression: native parent confirmation should render paragraph breaks.
+const singleEscapedNewline=String.fromCharCode(92,110,92,110);
+const doubleEscapedNewline=String.fromCharCode(92,92,110,92,92,110);
+assert(bridge.includes(' = ?'+singleEscapedNewline+'Then Bazaar will show'),
+  'English parent dialog must render proper line breaks');
+assert(bridge.includes(' = ؟'+singleEscapedNewline+'سپس بازار قیمت'),
+  'Persian parent dialog must render proper line breaks');
+assert(!bridge.includes(doubleEscapedNewline),
+  'Native parent dialog must not display escape sequences as visible text');
 assert(activity.includes('if (billing != null) billing.recheckOwnershipOnResume();'),
   'Returning from Bazaar must recheck ownership without a full app restart');
 const resumeCheck=bridge.match(/void recheckOwnershipOnResume\(\) \{([\s\S]*?)\n    \}/);

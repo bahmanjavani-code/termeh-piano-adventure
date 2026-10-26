@@ -232,9 +232,9 @@ final class BazaarBillingBridge {
                     .setTitle(en ? "One-time Termeh Piano upgrade" : "ارتقای دائمی پیانوی ترمه")
                     .setMessage(en ?
                         "First solve this parent check: " + factorA + " × " + factorB + " + " + extra
-                        + " = ?\\n\\nThen Bazaar will show the final one-time price. No subscription." :
+                        + " = ?\n\nThen Bazaar will show the final one-time price. No subscription." :
                         "ابتدا فقط والدین پاسخ دهند: " + factorA + " × " + factorB + " + " + extra
-                        + " = ؟\\n\\nسپس بازار قیمت نهایی خرید دائمی را نشان می‌دهد. بدون اشتراک.")
+                        + " = ؟\n\nسپس بازار قیمت نهایی خرید دائمی را نشان می‌دهد. بدون اشتراک.")
                     .setView(answer)
                     .setNegativeButton(en ? "Cancel" : "انصراف", (dialog, which) -> {
                         purchaseInProgress.set(false);
