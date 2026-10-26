@@ -13,7 +13,7 @@ const preview=read('app/src/release/assets/premium-preview.js');
 assert.match(manifest,/android.permission.POST_NOTIFICATIONS/,'Android 13+ runtime notification permission must be declared');
 assert.doesNotMatch(manifest,/SCHEDULE_EXACT_ALARM|USE_EXACT_ALARM|READ_CONTACTS|READ_PHONE_STATE/,
   'No exact alarms or sensitive child data permissions are needed');
-assert(gradle.includes("androidx.work:work-runtime:2.11.2"),
+assert(gradle.includes("androidx.work:work-runtime:2.10.5"),
   'WorkManager must run locally without a push server');
 assert(java.includes('SharedPreferences')&&java.includes('LocalDate.now().toString()'),
   'Reminder saves only day-level exercise state, with no answers or child identity');
