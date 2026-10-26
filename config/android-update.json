@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 27,
+  "latestVersionCode": 28,
   "storeUrl": "",
-  "notes": "1.3.22-beta controlled QA: prepare one-time Cafe Bazaar lifetime IAP with merchant RSA verification, official SKU price, guarded native confirmation, signed restore check, Android Keystore, encrypted full lesson pack staged only at signed build, and stepwise learning after purchase. Real charges are OFF by default until explicit owner-authorized store test and valid RSA/content configuration. Not store-ready: teacher/real device/refund/signing-backup QA."
+  "notes": "1.3.23-beta: prepare controlled genuine Cafe Bazaar lifetime payment review; automatically encrypt bundled premium course with ephemeral per-signed-build AES key (no extra owner secret needed), require separate native parent arithmetic challenge before any charge, improve bilingual purchase/restore disclosures and consent revision 5. Automatic tests do NOT prove merchant charge/refund flows; checkout stays disabled by default until merchant account product and explicit owner authorization."
 }

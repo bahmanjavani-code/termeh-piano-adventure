@@ -66,7 +66,7 @@ const { chromium }=require('playwright-core');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Notice must not auto-accept');
     assert((await page.locator('#parentWelcome').innerText()).includes('not the primary source of music education'),'Educational scope must be conspicuous before play');
     assert((await page.locator('#parentWelcome').innerText()).includes('No specific learning or playing outcome is guaranteed'),'No-guaranteed-results notice missing');
-    assert((await page.locator('#parentWelcome').innerText()).includes('Checkout and premium unlock are disabled'),'Purchase limitations must be clear');
+    assert((await page.locator('#parentWelcome').innerText()).includes('Checkout is possible only when Bazaar'), 'Parent must know when a real store charge can be offered');
     // The parent cannot bypass the notice by reloading or invoking the handler directly.
     await page.evaluate(()=>confirmParentWelcome());
     assert(await page.locator('#parentWelcome').isVisible(),'Missing checkbox must block acknowledgment');
@@ -82,8 +82,8 @@ const { chromium }=require('playwright-core');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Unticking should lock continue again');
     await page.locator('#welcomeAccepted').check();
     await page.locator('#welcomeContinue').click();
-    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v4')));
-    assert.equal(noticeRecord.revision,4);
+    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v5')));
+    assert.equal(noticeRecord.revision,5);
     assert.equal(noticeRecord.acknowledged,true);
     assert.equal(noticeRecord.language,'en');
     assert(!Number.isNaN(Date.parse(noticeRecord.acknowledgedAt)),'Acknowledgment date missing');
@@ -428,7 +428,7 @@ const { chromium }=require('playwright-core');
     assert(await faPage.locator('#welcomeContinue').isDisabled());
     await faPage.locator('#welcomeAccepted').check();
     await faPage.locator('#welcomeContinue').click();
-    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v4')).language),'fa');
+    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v5')).language),'fa');
     await faPage.close();
 
     // User-facing QA inspector: parents can look at later lessons now,
@@ -558,8 +558,8 @@ const { chromium }=require('playwright-core');
     assert((await freePage.locator('#dailyReminderStatus').innerText()).includes('installed Android app'),
       'Browser preview must never pretend reminders are scheduled');
     assert(await freePage.locator('#dailyReminderEnable').isEnabled(),'Parent opt-in control should be visible only after math gate');
-    assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('five introductory treble notes'),
-      'Release should explain five free notes and no charge during QA');
+    assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('The first five treble notes are always free'),
+      'Release must clearly identify its free five-note trial and the conditional official one-time upgrade');
     assert(await freePage.locator('[aria-label="Purchase model"]').isVisible(),'Honest current free product scope must be shown');
     await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');

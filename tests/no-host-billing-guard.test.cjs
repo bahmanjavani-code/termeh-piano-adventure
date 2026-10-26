@@ -22,6 +22,11 @@ assert.match(java,/if \(!checkoutConfigured\(\) \|\| !catalogReady\)/,
   'Checkout must be impossible without active merchant SKU price');
 assert.match(java,/new AlertDialog\.Builder\(activity\)/,
   'Require a native parent purchase confirmation before opening Bazaar');
+assert.match(java,/new SecureRandom\(\)/,'No fixed parent challenge for monetary actions');
+assert.match(java,/if \(!expected\.equals\(answer\.getText\(\)\.toString\(\)\.trim\(\)\)\)/,
+  'Wrong native math answer blocks charging regardless of JS WebView state');
+assert.match(java,/purchaseInProgress\.set\(false\);\s*publishStatus\("parent_verification_required"\)/,
+  'Native guard must reset state without charging on a failed parental check');
 assert.match(java,/restoreVerifiedPurchase\(\);/,
   'Purchase callback must re-query signed Bazaar inventory');
 assert.match(gradle,/System\.getenv\('TERMEH_ENABLE_LIVE_CHECKOUT'\) == '1'/,

@@ -14,7 +14,7 @@ function once(value,label){
 const steps=[
   'Configure secret signing material',
   'Verify original release key and certificate identity',
-  'Package authenticated paid lessons if owner provisioned an AES build key',
+  'Stage AES-GCM paid curriculum using private or ephemeral build key',
   'Build release APK using signed keystore',
   'Verify APK signature, Android target, and privacy',
   'Upload signed APK for controlled review',
@@ -34,6 +34,15 @@ assert(text.includes("inputs.allow_controlled_real_checkout && vars.TERMEH_ENABL
 assert(text.includes("TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED:"),
   'Real controlled checkout must ALSO require the merchant owner approval variable');
 assert(text.includes('TERMEH_KEYSTORE_BASE64'),'Never publish using an ephemeral QA keystore');
+assert(text.includes('CONTENT_KEY="$(openssl rand -hex 32)"'),
+  'Signed candidate must auto-generate a unique paid-lesson AES key when no secret has been set');
+assert(text.includes('echo "::add-mask::$CONTENT_KEY"'),
+  'Ephemeral AES build key must be redacted from all CI logs');
+assert(text.includes("printf 'TERMEH_PREMIUM_CONTENT_KEY_HEX=%s\\n' \"$CONTENT_KEY\" >> \"$GITHUB_ENV\""),
+  'Signed build and encrypted pack must share one ephemeral key inside the same CI job');
+assert(!text.includes('Premium content key not provisioned: no paid lesson pack'),
+  'Owner should not have to manually create yet another secret just to test the encrypted content');
+
 assert(text.includes('TERMEH_RELEASE_CERT_SHA256'),'Verify same permanent release cert');
 assert(text.includes('assets/premium-lessons[.]tpk$'), 'Optional full lesson asset must be identified precisely');
 assert(text.includes('unzip -p "$APK" assets/premium-lessons.tpk | grep -q'), 'Signed APK must verify encrypted lesson artifact');
