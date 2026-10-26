@@ -98,24 +98,37 @@ jobs:
           if [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
             echo "::warning::First signing run: set repository variable TERMEH_RELEASE_CERT_SHA256 to the fingerprint above before future updates."
           fi
-      - name: Package authenticated paid lessons if owner provisioned an AES build key
+      - name: Stage AES-GCM paid curriculum using private or ephemeral build key
         shell: bash
         env:
-          TERMEH_PREMIUM_CONTENT_KEY_HEX: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
+          PROVISIONED_CONTENT_KEY: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
         run: |
           set -euo pipefail
-          if [ -n "$TERMEH_PREMIUM_CONTENT_KEY_HEX" ]; then
-            node tools/stage-bazaar-premium.cjs
-            echo "Paid lessons staged as encrypted ciphertext only."
+          # Offline content encryption is tied to this signed APK build, not to
+          # a permanent user account. A random per-build key is sufficient:
+          # validated owner state lives separately in Android Keystore.
+          # It is not true DRM: the decryption key exists in the installed APK.
+          if [ -n "$PROVISIONED_CONTENT_KEY" ]; then
+            CONTENT_KEY="$PROVISIONED_CONTENT_KEY"
           else
-            echo "::warning::Premium content key not provisioned: no paid lesson pack, checkout MUST remain OFF."
+            CONTENT_KEY="$(openssl rand -hex 32)"
           fi
+          if ! [[ "$CONTENT_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo "::error::Invalid AES build key; refusing to produce a signed APK."
+            exit 1
+          fi
+          echo "::add-mask::$CONTENT_KEY"
+          TERMEH_PREMIUM_CONTENT_KEY_HEX="$CONTENT_KEY" node tools/stage-bazaar-premium.cjs
+          # GITHUB_ENV belongs to this ephemeral CI job. Never print this line
+          # to logs, store it in the repo, nor send it to the WebView.
+          printf 'TERMEH_PREMIUM_CONTENT_KEY_HEX=%s\n' "$CONTENT_KEY" >> "$GITHUB_ENV"
+          echo "Authenticated lifetime curriculum staged; plaintext is not packaged."
+          unset CONTENT_KEY PROVISIONED_CONTENT_KEY
       - name: Build release APK using signed keystore
         env:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_KEY_PASSWORD: ${{ secrets.TERMEH_KEY_PASSWORD }}
-          TERMEH_PREMIUM_CONTENT_KEY_HEX: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
           TERMEH_ENABLE_LIVE_CHECKOUT: ${{ inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
           TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
         run: gradle --no-daemon :app:assembleRelease
