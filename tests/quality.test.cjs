@@ -93,6 +93,14 @@ assert(activity.includes('"feedback".equals(uri.getHost())'),'Feedback route mus
 assert(support.includes('void composeFeedback()'),'Native parent feedback email required');
 assert(!html.includes('answer=a*b+13'),'Parent math must not have fixed +13');
 assert(html.includes('termehMakeParentChallenge'),'Parent math challenges must be varied');
+assert(html.includes('id="masteryDock"') && html.includes('id="masteryBarsButton"'),'Progress should be three small bars near the bottom');
+assert(html.includes('id="masteryAccuracyTrack"') && html.includes('id="masterySpeedTrack"'),'Three distinct progress metrics required');
+assert(html.includes('id="masteryDashboard" role="region" aria-label="Learning progress explanation" hidden'),'Explanations must not be visible by default');
+assert(html.includes('setTimeout(closeMasteryDetails,7000)'),'Explanations must collapse after a few seconds');
+assert(html.includes('equippedTrophyPiano') && html.includes('equippedTrophyStaff'),'Unlocked badges must appear in the game');
+assert(html.includes('rewards-engine.js'),'Cosmetic economy module missing from offline page');
+assert(!html.includes('state.coins += 5'),'Five coins for each easy answer defeats rarity');
+
 assert(html.includes("const KEY='termeh_parent_welcome_v2',REVISION=2"),'Materially revised parent briefing must use versioned acknowledgment');
 assert(!html.includes("const KEY='termeh_parent_welcome_v1'"),'Original acknowledgement must not auto-accept revised notice');
 assert(html.includes('id="welcomeAccepted"')&&html.includes('id="welcomeContinue"')&&html.includes('disabled onclick="confirmParentWelcome()"'),'Explicit read-and-understood tick and disabled continue required');

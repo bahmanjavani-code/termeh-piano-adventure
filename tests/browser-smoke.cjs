@@ -20,6 +20,7 @@ const { chromium }=require('playwright-core');
     fs.copyFileSync('app/src/main/assets/index.html',path.join(dir,'index.html'));
     fs.copyFileSync('app/src/main/assets/offline.css',path.join(dir,'offline.css'));
     fs.copyFileSync('app/src/main/assets/mastery-engine.js',path.join(dir,'mastery-engine.js'));
+    fs.copyFileSync('app/src/main/assets/rewards-engine.js',path.join(dir,'rewards-engine.js'));
     fs.copyFileSync('app/src/'+variant+'/assets/premium-preview.js',path.join(dir,'premium-preview.js'));
     return 'file://'+path.join(dir,'index.html');
   }
@@ -94,6 +95,21 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.evaluate(()=>BASS_NOTES.length),10,'Debug preview should include bass');
     assert.equal(await page.evaluate(()=>NOTE_DURATIONS.length),4,'Debug preview should include rhythm');
     await assertEnglishScreen('initial staff');
+    assert(await page.locator('#masteryDock').isVisible(),'Compact progress strip must be visible under the music game');
+    assert(!(await page.locator('#masteryDashboard').isVisible()),'Progress explanation should not clutter the game');
+    for(const id of ['masteryProgressTrack','masteryAccuracyTrack','masterySpeedTrack']){
+      assert(await page.locator('#'+id).isVisible(),'Missing colored progress meter: '+id);
+    }
+    assert.equal(await page.locator('#masteryBarsButton').getAttribute('aria-expanded'),'false');
+    await page.locator('#masteryBarsButton').click();
+    assert(await page.locator('#masteryDashboard').isVisible(),'Tapping bars must reveal explanations');
+    assert((await page.locator('#masteryDashboard').innerText()).includes('Purple: Stage and assessment readiness'));
+    await assertEnglishScreen('progress explanations');
+    await page.locator('#masteryBarsButton').click();
+    assert(!(await page.locator('#masteryDashboard').isVisible()),'Second tap should fold the explanation back');
+    await page.locator('#masteryBarsButton').click();
+    await page.waitForTimeout(7200);
+    assert(!(await page.locator('#masteryDashboard').isVisible()),'Progress explanation must close after a few seconds');
     // Compact menu must not obscure the piano; science and legal notices remain readable.
     assert(await page.locator('#appMenuToggle').isVisible(),'Settings menu button missing');
     assert(!(await page.locator('#appMenu').isVisible()),'Menu must start closed');
@@ -174,7 +190,26 @@ const { chromium }=require('playwright-core');
     await page.evaluate(()=>closeMascotModal());
     await page.evaluate(()=>openTrophyModal());
     await assertEnglishScreen('trophies');
-    await page.evaluate(()=>closeTrophyModal());
+    // Legacy coins are preserved, but an unearned badge still needs real practice stars.
+    await page.evaluate(()=>{
+      state.coins=1000;state.stars=39;state.unlockedBadges=['starter_star'];state.equippedBadgeId='starter_star';
+      renderTrophyModalContent();
+    });
+    assert(await page.locator('button[onclick="buyTrophy(\'golden_piano\')"]').isDisabled(),'A large legacy wallet cannot skip practice');
+    await page.evaluate(()=>{state.stars=40;renderTrophyModalContent()});
+    assert(await page.locator('button[onclick="buyTrophy(\'golden_piano\')"]').isEnabled(),'Practice gate and coins should unlock a badge');
+    await page.locator('button[onclick="buyTrophy(\'golden_piano\')"]').click();
+    assert(!(await page.locator('#trophyModal').isVisible()),'Buying badge should reveal the newly equipped reward');
+    assert.equal(await page.locator('#equippedTrophyPiano').innerText(),'🎹');
+    assert.equal(await page.locator('#equippedTrophyStaff').innerText(),'🎹');
+    assert.equal(await page.evaluate(()=>state.equippedBadgeId),'golden_piano');
+    assert(await page.evaluate(()=>state.unlockedBadges.includes('golden_piano')),'Bought trophy must be kept');
+    await page.evaluate(()=>{const prev=state.coins;equipTrophy('rainbow_trophy');if(state.coins!==prev)throw Error('Unearned trophy equip affected wallet')});
+    await page.evaluate(()=>{state.rewardPendingQuestions=3;rewardCompletedExercise();saveState()});
+    assert.equal(await page.evaluate(()=>state.rewardPendingQuestions),0,'Milestone must roll over after four exercises');
+    await page.reload();
+    assert.equal(await page.evaluate(()=>state.equippedBadgeId),'golden_piano','Equipped trophy must survive reload');
+    assert.equal(await page.locator('#equippedTrophyPiano').innerText(),'🎹','Equipped sticker must remain visible after relaunch');
     // An easy two-minute run must never make the child 'finish' treble.
     await page.evaluate(()=>{
       state.mastery.treble.attempts=Array.from({length:20},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:500,at:Date.now()}));
@@ -182,7 +217,11 @@ const { chromium }=require('playwright-core');
     });
     assert(await page.locator('#examStartBtn').isDisabled(),'20 perfect fast responses must NOT unlock exam');
     assert.equal(await page.evaluate(()=>getMastery('treble').stage),1,'Short session must still be practice stage 1');
-    assert((await page.locator('#masteryStats').innerText()).includes('20 questions'),'Mastery dashboard must report real practice, not fake levels');
+    await page.locator('#masteryBarsButton').click();
+    assert((await page.locator('#masteryStats').innerText()).includes('20 questions'),'Progress explanation must report true practice count');
+    assert.equal(Number(await page.locator('#masteryProgressTrack').getAttribute('aria-valuenow')),await page.evaluate(()=>getMastery('treble').score));
+    assert.equal(Number(await page.locator('#masteryAccuracyTrack').getAttribute('aria-valuenow')),await page.evaluate(()=>getMastery('treble').accuracy60));
+    await page.locator('#masteryBarsButton').click();
     // Even 80 flawless questions are NOT enough for the new 150-question fluency gate.
     await page.evaluate(()=>{
       state.mastery.treble.attempts=Array.from({length:80},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:1200,at:Date.now()}));

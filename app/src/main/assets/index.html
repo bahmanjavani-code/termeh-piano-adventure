@@ -179,6 +179,24 @@
             border-radius: 10px;
         }
     </style>
+
+    <style>
+    /* Unobtrusive status: no explanation until the child/parent taps. */
+    .masteryDock{background:#ffffffeb;border:1px solid #c4b5fd;border-radius:15px;padding:8px 10px;box-shadow:0 2px 10px #312e8133;position:relative;color:#312e81}
+    #masteryBarsButton{display:flex;align-items:center;gap:7px;width:100%;padding:8px 5px;border:0;background:transparent;cursor:pointer;min-height:42px}
+    #masteryBarsButton:focus-visible{outline:3px solid #6d28d9;border-radius:10px}
+    .masteryMeter{display:block;flex:1;min-width:0;height:10px;overflow:hidden;border-radius:999px;background:#e2e8f0;box-shadow:inset 0 1px 2px #64748b44}
+    .masteryMeterFill{height:100%;display:block;border-radius:999px;transition:width .3s ease}
+    .masteryInfoIcon{font-size:20px;color:#6d28d9;font-weight:900}
+    #masteryDashboard{border-top:1px solid #ddd6fe;padding:9px 4px 3px;line-height:1.7;font-size:13px}
+    #masteryDashboard[hidden]{display:none!important}
+    #masteryDashboard p{margin:4px 0}
+    #masteryDashboard .masteryLegend{display:flex;align-items:center;gap:8px;font-weight:800;font-size:12px}
+    .masterySwatch{display:inline-block;flex-shrink:0;width:11px;height:11px;border-radius:999px}
+    #staffCard .equippedStaffTrophy{position:absolute;left:12px;bottom:6px;opacity:.22;font-size:42px;line-height:1;pointer-events:none;z-index:0;filter:drop-shadow(0 1px 1px #ffffff)}
+    .equippedPianoTrophy{position:absolute;right:12px;top:1px;opacity:.78;font-size:22px;line-height:1;pointer-events:none;z-index:22;filter:drop-shadow(0 1px 1px #000)}
+    #shopEquippedPreview{background:#f0fdf4;border:1px solid #86efac;border-radius:11px;padding:8px;font-weight:800;font-size:13px;text-align:center;color:#166534}
+    </style>
 </head>
 <body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
 
@@ -330,6 +348,7 @@
                     </svg>
                 </div>
 
+                <span id="equippedTrophyStaff" class="equippedStaffTrophy" aria-hidden="true">🌟</span>
                 <!-- Celebration Overlay Badge when Answered Correctly -->
                 <div id="correctOverlayBadge" class="hidden absolute top-3 left-3 bg-emerald-500 text-white font-black text-xs sm:text-sm px-3 py-1.5 rounded-2xl shadow-lg border-2 border-white flex items-center gap-1 animate-bounce">
                     <span class="only-fa">🌟 آفرین! نت</span><span class="only-en">🌟 Correct note:</span>
@@ -348,6 +367,7 @@
 
                 <!-- Piano Container -->
                 <div dir="ltr" class="relative bg-slate-900 p-2.5 pt-4 rounded-3xl shadow-2xl border-4 border-slate-700 select-none">
+                    <span id="equippedTrophyPiano" class="equippedPianoTrophy" aria-hidden="true">🌟</span>
                     <!-- Decorative Piano Top Red Felt Strip -->
                     <div class="w-full h-2 bg-rose-600 rounded-full mb-1.5 opacity-90"></div>
 
@@ -375,15 +395,7 @@
                     <span id="nextBtnText">اول نت درست رو پیدا کن تا قفل باز بشه!</span>
                 </button>
             </div>
-            <section id="masteryDashboard" aria-label="Note-reading mastery progress" style="padding:12px;border:2px solid #c4b5fd;background:#f5f3ff;border-radius:16px;color:#312e81">
-                <p id="masteryStageTitle" style="margin:0 0 7px;font-weight:900;font-size:15px">🎯 مرحله ۱: شناخت همه نت‌ها</p>
-                <div id="masteryProgressTrack" role="progressbar" aria-label="Readiness for final assessment" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:13px;background:#ddd6fe;border-radius:999px;overflow:hidden">
-                    <div id="masteryProgressFill" style="width:0%;height:100%;border-radius:999px;background:#7c3aed;transition:width .2s ease"></div>
-                </div>
-                <p id="masteryStats" style="font-size:13px;font-weight:800;line-height:1.7;margin:7px 0 3px">در حال بررسی پیشرفت...</p>
-                <p id="masteryTrend" style="font-size:12px;line-height:1.75;margin:6px 0 3px;padding:7px;background:white;border-radius:10px">📈 روند خطا و سرعت بعد از ۴۰ سؤال نمایش داده می‌شود.</p>
-                <p id="masteryNextGoal" style="font-size:12px;line-height:1.8;margin:0">با تمرین‌های کوتاه و دقیق پیش برو.</p>
-            </section>
+
             <button id="examStartBtn" type="button" onclick="beginFinalAssessment()" disabled style="border-radius:14px;padding:11px;background:#5b21b6;color:white;font-weight:800;opacity:.9">🎓 آزمون پایانی / Final Assessment</button>
         </main>
 
@@ -527,6 +539,25 @@
             </div>
         </main>
 
+        <!-- Compact progress strip BELOW the active music game; detail only after a tap. -->
+        <section id="masteryDock" aria-label="Progress / پیشرفت" class="masteryDock">
+            <button id="masteryBarsButton" type="button" aria-expanded="false" aria-controls="masteryDashboard" aria-label="Tap for progress details / برای توضیح نوارهای پیشرفت بزن" onclick="toggleMasteryDetails()">
+                <span id="masteryProgressTrack" class="masteryMeter" role="progressbar" aria-label="Learning readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="masteryProgressFill" class="masteryMeterFill" style="width:0%;background:#7c3aed"></span></span>
+                <span id="masteryAccuracyTrack" class="masteryMeter" role="progressbar" aria-label="Recent first-try accuracy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="masteryAccuracyFill" class="masteryMeterFill" style="width:0%;background:#16a34a"></span></span>
+                <span id="masterySpeedTrack" class="masteryMeter" role="progressbar" aria-label="Response speed toward practice target" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="masterySpeedFill" class="masteryMeterFill" style="width:0%;background:#f59e0b"></span></span>
+                <span class="masteryInfoIcon" aria-hidden="true">ⓘ</span>
+            </button>
+            <div id="masteryDashboard" role="region" aria-label="Learning progress explanation" hidden>
+                <p class="masteryLegend"><span class="masterySwatch" style="background:#7c3aed"></span><span class="only-fa">بنفش: آمادگی مرحله و آزمون</span><span class="only-en">Purple: Stage and assessment readiness</span></p>
+                <p class="masteryLegend"><span class="masterySwatch" style="background:#16a34a"></span><span class="only-fa">سبز: دقت پاسخ اول در سؤال‌های اخیر</span><span class="only-en">Green: First-try accuracy in recent questions</span></p>
+                <p class="masteryLegend"><span class="masterySwatch" style="background:#f59e0b"></span><span class="only-fa">طلایی: سرعت تشخیص نسبت به هدف تمرین (۴٫۲ ثانیه)</span><span class="only-en">Gold: Recognition speed relative to the 4.2-second practice goal</span></p>
+                <p id="masteryStageTitle" style="margin:0 0 7px;font-weight:900;font-size:15px">🎯 مرحله ۱: شناخت همه نت‌ها</p>
+                <p id="masteryStats" style="font-size:13px;font-weight:800;line-height:1.7;margin:7px 0 3px">در حال بررسی پیشرفت...</p>
+                <p id="masteryTrend" style="font-size:12px;line-height:1.75;margin:6px 0 3px;padding:7px;background:white;border-radius:10px">📈 روند خطا و سرعت بعد از ۴۰ سؤال نمایش داده می‌شود.</p>
+                <p id="masteryNextGoal" style="font-size:12px;line-height:1.8;margin:0">با تمرین‌های کوتاه و دقیق پیش برو.</p>
+            </div>
+        </section>
+
     </div>
 
     <!-- ======================================================== -->
@@ -552,7 +583,7 @@
             <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3">
                 <div>
                     <h3 class="font-black text-lg text-amber-800">🏆 قفسه جوایز و استیکرها</h3>
-                    <p class="text-xs font-bold text-slate-500">با سکه‌هایی که از جواب‌های درست می‌گیری جایزه باز کن!</p>
+                    <p class="text-xs font-bold text-slate-500"><span class="only-fa">نشان‌ها رو بگیر و روی پیانوت نصب کن!</span><span class="only-en">Earn a badge and decorate your piano!</span></p>
                 </div>
                 <button onclick="closeTrophyModal()" class="w-9 h-9 rounded-full bg-rose-100 text-rose-600 font-black text-lg flex items-center justify-center">✕</button>
             </div>
@@ -571,6 +602,8 @@
                 </div>
             </div>
 
+            <p id="shopEquippedPreview" role="status"><span class="only-fa">🌟 نشانِ روی پیانو</span><span class="only-en">🌟 Your piano badge</span></p>
+            <p class="text-xs font-bold text-slate-700"><span class="only-fa">🪙 هر ۴ تمرین کامل یک سکه؛ نشان‌های ویژه به تمرین بیشتری هم نیاز دارند. جایزه‌ها فقط تزئینی‌اند.</span><span class="only-en">🪙 Earn one coin for every four completed exercises; special badges also require more practice. Rewards are cosmetic only.</span></p>
             <div id="trophyGrid" class="grid grid-cols-2 gap-3">
                 <!-- Populated via JS -->
             </div>
@@ -583,6 +616,7 @@
     <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
     <script src="premium-preview.js"></script>
     <script src="mastery-engine.js"></script>
+    <script src="rewards-engine.js"></script>
     <script>
         /**************************************************************
          * 1. PERSISTENT STATE & REWARD DATA
@@ -600,6 +634,8 @@
             hintEnabled: true,
             selectedMascotId: 'panda',
             unlockedBadges: ['starter_star'],
+            equippedBadgeId: 'starter_star',
+            rewardPendingQuestions: 0,
             currentStaffNote: null,
             staffQuestionSolved: false,
             wrongKeysPressed: new Set(),
@@ -641,10 +677,25 @@
                     state.levelRhythm = parsed.levelRhythm || 1;
                     state.selectedMascotId = parsed.selectedMascotId || 'panda';
                     state.unlockedBadges = Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : ['starter_star'];
+                    // Preserve legacy trophies/coins; display previously owned rewards too.
+                    if(!state.unlockedBadges.includes('starter_star')) state.unlockedBadges.unshift('starter_star');
+                    const ownedKnown=state.unlockedBadges.filter(id=>TROPHIES.some(t=>t.id===id));
+                    state.equippedBadgeId=ownedKnown.includes(parsed.equippedBadgeId)
+                        ? parsed.equippedBadgeId:(ownedKnown[ownedKnown.length-1]||'starter_star');
+                    state.rewardPendingQuestions=Number.isSafeInteger(parsed.rewardPendingQuestions)
+                        &&parsed.rewardPendingQuestions>=0&&parsed.rewardPendingQuestions<4?parsed.rewardPendingQuestions:0;
                 }
             } catch (e) {
                 console.warn('Could not load saved state:', e);
             }
+        }
+
+        // Coins are slower to earn and are never sold for real money.
+        // One coin every four completed exercises, regardless of mistakes or speed.
+        function rewardCompletedExercise() {
+            const result=TermehRewards.finishQuestion(state.rewardPendingQuestions);
+            state.rewardPendingQuestions=result.pending;
+            state.coins+=result.coins;
         }
 
         function saveState() {
@@ -657,7 +708,9 @@
                     levelBass: state.levelBass,
                     levelRhythm: state.levelRhythm,
                     selectedMascotId: state.selectedMascotId,
-                    unlockedBadges: state.unlockedBadges
+                    unlockedBadges: state.unlockedBadges,
+                    equippedBadgeId: state.equippedBadgeId,
+                    rewardPendingQuestions: state.rewardPendingQuestions
                 }));
             } catch (e) {
                 console.warn('Could not save state:', e);
@@ -698,15 +751,17 @@
             }
         ];
 
+        // Cosmetic rewards are earned over many short sessions. Star requirements
+        // reflect practice participation only; they never gate learning or purchases.
         const TROPHIES = [
-            { id: 'starter_star', name: 'نوازنده تازه‌کار', emoji: '🌟', cost: 0, desc: 'جایزه شروع ماجراجویی موسیقی!' },
-            { id: 'golden_piano', name: 'پیانوی طلایی', emoji: '🎹', cost: 20, desc: 'مخصوص بچه‌هایی که نت‌ها رو عالی می‌شناسن' },
-            { id: 'magic_violin', name: 'ویولن جادویی', emoji: '🎻', cost: 35, desc: 'ساز خوش‌صدای ارکستر کودکان' },
-            { id: 'rock_guitar', name: 'گیتار ستاره‌ای', emoji: '🎸', cost: 50, desc: 'جایزه قهرمان کلید سل و فا' },
-            { id: 'happy_drum', name: 'طبل ریتمیک', emoji: '🥁', cost: 70, desc: 'استاد شمردن ضرب و کشش نت‌ها' },
-            { id: 'gold_trumpet', name: 'ترومپت درخشان', emoji: '🎺', cost: 90, desc: 'ساز بادی شاد و پرانرژی' },
-            { id: 'mozart_crown', name: 'تاج موتسارت کوچولو', emoji: '👑', cost: 120, desc: 'بالاترین نشان افتخار نت‌آموز!' },
-            { id: 'rainbow_trophy', name: 'جام رنگین‌کمان', emoji: '🏆', cost: 150, desc: 'قهرمان تمام مودهای پیانو!' }
+            { id: 'starter_star', name: 'نوازنده تازه‌کار', emoji: '🌟', cost: 0, minStars: 0, desc: 'یادگاری شروع ماجراجویی موسیقی!' },
+            { id: 'golden_piano', name: 'پیانوی طلایی', emoji: '🎹', cost: 12, minStars: 40, desc: 'جایزه تمرین پیوسته و کشف نت‌ها' },
+            { id: 'magic_violin', name: 'ویولن جادویی', emoji: '🎻', cost: 22, minStars: 100, desc: 'یادگاری پشتکار در بازی‌های موسیقی' },
+            { id: 'rock_guitar', name: 'گیتار ستاره‌ای', emoji: '🎸', cost: 34, minStars: 180, desc: 'جایزه جلسه‌های متعدد تمرین' },
+            { id: 'happy_drum', name: 'طبل ریتمیک', emoji: '🥁', cost: 48, minStars: 280, desc: 'نشانه ادامه دادن تمرین و مرور' },
+            { id: 'gold_trumpet', name: 'ترومپت درخشان', emoji: '🎺', cost: 65, minStars: 400, desc: 'یادگاری کوشش بلندمدت موسیقایی' },
+            { id: 'mozart_crown', name: 'تاج موتسارت کوچولو', emoji: '👑', cost: 85, minStars: 550, desc: 'نشان ویژه و تزئینی برای تمرین فراوان' },
+            { id: 'rainbow_trophy', name: 'جام رنگین‌کمان', emoji: '🏆', cost: 110, minStars: 750, desc: 'جایزه تزئینی همراهی در سفر موسیقی' }
         ];
 
         /**************************************************************
@@ -1033,7 +1088,7 @@
                     state.staffQuestionSolved = true;
                     state.streak += 1;
                     state.stars += 1;
-                    state.coins += 5;
+                    rewardCompletedExercise();
 
                     // One correct answer earns rewards, NOT a completed level.
                     // Progress follows first-try accuracy, speed, balanced note
@@ -1249,13 +1304,13 @@
         function durationBeats(d){return isEnglish()?(d.beats===0.5?'½':String(d.beats))+' quarter-note beats':d.beatsLabel;}
         const EN_TROPHIES={
             starter_star:['Beginner Musician','Your first music adventure award!'],
-            golden_piano:['Golden Piano','For practicing note reading.'],
-            magic_violin:['Magic Violin','A musical orchestra treasure.'],
-            rock_guitar:['Star Guitar','A gift for clef explorers.'],
-            happy_drum:['Rhythm Drum','For rhythm explorers.'],
-            gold_trumpet:['Shining Trumpet','A bright brass instrument.'],
-            mozart_crown:['Little Mozart Crown','A great music achievement.'],
-            rainbow_trophy:['Rainbow Trophy','For exploring every music lesson.']
+            golden_piano:['Golden Piano','A decoration earned after steady practice.'],
+            magic_violin:['Magic Violin','A keepsake for continuing your music adventure.'],
+            rock_guitar:['Star Guitar','A collectible for many practice sessions.'],
+            happy_drum:['Rhythm Drum','A collectible for revisiting the music exercises.'],
+            gold_trumpet:['Shining Trumpet','A decoration for long-term practice.'],
+            mozart_crown:['Little Mozart Crown','A rare cosmetic crown for persistent practice.'],
+            rainbow_trophy:['Rainbow Trophy','A very rare cosmetic reward for long-term play.']
         };
 
         function renderDurationLearnCards() {
@@ -1348,7 +1403,7 @@
                 if (!state.rhythmQuizSolved) {
                     state.rhythmQuizSolved = true;
                     state.stars += 1;
-                    state.coins += 5;
+                    rewardCompletedExercise();
                     state.streak += 1;
                     state.levelRhythm += 1;
                     saveState();
@@ -1506,7 +1561,7 @@
                 if (!state.holdChallengeSolved) {
                     state.holdChallengeSolved = true;
                     state.stars += 1;
-                    state.coins += 5;
+                    rewardCompletedExercise();
                     state.streak += 1;
                     saveState();
                     updateHeaderUI();
@@ -1594,12 +1649,49 @@
                     'سه مرحله تمام شد! آزمون: ۲۰ سؤال متنوع؛ حداقل ۱۸ پاسخ درست و ۱۵ پاسخ درست در کمتر از ۵ ثانیه.';
             }
             if(fill)fill.style.width=result.score+'%';
-            if(track)track.setAttribute('aria-valuenow',String(result.score));
+            if(track){track.setAttribute('aria-valuenow',String(result.score));track.setAttribute('aria-label',en?'Assessment readiness':'آمادگی آزمون');}
+            const accTrack=document.getElementById('masteryAccuracyTrack');
+            const accFill=document.getElementById('masteryAccuracyFill');
+            if(accFill)accFill.style.width=result.accuracy60+'%';
+            if(accTrack){accTrack.setAttribute('aria-valuenow',String(result.accuracy60));accTrack.setAttribute('aria-label',en?'First-try accuracy':'دقت بار اول');}
+            const speedPct=result.medianMs===null?0:Math.min(100,Math.round(4200/Math.max(100,result.medianMs)*100));
+            const speedTrack=document.getElementById('masterySpeedTrack');
+            const speedFill=document.getElementById('masterySpeedFill');
+            if(speedFill)speedFill.style.width=speedPct+'%';
+            if(speedTrack){
+                speedTrack.setAttribute('aria-valuenow',String(speedPct));
+                speedTrack.setAttribute('aria-label',en?'Speed relative to practice target':'سرعت نسبت به هدف تمرین');
+                speedTrack.setAttribute('aria-valuetext',result.medianMs===null?(en?'Not measured yet':'هنوز ثبت نشده'):speed);
+            }
             const level=document.getElementById('levelProgressText');
             if(level && !(state.exam&&state.exam.active)){
                 level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3`:
                     `تمرین ${Math.min(3,result.stage)} از ۳`;
             }
+        }
+        let masteryDetailsTimer=null;
+        function closeMasteryDetails(){
+            if(masteryDetailsTimer){clearTimeout(masteryDetailsTimer);masteryDetailsTimer=null;}
+            const box=document.getElementById('masteryDashboard');
+            const btn=document.getElementById('masteryBarsButton');
+            if(box)box.hidden=true;
+            if(btn)btn.setAttribute('aria-expanded','false');
+        }
+        function toggleMasteryDetails(){
+            const box=document.getElementById('masteryDashboard');
+            const btn=document.getElementById('masteryBarsButton');
+            if(!box||!btn)return;
+            if(!box.hidden){closeMasteryDetails();return;}
+            box.hidden=false;btn.setAttribute('aria-expanded','true');
+            if(masteryDetailsTimer)clearTimeout(masteryDetailsTimer);
+            masteryDetailsTimer=setTimeout(closeMasteryDetails,7000);
+        }
+        function showMasteryFromMenu(){
+            if(state.mode==='rhythm')switchGameMode('treble');
+            const dock=document.getElementById('masteryDock');
+            if(dock)dock.scrollIntoView({block:'end',behavior:'smooth'});
+            const box=document.getElementById('masteryDashboard');
+            if(box&&box.hidden)toggleMasteryDetails();
         }
         function updateExamButton() {
             const btn=document.getElementById('examStartBtn');
@@ -1698,6 +1790,9 @@
             const staffArea = document.getElementById('staffGameArea');
             const rhythmArea = document.getElementById('rhythmGameArea');
 
+            const dock=document.getElementById('masteryDock');
+            if(dock)dock.classList.toggle('hidden',newMode==='rhythm');
+            closeMasteryDetails();
             if (newMode === 'treble' || newMode === 'bass') {
                 staffArea.classList.remove('hidden');
                 rhythmArea.classList.add('hidden');
@@ -1744,6 +1839,7 @@
             document.getElementById('coinCount').textContent = state.coins;
             document.getElementById('streakCount').textContent = state.streak;
             document.getElementById('unlockedBadgeCount').textContent = `${state.unlockedBadges.length}/${TROPHIES.length}`;
+            showEquippedTrophy();
         }
 
         function toggleHintMode() {
@@ -1813,6 +1909,25 @@
             closeMascotModal();
         }
 
+        function showEquippedTrophy() {
+            const trophy=TROPHIES.find(t=>t.id===state.equippedBadgeId
+                &&state.unlockedBadges.includes(t.id))||TROPHIES[0];
+            for(const id of ['equippedTrophyStaff','equippedTrophyPiano']) {
+                const slot=document.getElementById(id);
+                if(slot){slot.textContent=trophy.emoji;slot.setAttribute('title',isEnglish()?EN_TROPHIES[trophy.id][0]:trophy.name);}
+            }
+            const badge=document.getElementById('shopEquippedPreview');
+            if(badge)badge.textContent=(isEnglish()?'On your piano: ':'روی پیانوی تو: ')+trophy.emoji+' '+(isEnglish()?EN_TROPHIES[trophy.id][0]:trophy.name);
+        }
+        function equipTrophy(trophyId) {
+            if(!state.unlockedBadges.includes(trophyId)||!TROPHIES.some(t=>t.id===trophyId))return;
+            state.equippedBadgeId=trophyId;
+            saveState();
+            showEquippedTrophy();
+            closeTrophyModal(); // Reveal the reward on the real staff and piano immediately.
+            playSuccessSound();
+        }
+
         function openTrophyModal() {
             renderTrophyModalContent();
             const modal = document.getElementById('trophyModal');
@@ -1827,45 +1942,55 @@
         }
 
         function renderTrophyModalContent() {
-            document.getElementById('modalCoinBalance').textContent = state.coins;
-            document.getElementById('modalStarBalance').textContent = state.stars;
-
-            const grid = document.getElementById('trophyGrid');
-            grid.innerHTML = TROPHIES.map(t => {
-                const isUnlocked = state.unlockedBadges.includes(t.id);
-                const canAfford = state.coins >= t.cost;
-
+            document.getElementById('modalCoinBalance').textContent=state.coins;
+            document.getElementById('modalStarBalance').textContent=state.stars;
+            showEquippedTrophy();
+            const en=isEnglish();
+            const grid=document.getElementById('trophyGrid');
+            grid.innerHTML=TROPHIES.map(t=>{
+                const owned=state.unlockedBadges.includes(t.id);
+                const worn=owned&&state.equippedBadgeId===t.id;
+                const ready=TermehRewards.canBuy(t,state.coins,state.stars,state.unlockedBadges);
+                const starsLeft=Math.max(0,t.minStars-state.stars);
+                const coinsLeft=Math.max(0,t.cost-state.coins);
+                const name=en?EN_TROPHIES[t.id][0]:t.name;
+                const desc=en?EN_TROPHIES[t.id][1]:t.desc;
+                const requirement=en?
+                    `Need ${t.minStars} practice stars · ${t.cost} coins`:
+                    `نیاز به ${t.minStars} ستاره تمرین و ${t.cost} سکه`;
+                const pending=en?
+                    `Still needed: ${starsLeft} stars, ${coinsLeft} coins`:
+                    `باقی‌مانده: ${starsLeft} ستاره و ${coinsLeft} سکه`;
+                let action;
+                if(owned) {
+                    action=`<button type="button" onclick="equipTrophy('${t.id}')" aria-pressed="${worn}" class="mt-auto w-full rounded-xl px-2 py-2 font-black text-xs ${worn?'bg-emerald-600 text-white':'bg-violet-600 text-white'}">${worn?(en?'✓ On the piano':'✓ روی پیانو نصب شد'):(en?'✨ Show on piano':'✨ نصب روی پیانو')}</button>`;
+                } else {
+                    action=`<button type="button" onclick="buyTrophy('${t.id}')" ${ready?'':'disabled'} class="mt-auto w-full rounded-xl px-2 py-2 font-black text-xs ${ready?'bg-amber-400 text-slate-900':'bg-slate-300 text-slate-600'}">${ready?(en?'🎁 Earn badge':'🎁 گرفتن نشان'):(en?'🔒 Keep practicing':'🔒 تمرین بیشتری لازم است')}</button>`;
+                }
                 return `
-                    <div class="p-3 rounded-2xl border-2 flex flex-col items-center text-center gap-1.5 ${isUnlocked ? 'bg-gradient-to-b from-yellow-50 to-amber-100 border-amber-400 shadow' : 'bg-slate-100 border-slate-300 opacity-85'}">
-                        <div class="w-14 h-14 rounded-2xl bg-white shadow-inner flex items-center justify-center text-3xl ${isUnlocked ? '' : 'grayscale opacity-50'}">
-                            ${t.emoji}
-                        </div>
-                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${isEnglish() ? EN_TROPHIES[t.id][0] : t.name}</h4>
-                        <p class="text-[11px] text-slate-500 leading-tight">${isEnglish() ? EN_TROPHIES[t.id][1] : t.desc}</p>
-                        ${
-                            isUnlocked
-                            ? `<span class="mt-auto bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-xl w-full">✓ باز شده!</span>`
-                            : `<button onclick="buyTrophy('${t.id}')" ${canAfford ? '' : 'disabled'} class="mt-auto btn-cartoon w-full py-1.5 px-2 rounded-xl font-black text-xs border-b-4 ${canAfford ? 'bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-600' : 'bg-slate-300 text-slate-500 border-slate-400 cursor-not-allowed'}">
-                                🔓 باز کردن (${t.cost} 🪙)
-                               </button>`
-                        }
-                    </div>
-                `;
+                    <div class="p-3 rounded-2xl border-2 flex flex-col items-center text-center gap-1.5 ${owned?'bg-gradient-to-b from-yellow-50 to-amber-100 border-amber-400 shadow':'bg-slate-100 border-slate-300'}">
+                        <div class="w-14 h-14 rounded-2xl bg-white shadow-inner flex items-center justify-center text-3xl ${owned?'':'grayscale opacity-50'}">${t.emoji}</div>
+                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${name}</h4>
+                        <p class="text-[11px] text-slate-600 leading-tight">${desc}</p>
+                        ${owned?'':`<p class="text-[11px] font-bold text-amber-900">${requirement}</p><p class="text-[11px] text-slate-600">${pending}</p>`}
+                        ${action}
+                    </div>`;
             }).join('');
         }
 
         function buyTrophy(trophyId) {
-            const trophy = TROPHIES.find(t => t.id === trophyId);
-            if (!trophy || state.unlockedBadges.includes(trophyId)) return;
-            if (state.coins < trophy.cost) {
+            const trophy=TROPHIES.find(t=>t.id===trophyId);
+            if(!TermehRewards.canBuy(trophy,state.coins,state.stars,state.unlockedBadges)) {
                 playWrongSound();
                 return;
             }
-            state.coins -= trophy.cost;
+            state.coins-=trophy.cost;
             state.unlockedBadges.push(trophyId);
+            state.equippedBadgeId=trophyId;
             saveState();
             updateHeaderUI();
             renderTrophyModalContent();
+            closeTrophyModal(); // Show the earned sticker on the staff and piano.
             playSuccessSound();
             launchConfetti();
         }
@@ -2321,7 +2446,7 @@ html[data-termeh-theme=dark] #appMenuToggle{background:#1e293b;color:#f5f3ff;bor
        <button type="button" data-termeh-theme-choice="auto" onclick="setTermehTheme('auto')">📱 <span class="only-fa">خودکار</span><span class="only-en">Auto</span></button>
     </div>
     <button id="parentLaunch" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">👨‍👩‍👧 <span class="only-fa">بخش والدین و مدیریت حساب</span><span class="only-en">Parent controls and account</span></button>
-    <button type="button" class="termehMenuAction" onclick="closeTermehMenu();document.getElementById('masteryProgressTrack').scrollIntoView({block:'center'})">📊 <span class="only-fa">نمایش پیشرفت آموزشی</span><span class="only-en">View learning progress</span></button>
+    <button type="button" class="termehMenuAction" onclick="closeTermehMenu();showMasteryFromMenu()">📊 <span class="only-fa">نمایش پیشرفت آموزشی</span><span class="only-en">View learning progress</span></button>
     <button id="menuFeedback" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">💬 <span class="only-fa">نظرات و پیشنهادها (فقط والدین)</span><span class="only-en">Suggestions and feedback (parents only)</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('science')">📚 <span class="only-fa">روش آموزشی و منابع معتبر</span><span class="only-en">Learning approach and sources</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('limits')">⚖️ <span class="only-fa">محدودیت آموزشی و شرایط استفاده</span><span class="only-en">Educational limitations and terms</span></button>
