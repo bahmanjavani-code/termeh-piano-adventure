@@ -874,7 +874,7 @@
         ];
 
         // MODE 1: TREBLE CLEF NOTES (کلید سل)
-        const TREBLE_NOTES = [
+        let TREBLE_NOTES = [
             {
                 "code": "C4",
                 "keyId": "C4",
@@ -928,10 +928,49 @@
         ].concat(window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.trebleExtra : []);
 
         // MODE 2: BASS CLEF NOTES (کلید فا)
-        const BASS_NOTES = window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.bass : []; // Absent from release APK until verified download.
+        let BASS_NOTES = window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.bass : []; // Release populates only after native signed ownership check.
 
         // MODE 3: NOTE DURATIONS (کشش نت‌ها)
-        const NOTE_DURATIONS = window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.durations : []; // Production premium content arrives only after purchase verification.
+        let NOTE_DURATIONS = window.TERMEH_DEBUG_PREMIUM ? window.TERMEH_DEBUG_PREMIUM.durations : []; // Verified native callback delivers paid arrays.
+        // Authenticated premium DATA is supplied by Android only after
+        // native signature-checked ownership and AES-GCM verification.
+        // JS state alone is never used to decide whether a purchase is valid.
+        window.TERMEH_NATIVE_PREMIUM=false;
+        window.termehNativePremiumLoaded=function(payload){
+            if(window.TERMEH_CONTENT_VARIANT!=='release-free'
+                || !payload || payload.schema!==1
+                || payload.productId!=='termeh_premium_lifetime'
+                || !Array.isArray(payload.trebleExtra)||payload.trebleExtra.length!==7
+                || !Array.isArray(payload.bass)||payload.bass.length!==10
+                || !Array.isArray(payload.durations)||payload.durations.length!==4)return;
+            if(payload.trebleExtra.some(n=>!n||!/^[A-G][45]$/.test(n.code)||n.code!==n.keyId)
+                || payload.bass.some(n=>!n||!/^[A-G][234]$/.test(n.code)||n.code!==n.keyId))return;
+            TREBLE_NOTES=TREBLE_NOTES.slice(0,5).concat(payload.trebleExtra);
+            BASS_NOTES=payload.bass;
+            NOTE_DURATIONS=payload.durations;
+            window.TERMEH_NATIVE_PREMIUM=true;
+            state.exam=null;
+            // A five-note certificate is insufficient when additional notes
+            // enter the curriculum. Preserve questions, stars and rewards.
+            if(state.trebleNoteTier<3 && state.mastery.treble.examPassed){
+                state.mastery.treble.examPassed=false;
+                state.mastery.treble.certifiedVersion=0;
+            }
+            saveState();
+            if(state.mode!=='treble' && !isModeUnlocked(state.mode))state.mode='treble';
+            switchGameMode(state.mode);
+            if(window.termehBazaarStatus)window.termehBazaarStatus('restore_active');
+        };
+        window.termehNativePremiumRevoked=function(){
+            if(!window.TERMEH_NATIVE_PREMIUM)return;
+            window.TERMEH_NATIVE_PREMIUM=false;
+            TREBLE_NOTES=TREBLE_NOTES.slice(0,5);
+            BASS_NOTES=[];NOTE_DURATIONS=[];
+            state.exam=null;
+            switchGameMode('treble');
+            if(window.termehBazaarStatus)window.termehBazaarStatus('restore_no_purchase');
+        };
+
 
         /**************************************************************
          * 4. WEB AUDIO API SOUND ENGINE (REAL PIANO FREQUENCIES & SFX)
@@ -1770,17 +1809,16 @@
             loadNewRhythmQuizQuestion();
         }
 
-        const HOLD_CHALLENGES = [
-            NOTE_DURATIONS[2],
-            NOTE_DURATIONS[1],
-            NOTE_DURATIONS[0]
-        ];
+        function getHoldChallenges(){
+            // Recompute: real paid rhythm notes arrive after initial page load.
+            return [NOTE_DURATIONS[2],NOTE_DURATIONS[1],NOTE_DURATIONS[0]];
+        }
 
         function loadHoldChallenge() {
             stopHoldSoundAndTimer();
             state.isHoldingPad=false;
             state.holdChallengeSolved = false;
-            const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+            const target = getHoldChallenges()[state.currentHoldTargetIdx % getHoldChallenges().length];
 
             document.getElementById('holdTargetTitle').textContent = `${durationName(target)} (${durationBeats(target)})`;
             document.getElementById('holdTargetSvg').innerHTML = getNoteDurationSvg(target.id, 75);
@@ -1819,7 +1857,7 @@
             if (e && e.cancelable) e.preventDefault();
             if (state.isHoldingPad || state.holdChallengeSolved) return;
 
-            const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+            const target = getHoldChallenges()[state.currentHoldTargetIdx % getHoldChallenges().length];
             state.isHoldingPad = true;
             holdStartedAt = performance.now();
             currentHeldBeats = 0;
@@ -1903,7 +1941,7 @@
             const padLabel = document.getElementById('giantHoldPadLabel');
             if (padLabel) padLabel.textContent = isEnglish()?'Hold here and count!':'اینجا رو نگه دار و بشمار!';
 
-            const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+            const target = getHoldChallenges()[state.currentHoldTargetIdx % getHoldChallenges().length];
             const heldBeats=Math.max(0,(performance.now()-holdStartedAt)/HOLD_BEAT_MS);
             currentHeldBeats=Math.floor(heldBeats);
 
@@ -2642,7 +2680,7 @@ window.termehMakeParentChallenge=function(){
 let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
 window.isModeUnlocked=function(mode){
   if(mode==='treble')return true;
-  if(!window.TERMEH_DEBUG_PREMIUM)return false;
+  if(!window.TERMEH_DEBUG_PREMIUM&&!window.TERMEH_NATIVE_PREMIUM)return false;
   // QA preview bypasses ONLY instructional navigation in a distinct .qa APK;
   // it never unlocks real paid content or changes any mastery certification.
   if(window.termehQaPreviewActive&&window.termehQaPreviewActive())return true;
@@ -2655,7 +2693,7 @@ window.showUnlock=function(mode){
   const en=localStorage.getItem('termeh_language')==='en';
   const title=document.getElementById('unlockTitle');
   const text=document.getElementById('unlockText');
-  if(!window.TERMEH_DEBUG_PREMIUM){
+  if(!window.TERMEH_DEBUG_PREMIUM&&!window.TERMEH_NATIVE_PREMIUM){
     title.textContent=en?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒';
     text.textContent=en?
       'Advanced lessons are locked in this free QA release. Real billing and restore must be fully tested before sales; starter lessons remain free.':
