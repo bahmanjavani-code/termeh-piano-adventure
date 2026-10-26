@@ -619,6 +619,8 @@
         </div>
     </div>
 
+    <div id="qaPreviewBadge" hidden role="status" style="position:fixed;bottom:7px;right:8px;z-index:85;padding:5px 9px;border-radius:10px;background:#7c2d12;color:white;font:900 13px sans-serif;border:2px solid #fdba74;pointer-events:none">🧪 <span class="only-fa">فقط QA · مرور آزاد درس‌ها</span><span class="only-en">QA ONLY · Lesson preview</span></div>
+
     <!-- ======================================================== -->
     <!-- MODAL 1: MASCOT CHARACTER SELECTOR                       -->
     <!-- ======================================================== -->
@@ -675,9 +677,16 @@
     <!-- Variant-specific: debug has practice previews; free release has NO paid lessons. -->
     <script src="premium-preview.js"></script>
     <script>
-      // Free Bazaar candidates must never show unfinished QA-only checkout.
+      // Store candidates never show unfinished QA-only checkout/preview controls.
       document.documentElement.setAttribute('data-termeh-edition',
         window.TERMEH_CONTENT_VARIANT === 'debug-full-preview' ? 'qa' : 'store');
+      // Memory-only, never a purchase entitlement. The debug APK has
+      // a different Android application ID and its own isolated app data.
+      window.TERMEH_QA_PREVIEW = false;
+      window.termehQaPreviewActive = function() {
+        return window.TERMEH_CONTENT_VARIANT === 'debug-full-preview'
+          && window.TERMEH_QA_PREVIEW === true;
+      };
     </script>
     <script src="mastery-engine.js"></script>
     <script src="note-curriculum.js"></script>
@@ -2083,6 +2092,11 @@
             updateExamButton();
         }
         function getActiveTrebleNotes(){
+            // In the separate QA APK, allow a parent to inspect all staff notes
+            // without manufacturing 150 practice answers or passing exams.
+            if (window.termehQaPreviewActive && window.termehQaPreviewActive()) {
+                return TREBLE_NOTES;
+            }
             return TermehNoteCurriculum.activeNotes(TREBLE_NOTES,state.trebleNoteTier);
         }
         function getMastery(mode) {
@@ -2592,7 +2606,14 @@ window.termehMakeParentChallenge=function(){
 <script>
 (function(){
 let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
-window.isModeUnlocked=function(mode){if(mode==='treble')return true; if(!window.TERMEH_DEBUG_PREMIUM)return false; return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed};
+window.isModeUnlocked=function(mode){
+  if(mode==='treble')return true;
+  if(!window.TERMEH_DEBUG_PREMIUM)return false;
+  // QA preview bypasses ONLY instructional navigation in a distinct .qa APK;
+  // it never unlocks real paid content or changes any mastery certification.
+  if(window.termehQaPreviewActive&&window.termehQaPreviewActive())return true;
+  return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed;
+};
 window.showUnlock=function(mode){
   pendingMode=mode;
   document.getElementById('unlockOverlay').classList.add('open');
@@ -2640,6 +2661,12 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 <div id="parentHubGate"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()"><span class="only-fa">تأیید والدین</span><span class="only-en">Verify parent</span></button><p id="hubGateMessage" role="status"></p></div>
 <div id="parentHubOptions" hidden><p class="termehQaOnly">🔒 <b><span class="only-fa">وضعیت حساب: مهمان</span><span class="only-en">Account status: Guest</span></b></p>
 <button id="parentReviewNotice" class="action" type="button" onclick="reviewParentWelcome()">📜 <span class="only-fa">مرور دوبارهٔ سخنی با والدین</span><span class="only-en">Reread the parent introduction</span></button>
+<section id="qaPreviewPanel" class="termehQaOnly" aria-label="QA full lesson preview" style="padding:12px;margin:12px 0;background:#ffedd5;color:#7c2d12;border:3px dashed #ea580c;border-radius:16px">
+  <h3 style="font-size:18px;font-weight:900">🧪 <span class="only-fa">پیش‌نمایش توسعه‌دهنده (فقط نسخهٔ QA)</span><span class="only-en">Developer preview (QA app only)</span></h3>
+  <p style="font-size:13px"><span class="only-fa">فقط برای بررسی همهٔ نت‌های کلید سل، کلید فا، کشش و میزان‌سازی؛ بدون گذراندن درس‌های قبلی. این دکمه پیشرفت آموزشی یا خرید واقعی را ثبت نمی‌کند. آمار این برنامهٔ QA مستقل از بازی اصلی است.</span><span class="only-en">Inspect upper treble notes, bass clef, durations and measure builder without completing prior lessons. This does not certify progress or unlock a purchase. QA data are separate from the real app.</span></p>
+  <p id="qaPreviewStatus" aria-live="polite" style="font-weight:800;font-size:13px"></p>
+  <button id="qaPreviewToggle" class="action" type="button" onclick="termehToggleQaPreview()">🧪 <span class="only-fa">فعال/غیرفعال کردن مرور تمام درس‌ها</span><span class="only-en">Toggle all-lesson QA preview</span></button>
+</section>
 <button class="action termehQaOnly" disabled>🔑 <span class="only-fa">ورود — به‌زودی</span><span class="only-en">Sign in — Coming soon</span></button>
 <button class="action termehQaOnly" disabled>📝 <span class="only-fa">ثبت‌نام — به‌زودی</span><span class="only-en">Register — Coming soon</span></button>
 <button class="action termehQaOnly" disabled>☁️ <span class="only-fa">پشتیبان‌گیری — به‌زودی</span><span class="only-en">Backup — Coming soon</span></button>
@@ -2783,7 +2810,30 @@ window.termehChangePracticeReminder=function(enable){
     else bridge.disableReminder();
   }catch(e){window.termehReminderStatus('unavailable');}
 };
-window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
+window.termehRefreshQaPreview=function(){
+  const status=el('qaPreviewStatus');
+  if(!status)return;
+  const en=localStorage.getItem('termeh_language')==='en';
+  const active=!!(window.termehQaPreviewActive&&window.termehQaPreviewActive());
+  status.textContent=en?(active?'Preview ON · All lessons open for testing.':'Preview OFF · Normal teaching gates apply.'):
+    (active?'مرور آزاد روشن است؛ همهٔ درس‌ها فقط برای بررسی قابل ورودند.':'مرور آزاد خاموش است؛ قفل‌های آموزشی عادی فعال‌اند.');
+};
+window.termehToggleQaPreview=function(){
+  // Every time the parent toggles, require the existing challenge to have
+  // been solved in the currently open parent dialog.
+  if(window.TERMEH_CONTENT_VARIANT!=='debug-full-preview'
+      ||el('parentHubOptions').hidden
+      ||!el('parentHub').classList.contains('open'))return;
+  window.TERMEH_QA_PREVIEW=!window.TERMEH_QA_PREVIEW;
+  const badge=el('qaPreviewBadge');if(badge)badge.hidden=!window.TERMEH_QA_PREVIEW;
+  window.termehRefreshQaPreview();
+  closeParentHub();
+  // Return to treble with a new question, so switching QA mode cannot keep
+  // an exam answer or a now-locked paid screen on display.
+  state.exam=null;
+  switchGameMode('treble');
+};
+window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();if(window.termehRefreshQaPreview)window.termehRefreshQaPreview();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
 })();
