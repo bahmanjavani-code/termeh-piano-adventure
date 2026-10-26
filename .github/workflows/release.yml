@@ -89,14 +89,45 @@ jobs:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_RELEASE_CERT_SHA256: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
+          CONTROLLED_CHECKOUT_REQUESTED: ${{ inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
         run: |
           set -euo pipefail
+          if [ "$CONTROLLED_CHECKOUT_REQUESTED" = '1' ] && [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
+            echo "::error::Controlled monetary tests must pin the ORIGINAL release certificate first."
+            exit 1
+          fi
           FINGERPRINT="$(bash tools/check-release-key.sh)"
           echo "sha256=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "### Termeh Piano release certificate" >> "$GITHUB_STEP_SUMMARY"
           echo "Public SHA-256 fingerprint: \`$FINGERPRINT\`" >> "$GITHUB_STEP_SUMMARY"
           if [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
             echo "::warning::First signing run: set repository variable TERMEH_RELEASE_CERT_SHA256 to the fingerprint above before future updates."
+          fi
+      - name: Show safe merchant setup readiness
+        shell: bash
+        env:
+          MERCHANT_PUBLIC_RSA: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
+          ORIGINAL_CERT_PIN: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
+          CHECKOUT_FLAG: ${{ inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
+          OWNER_AUTHORIZATION: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
+        run: |
+          set -euo pipefail
+          echo "### Cafe Bazaar controlled payment readiness" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$MERCHANT_PUBLIC_RSA" ]; then
+            echo "Merchant RSA public key: configured" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Merchant RSA public key: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -n "$ORIGINAL_CERT_PIN" ]; then
+            echo "Original signing certificate pin: configured" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Original signing certificate pin: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "AES lesson packaging: automatic per signed build (no extra secret required)" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$CHECKOUT_FLAG" = '1' ] && [ "$OWNER_AUTHORIZATION" = 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' ]; then
+            echo "New checkout: controlled live test requested" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "New checkout: OFF - safe signed QA" >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Stage AES-GCM paid curriculum using private or ephemeral build key
         shell: bash
