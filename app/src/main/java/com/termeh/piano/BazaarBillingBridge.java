@@ -3,6 +3,9 @@ package com.termeh.piano;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.app.AlertDialog;
+import android.text.InputType;
+import android.widget.EditText;
+import java.security.SecureRandom;
 import androidx.activity.ComponentActivity;
 import ir.cafebazaar.poolakey.request.PurchaseRequest;
 import java.util.Collections;
@@ -159,11 +162,26 @@ final class BazaarBillingBridge {
                 return;
             }
             boolean en = "en".equals(requestedLanguage);
+            // JS math gates are NOT sufficient authorization to start a real
+            // charge. A separate native challenge makes purchase confirmation
+            // independent of any child-controlled WebView JavaScript state.
+            SecureRandom random = new SecureRandom();
+            int factorA = 3 + random.nextInt(7);
+            int factorB = 4 + random.nextInt(6);
+            int extra = 2 + random.nextInt(8);
+            String expected = String.valueOf(factorA * factorB + extra);
+            EditText answer = new EditText(activity);
+            answer.setSingleLine(true);
+            answer.setInputType(InputType.TYPE_CLASS_NUMBER);
+            answer.setHint(en ? "Parent answer" : "پاسخ والدین");
             new AlertDialog.Builder(activity)
                     .setTitle(en ? "One-time Termeh Piano upgrade" : "ارتقای دائمی پیانوی ترمه")
                     .setMessage(en ?
-                        "You are leaving the game for Cafe Bazaar's official checkout. The store shows the final price. No subscriptions." :
-                        "برای پرداخت به صفحهٔ رسمی کافه‌بازار می‌روید. قیمت نهایی در خود بازار نشان داده می‌شود. این خرید اشتراکی نیست.")
+                        "First solve this parent check: " + factorA + " × " + factorB + " + " + extra
+                        + " = ?\\n\\nThen Bazaar will show the final one-time price. No subscription." :
+                        "ابتدا فقط والدین پاسخ دهند: " + factorA + " × " + factorB + " + " + extra
+                        + " = ؟\\n\\nسپس بازار قیمت نهایی خرید دائمی را نشان می‌دهد. بدون اشتراک.")
+                    .setView(answer)
                     .setNegativeButton(en ? "Cancel" : "انصراف", (dialog, which) -> {
                         purchaseInProgress.set(false);
                         publishStatus("purchase_cancelled");
@@ -173,6 +191,11 @@ final class BazaarBillingBridge {
                         publishStatus("purchase_cancelled");
                     })
                     .setPositiveButton(en ? "Continue in Bazaar" : "ادامه در کافه‌بازار", (dialog, which) -> {
+                        if (!expected.equals(answer.getText().toString().trim())) {
+                            purchaseInProgress.set(false);
+                            publishStatus("parent_verification_required");
+                            return; // NEVER enter Bazaar billing when failed.
+                        }
                         if (!checkoutConfigured() || !catalogReady) {
                             purchaseInProgress.set(false);
                             publishStatus("purchase_unavailable");
