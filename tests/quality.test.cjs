@@ -11,7 +11,7 @@ for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)){
   new vm.Script(match[1],{filename:'index inline script '+(++scriptCount)});
 }
 assert(scriptCount>=3,'Unexpected or missing scripts');
-// The release APK must contain ONLY introductory treble note data.
+// The paid-download APK must bundle all paid educational lessons; stages remain locked by learning.
 const freeStart=html.indexOf('const TREBLE_NOTES = ')+ 'const TREBLE_NOTES = '.length;
 const freeEnd=html.indexOf('].concat(window.TERMEH_DEBUG_PREMIUM',freeStart);
 assert(freeStart>='const TREBLE_NOTES = '.length && freeEnd>freeStart,'Missing free note list in common HTML');
@@ -22,13 +22,15 @@ const dc={window:{}};vm.runInNewContext(debugAsset,dc);
 const rc={window:{}};vm.runInNewContext(releaseAsset,rc);
 const preview=dc.window.TERMEH_DEBUG_PREMIUM;
 assert(preview && Array.isArray(preview.trebleExtra));
-assert.equal(rc.window.TERMEH_DEBUG_PREMIUM,null,'Release must have NO premium content');
-assert.equal(rc.window.TERMEH_CONTENT_VARIANT,'release-free');
+assert(rc.window.TERMEH_DEBUG_PREMIUM,'Paid-download release must bundle all lessons');
+assert.equal(rc.window.TERMEH_CONTENT_VARIANT,'bazaar-paid-candidate');
 assert.equal(dc.window.TERMEH_CONTENT_VARIANT,'debug-full-preview');
 assert.deepEqual(Array.from(freeTreble,n=>n.code),['C4','D4','E4','F4','G4']);
-assert(!html.includes("code: 'G2'"),'Bass content leaked into common release HTML');
-assert(!html.includes("id: 'whole'"),'Rhythm content leaked into common release HTML');
-assert(!releaseAsset.includes('code') && !releaseAsset.includes('beatsLabel'),'Release fixture must be empty');
+assert(!html.includes("code: 'G2'"),'Variant lesson data should remain isolated from shared HTML');
+assert(!html.includes("id: 'whole'"),'Original duration definitions stay in variant assets');
+assert.equal(rc.window.TERMEH_DEBUG_PREMIUM.trebleExtra.length,7,'Full treble curriculum required in paid release');
+assert.equal(rc.window.TERMEH_DEBUG_PREMIUM.bass.length,10,'Full bass curriculum required in paid release');
+assert.equal(rc.window.TERMEH_DEBUG_PREMIUM.durations.length,4,'Full existing rhythm content required in paid release');
 const treble=Array.from(freeTreble).concat(Array.from(preview.trebleExtra));
 const bass=Array.from(preview.bass);
 const durations=Array.from(preview.durations);
@@ -125,29 +127,20 @@ assert(html.includes('id="welcomePrivacy"')&&html.includes('id="welcomeTerms"'),
 assert(html.includes('not the primary source of music education'),'Parent must be informed that this is not the primary instruction');
 assert(html.includes('No specific learning or playing outcome is guaranteed'),'No learning guarantee notice missing');
 assert(html.includes('Statutory consumer rights still apply'),'Parent acknowledgment must preserve legal rights');
-assert(html.includes('termeh_parent_welcome_v2')&&html.includes('acknowledgedAt'),'Minimal, local onboarding acknowledgment must be stored');
+assert(html.includes('termeh_parent_welcome_v3')&&html.includes('acknowledgedAt'),'New paid-download parent notice must be acknowledged locally');
 
 const scientific=fs.readFileSync('SCIENTIFIC_EDUCATIONAL_FOUNDATION_FA.md','utf8');
 assert(scientific.includes('https://ies.ed.gov/ncee/wwc/PracticeGuide/1'),'Evidence link missing');
 assert(scientific.includes('National Core Arts Standards'),'Music standards link missing');
 
-// Phase-one Bazaar billing is read-only, parent gated and deliberately fail-closed.
+// Paid upfront: existing in-app billing experiments are dormant QA fixtures only.
 const billing=fs.readFileSync('app/src/main/java/com/termeh/piano/BazaarBillingBridge.java','utf8');
-const settings=fs.readFileSync('settings.gradle','utf8');
-assert(settings.includes('https://jitpack.io'),'Official Poolakey repository missing');
-assert(gradle.includes('com.github.cafebazaar.Poolakey:poolakey:2.3.0'),'Poolakey version must be pinned');
-assert(gradle.includes('BAZAAR_RSA_PUBLIC_KEY'),'Public RSA build setting missing');
-assert(activity.includes('new BazaarBillingBridge(this, web)'),'Native billing bridge missing');
-assert(billing.includes('new SecurityCheck.Enable(key)'),'Local RSA verification must be enabled');
-assert(billing.includes('getPurchasedProducts('),'Non-consumable ownership query missing');
-assert(billing.includes('LIFETIME_SKU.equals(purchase.getProductId())'),'Owned SKU must be checked');
-assert(billing.includes('PACKAGE_ID.equals(purchase.getPackageName())'),'Owned package must be checked');
-assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),'Refunded purchases must not be treated as owned');
-assert(!billing.includes('payment.consumeProduct('),'Lifetime products must NEVER be consumed');
-assert(!billing.includes('payment.purchaseProduct('),'Checkout must not start until server verifier is ready');
-assert(!billing.includes('localStorage'),'Local storage is not a payment entitlement');
-assert(html.includes('id="buyPremiumBtn"') && html.includes('id="restorePremiumBtn"'));
-assert(/id="buyPremiumBtn"[^>]*disabled/.test(html),'Unverified purchase flow must be disabled');
-assert(/id="restorePremiumBtn"[^>]*disabled/.test(html),'Unverified restore must be disabled');
-assert(html.includes('window.checkBazaarOwnership'),'Parent read-only query UI missing');
+assert(activity.includes('if (BuildConfig.DEBUG) {'),'Billing must be available for debugging only');
+assert(activity.includes('new BazaarBillingBridge(this, web)'),'QA helper must remain behind debug guard');
+assert(!billing.includes('payment.purchaseProduct('),'In-app checkout must not be implemented in paid app');
+assert(!billing.includes('payment.consumeProduct('),'No consumable billing path allowed');
+assert(html.includes('id="premiumOffer" class="termehQaOnly"'),'Old in-app upgrade offer must be invisible in the sold app');
+assert(html.includes('class="termehStoreOnly" aria-label="Purchase model"'),'Explain no further payment to parents');
+assert(html.includes('پرداخت یک‌باره پیش از دانلود از کافه‌بازار'),'Parent onboarding must disclose payment model');
+assert(html.includes('no in-app purchases or subscription'),'English parent onboarding must match paid model');
 console.log('PASS: JS syntax, 22 clef-note definitions, pitch frequency, staff positions, rhythm values, permissions, answer leakage and independent exam.');
