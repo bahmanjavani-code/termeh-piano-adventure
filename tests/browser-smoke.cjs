@@ -383,7 +383,7 @@ const { chromium }=require('playwright-core');
     assert((await freePage.locator('#dailyReminderStatus').innerText()).includes('installed Android app'),
       'Browser preview must never pretend reminders are scheduled');
     assert(await freePage.locator('#dailyReminderEnable').isEnabled(),'Parent opt-in control should be visible only after math gate');
-    assert((await freePage.locator('.termehStoreOnly').first().innerText()).includes('Five starter notes are free'),
+    assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('five introductory treble notes'),
       'Release should explain five free notes and no charge during QA');
     assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
     await freePage.locator('#parentHub .close').click();
