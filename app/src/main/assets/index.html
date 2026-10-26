@@ -420,7 +420,7 @@
         <main id="rhythmGameArea" class="hidden bg-white/95 rounded-3xl p-3 sm:p-4 shadow-2xl border-4 border-amber-300 flex flex-col gap-3">
             
             <!-- Sub-Mode Selector inside Rhythm Mode -->
-            <div class="grid grid-cols-3 gap-1.5 bg-amber-50 p-1.5 rounded-2xl border-2 border-amber-200">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-amber-50 p-1.5 rounded-2xl border-2 border-amber-200">
                 <button id="rhythmSub-learn" onclick="switchRhythmSubMode('learn')" class="py-2 px-2 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-white shadow transition-all">
                     📖 درسنامه صوتی
                 </button>
@@ -430,6 +430,7 @@
                 <button id="rhythmSub-hold" onclick="switchRhythmSubMode('hold')" class="py-2 px-2 rounded-xl font-black text-xs sm:text-sm text-amber-900 hover:bg-amber-100 transition-all">
                     🎹 بازی نگه داشتن نت
                 </button>
+                <button id="rhythmSub-meter" type="button" onclick="switchRhythmSubMode('meter')" class="py-2 px-2 rounded-xl font-black text-xs sm:text-sm text-amber-900 hover:bg-amber-100 transition-all">🧩 <span class="only-fa">میزان‌سازی</span><span class="only-en">Build a measure</span></button>
             </div>
 
             <!-- 1. RHYTHM SUB-MODE: INTERACTIVE LEARNING CARDS -->
@@ -552,6 +553,36 @@
                     <span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>
                 </button>
             </div>
+
+            <!-- 4. Rhythm/meter literacy: compound beats are NOT eighth-note counts. -->
+            <div id="rhythmMeterSection" class="hidden flex-col gap-3">
+                <div class="rounded-2xl border-2 border-indigo-300 bg-indigo-50 p-3">
+                    <h3 class="font-black text-lg text-indigo-900">🎼 <span class="only-fa">وزن‌خوانی و میزان‌سازی</span><span class="only-en">Meter & measure builder</span></h3>
+                    <p class="text-sm font-semibold text-indigo-950"><span class="only-fa">کسر میزان می‌گه در هر میزان چقدر جا داریم. با انتخاب نت‌ها، میزان رو کامل کن. می‌تونی چند جور جواب درست بسازی!</span><span class="only-en">A time signature tells us how much fits in a bar. Choose note values to complete it; several combinations can work!</span></p>
+                    <div class="rounded-xl bg-white p-3 mt-3 text-sm text-slate-900 border border-indigo-200">
+                        <p class="font-black"><span class="only-fa">🧠 رابطهٔ کشش‌ها</span><span class="only-en">🧠 Note-value equivalence</span></p>
+                        <p class="font-bold" dir="ltr">𝅝 = 2 × 𝅗𝅥 = 4 × ♩ = 8 × ♪ = 16 × 𝅘𝅥𝅯</p>
+                        <p><span class="only-fa">چهار نت سیاه به‌اندازهٔ یک نت گرد طول می‌کشن؛ اما در میزان ۲/۴ یک نت گرد داخل همان یک میزان جا نمی‌شود.</span><span class="only-en">Four quarter notes equal one whole note in duration, but a whole note cannot fit inside a single 2/4 bar.</span></p>
+                        <p class="font-black mt-2" dir="ltr">6/8 = ♪ ♪ ♪ | ♪ ♪ ♪</p>
+                        <p><span class="only-fa">در ۶/۸، شش چنگ داریم که معمولاً در دو گروهِ سه‌تایی حس می‌شن؛ یعنی <b>دو ضرب اصلیِ سیاه نقطه‌دار</b>، نه شش ضرب سیاه. هر چنگ = ۲ دولاچنگ؛ کل میزان = ۱۲ دولاچنگ.</span><span class="only-en">In 6/8, six eighth-note subdivisions form <b>two dotted-quarter beats</b>, not six quarter-note beats. An eighth equals two sixteenths; the full bar equals twelve sixteenths.</span></p>
+                    </div>
+                </div>
+                <div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3">
+                    <div class="flex justify-between gap-2 flex-wrap items-center text-sm font-black text-amber-950">
+                        <span id="meterLessonNumber" dir="auto"></span>
+                        <span id="meterSignatureDisplay" dir="ltr" class="rounded-xl bg-indigo-800 text-white text-xl px-3 py-1">2/4</span>
+                    </div>
+                    <p id="meterBeatExplainer" class="my-2 text-sm font-bold text-indigo-950" aria-live="polite"></p>
+                    <svg id="meterStaffSvg" viewBox="0 0 500 180" class="w-full bg-white rounded-2xl border border-amber-200" role="img" aria-label="Current measure on a musical staff"></svg>
+                    <p id="meterRemaining" class="font-black text-indigo-900 text-center text-sm my-2" role="status"></p>
+                    <div id="meterValueButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-2" role="group" aria-label="Choose a note duration"></div>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button id="meterUndoButton" type="button" onclick="undoMeterNote()" class="min-h-[48px] rounded-xl bg-slate-200 text-slate-900 font-black text-sm">↩️ <span class="only-fa">برگشت آخرین نت</span><span class="only-en">Undo last note</span></button>
+                        <button id="meterNextButton" type="button" onclick="nextMeterScenario()" disabled class="min-h-[48px] rounded-xl bg-emerald-600 text-white font-black text-sm disabled:opacity-50 disabled:bg-slate-500">🎉 <span class="only-fa">میزان بعدی</span><span class="only-en">Next measure</span></button>
+                    </div>
+                    <p id="meterFeedback" class="text-sm font-bold text-purple-900 text-center mt-3" role="status"></p>
+                </div>
+            </div>
         </main>
 
         <!-- Compact progress strip BELOW the active music game; detail only after a tap. -->
@@ -650,6 +681,7 @@
     </script>
     <script src="mastery-engine.js"></script>
     <script src="note-curriculum.js"></script>
+    <script src="meter-engine.js"></script>
     <script src="rewards-engine.js"></script>
     <script>
         /**************************************************************
@@ -657,13 +689,16 @@
          **************************************************************/
         const state = {
             mode: 'treble',          // 'treble' | 'bass' | 'rhythm'
-            rhythmSubMode: 'learn',  // 'learn' | 'quiz' | 'hold'
+            rhythmSubMode: 'learn',  // 'learn' | 'quiz' | 'hold' | 'meter'
             stars: 0,
             coins: 0,
             streak: 0,
             levelTreble: 1,
             levelBass: 1,
             levelRhythm: 1,
+            meterBarsCompleted: 0,
+            meterBuiltNotes: [],
+            meterBarSolved: false,
             soundEnabled: true,
             hintEnabled: true,
             selectedMascotId: 'panda',
@@ -720,6 +755,7 @@
                     state.levelTreble = parsed.levelTreble || 1;
                     state.levelBass = parsed.levelBass || 1;
                     state.levelRhythm = parsed.levelRhythm || 1;
+                    state.meterBarsCompleted=Number.isSafeInteger(parsed.meterBarsCompleted) && parsed.meterBarsCompleted>=0 ? Math.min(100000,parsed.meterBarsCompleted):0;
                     state.selectedMascotId = parsed.selectedMascotId || 'panda';
                     state.unlockedBadges = Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : ['starter_star'];
                     // Preserve legacy trophies/coins; display previously owned rewards too.
@@ -754,6 +790,7 @@
                     levelTreble: state.levelTreble,
                     levelBass: state.levelBass,
                     levelRhythm: state.levelRhythm,
+                    meterBarsCompleted: state.meterBarsCompleted,
                     selectedMascotId: state.selectedMascotId,
                     unlockedBadges: state.unlockedBadges,
                     equippedBadgeId: state.equippedBadgeId,
@@ -1399,7 +1436,7 @@
 
         function switchRhythmSubMode(subMode) {
             state.rhythmSubMode = subMode;
-            const subIds = ['learn', 'quiz', 'hold'];
+            const subIds = ['learn', 'quiz', 'hold','meter'];
             subIds.forEach(id => {
                 const btn = document.getElementById(`rhythmSub-${id}`);
                 if (!btn) return;
@@ -1415,6 +1452,8 @@
             document.getElementById('rhythmQuizSection').classList.toggle('flex', subMode === 'quiz');
             document.getElementById('rhythmHoldSection').classList.toggle('hidden', subMode !== 'hold');
             document.getElementById('rhythmHoldSection').classList.toggle('flex', subMode === 'hold');
+            document.getElementById('rhythmMeterSection').classList.toggle('hidden', subMode !== 'meter');
+            document.getElementById('rhythmMeterSection').classList.toggle('flex', subMode === 'meter');
 
             if (subMode === 'learn') {
                 renderDurationLearnCards();
@@ -1423,6 +1462,8 @@
                 loadNewRhythmQuizQuestion();
             } else if (subMode === 'hold') {
                 loadHoldChallenge();
+            } else if (subMode === 'meter') {
+                loadMeterScenario();
             }
         }
 
