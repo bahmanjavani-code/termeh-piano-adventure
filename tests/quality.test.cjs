@@ -127,7 +127,7 @@ assert(html.includes('equippedTrophyPiano') && html.includes('equippedTrophyStaf
 assert(html.includes('rewards-engine.js'),'Cosmetic economy module missing from offline page');
 assert(!html.includes('state.coins += 5'),'Five coins for each easy answer defeats rarity');
 
-assert(html.includes("const KEY='termeh_parent_welcome_v4',REVISION=4"),'Materially revised parent briefing must use versioned acknowledgment');
+assert(html.includes("const KEY='termeh_parent_welcome_v5',REVISION=5"),'Materially revised parent briefing must use versioned acknowledgment');
 assert(!html.includes("const KEY='termeh_parent_welcome_v1'"),'Original acknowledgement must not auto-accept revised notice');
 assert(html.includes('id="welcomeAccepted"')&&html.includes('id="welcomeContinue"')&&html.includes('disabled onclick="confirmParentWelcome()"'),'Explicit read-and-understood tick and disabled continue required');
 assert(html.includes('window.reviewParentWelcome')&&html.includes('id="parentReviewNotice"'),'Parent must be able to review onboarding later');
@@ -135,7 +135,7 @@ assert(html.includes('id="welcomePrivacy"')&&html.includes('id="welcomeTerms"'),
 assert(html.includes('not the primary source of music education'),'Parent must be informed that this is not the primary instruction');
 assert(html.includes('No specific learning or playing outcome is guaranteed'),'No learning guarantee notice missing');
 assert(html.includes('Statutory consumer rights still apply'),'Parent acknowledgment must preserve legal rights');
-assert(html.includes('termeh_parent_welcome_v4')&&html.includes('acknowledgedAt'),'Minimal, local onboarding acknowledgment must be stored');
+assert(html.includes('termeh_parent_welcome_v5')&&html.includes('acknowledgedAt'),'Minimal, local onboarding acknowledgment must be stored');
 
 const scientific=fs.readFileSync('SCIENTIFIC_EDUCATIONAL_FOUNDATION_FA.md','utf8');
 assert(scientific.includes('https://ies.ed.gov/ncee/wwc/PracticeGuide/1'),'Evidence link missing');
