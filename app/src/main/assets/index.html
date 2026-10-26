@@ -697,6 +697,7 @@
             levelBass: 1,
             levelRhythm: 1,
             meterBarsCompleted: 0,
+            meterRoundIndex: 0,
             meterBuiltNotes: [],
             meterBarSolved: false,
             soundEnabled: true,
@@ -1437,7 +1438,9 @@
         // Guided metre builder: uses exact integer sixteenth-note subdivisions,
         // so 6/8 is never mislabelled as six quarter-note pulses.
         function meterCurrentScenario(){
-            return TermehMeterEngine.scenarioAt(state.meterBarsCompleted);
+            // Freeze the active bar when it is completed; advancing progress must
+            // not redraw it as the NEXT challenge before the user taps Next.
+            return TermehMeterEngine.scenarioAt(state.meterRoundIndex);
         }
         function meterSvgNote(durationId,x,y){
             const value=TermehMeterEngine.VALUES[durationId];
@@ -1500,6 +1503,7 @@
             }
         }
         function loadMeterScenario(){
+            state.meterRoundIndex=state.meterBarsCompleted;
             const scenario=meterCurrentScenario();
             const meter=TermehMeterEngine.METERS[scenario.meter];
             state.meterBuiltNotes=[];
