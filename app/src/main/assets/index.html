@@ -2946,7 +2946,11 @@ window.termehToggleQaPreview=function(){
   state.exam=null;
   switchGameMode('treble');
 };
-window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();if(window.termehRefreshQaPreview)window.termehRefreshQaPreview();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
+window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();if(window.termehRefreshQaPreview)window.termehRefreshQaPreview();
+  if(window.TermehBazaar && window.TERMEH_CONTENT_VARIANT==='release-free'){
+    try{window.TermehBazaar.checkProductCatalog();}catch(ignored){}
+  }
+  return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
 })();
