@@ -1669,6 +1669,30 @@
                     `تمرین ${Math.min(3,result.stage)} از ۳`;
             }
         }
+        let masteryDetailsTimer=null;
+        function closeMasteryDetails(){
+            if(masteryDetailsTimer){clearTimeout(masteryDetailsTimer);masteryDetailsTimer=null;}
+            const box=document.getElementById('masteryDashboard');
+            const btn=document.getElementById('masteryBarsButton');
+            if(box)box.hidden=true;
+            if(btn)btn.setAttribute('aria-expanded','false');
+        }
+        function toggleMasteryDetails(){
+            const box=document.getElementById('masteryDashboard');
+            const btn=document.getElementById('masteryBarsButton');
+            if(!box||!btn)return;
+            if(!box.hidden){closeMasteryDetails();return;}
+            box.hidden=false;btn.setAttribute('aria-expanded','true');
+            if(masteryDetailsTimer)clearTimeout(masteryDetailsTimer);
+            masteryDetailsTimer=setTimeout(closeMasteryDetails,7000);
+        }
+        function showMasteryFromMenu(){
+            if(state.mode==='rhythm')switchGameMode('treble');
+            const dock=document.getElementById('masteryDock');
+            if(dock)dock.scrollIntoView({block:'end',behavior:'smooth'});
+            const box=document.getElementById('masteryDashboard');
+            if(box&&box.hidden)toggleMasteryDetails();
+        }
         function updateExamButton() {
             const btn=document.getElementById('examStartBtn');
             if(!btn)return;
