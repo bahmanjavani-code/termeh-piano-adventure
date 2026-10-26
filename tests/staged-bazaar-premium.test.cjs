@@ -54,6 +54,12 @@ try{
  'Only a separate live-sales gate may initiate NEW Bazaar charges');
  assert(bridge.includes('VerifiedPremiumLessons.enabled()'),
  'Sale enablement must ALSO require the authentic paid lesson pack');
+ assert(bridge.includes('Character.digit(candidate.charAt(i), 10)')
+        && bridge.includes('expected.equals(normalizeParentAnswer(answer.getText()))'),
+ 'Native guardian math must accept Persian/Arabic digits without weakening checkout confirmation');
+ assert(bridge.includes('if (digit < 0 || digit > 9) return "";'),
+ 'Parent challenge must reject any nonnumeric characters before payment');
+
  assert(native.includes('isOwnedOffline()'),'Paid content must be owned in native Android Keystore');
  assert(native.includes('PremiumPackReader.decrypt('),'AES tamper checks must gate lesson delivery');
  console.log('PASS: full curriculum encrypted with disposable key, never shipped in plaintext, native ownership guard; checkout opt-in OFF by default.');
