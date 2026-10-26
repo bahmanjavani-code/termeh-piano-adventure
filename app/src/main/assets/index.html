@@ -2518,7 +2518,7 @@
 </section>
 <section class="notice">
   <strong>🎼 <span class="only-fa">مراحل، پیشرفت و نت‌های جدید</span><span class="only-en">Progression and new notes</span></strong>
-  <p><span class="only-fa">نت‌های بالاتر در طول مسیر آموزشی و پس از تمرین باز می‌شوند و نت‌های قبلی حذف نمی‌شوند. این نسخهٔ مقدماتی پنج نت کلید سل را در اختیار می‌گذارد؛ درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم هنوز در نسخهٔ عمومی قابل خرید یا اجرا نیستند.</span><span class="only-en">Higher notes unlock gradually with practice, and earlier notes stay in rotation. This introductory edition contains five beginner treble notes; advanced treble, bass and rhythm lessons are not yet available for purchase or play in the public build.</span></p>
+  <p><span class="only-fa">نت‌های بالاتر در طول مسیر آموزشی و پس از تمرین باز می‌شوند و نت‌های قبلی حذف نمی‌شوند. نسخهٔ رایگان پنج نت آغازین کلید سل را در اختیار می‌گذارد. پس از عرضه و فعال‌شدن فروش، دسترسی به درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم فقط با خرید رسمی بازار و پیشرفت آموزشی فراهم می‌شود.</span><span class="only-en">Higher notes unlock gradually with practice, and earlier notes stay in rotation. The free edition contains five starter treble notes. Once the store upgrade is enabled, advanced treble, bass and rhythm lessons require an official one-time Bazaar purchase as well as normal learning progress.</span></p>
 </section>
 <section class="notice">
   <strong>👨‍👩‍👧 <span class="only-fa">نظارت والدین و زمان تمرین</span><span class="only-en">Parental supervision and practice time</span></strong>
@@ -2530,7 +2530,7 @@
 </section>
 <section class="notice">
   <strong>🛍️ <span class="only-fa">خرید برنامه و دسترسی به درس‌ها</span><span class="only-en">Buying the app and accessing lessons</span></strong>
-  <p><span class="only-fa">بخش مقدماتی رایگان است. برای درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم، <b>خرید یک‌باره و دائمی داخل برنامه از طریق کافه‌بازار</b> برنامه‌ریزی شده است؛ اشتراک ماهانه نداریم. <b>در این نسخهٔ آزمایشی خرید یا فعال‌سازی درس پولی انجام نمی‌شود و هیچ هزینه‌ای دریافت نمی‌کنیم.</b> قفل خرید با قفل پیشرفت آموزشی فرق دارد.</span><span class="only-en">Starter practice is free. A <b>single lifetime in-app purchase through Cafe Bazaar</b> is planned for advanced treble, bass, and rhythm lessons; no subscription. <b>Checkout and premium unlock are disabled in this QA build. No payment is taken.</b> Educational progress gates remain separate from paid ownership.</span></p>
+  <p><span class="only-fa">بخش مقدماتی رایگان است. برای درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم، <b>خرید یک‌باره و دائمی داخل برنامه از طریق کافه‌بازار</b> برنامه‌ریزی شده است؛ اشتراک ماهانه نداریم. <b>خرید واقعی فقط زمانی ممکن است که قیمت رسمی بازار در بخش والدین نمایش داده شود و والدین دو بار آگاهانه تأیید کنند.</b> اگر دکمهٔ خرید فعال نباشد، هیچ هزینه‌ای دریافت نمی‌شود. قفل خرید با قفل پیشرفت آموزشی فرق دارد.</span><span class="only-en">Starter practice is free. A <b>single lifetime in-app purchase through Cafe Bazaar</b> is planned for advanced treble, bass, and rhythm lessons; no subscription. <b>Checkout is possible only when Bazaar's official price appears in the parent hub and a parent separately confirms the transaction.</b> Otherwise no payment is taken. Educational progress gates remain separate from paid ownership.</span></p>
 </section>
 <section class="notice">
   <strong>🔔 <span class="only-fa">یادآور تمرین روزانه؛ کاملاً اختیاری</span><span class="only-en">Optional daily practice reminders</span></strong>
@@ -2694,10 +2694,10 @@ window.showUnlock=function(mode){
   const title=document.getElementById('unlockTitle');
   const text=document.getElementById('unlockText');
   if(!window.TERMEH_DEBUG_PREMIUM&&!window.TERMEH_NATIVE_PREMIUM){
-    title.textContent=en?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒';
+    title.textContent=en?'Premium lessons locked 🔒':'درس‌های ویژه قفل هستند 🔒';
     text.textContent=en?
-      'Advanced lessons are locked in this free QA release. Real billing and restore must be fully tested before sales; starter lessons remain free.':
-      'درس‌های پیشرفته در این نسخه رایگان آزمایشی قفل‌اند. خرید و بازیابی واقعی تا پایان آزمایش‌ها فعال نیستند؛ درس‌های مقدماتی رایگان می‌مانند.';
+      'Advanced lessons require the official one-time purchase once available. Parents can check the Bazaar offer in the Parent Hub. Starter practice remains free.':
+      'درس‌های پیشرفته در نسخهٔ رایگان قفل‌اند. والدین می‌توانند در بخش والدین، فقط در صورت فعال بودن فروش رسمی بازار، قیمت و خرید دائمی را بررسی کنند. تمرین مقدماتی رایگان می‌ماند.';
     return;
   }
   title.textContent=en?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';
@@ -2770,8 +2770,8 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <p class="termehQaOnly" style="font-size:14px;color:#334155"><span class="only-fa">ابزارهای بررسی خرید فقط برای توسعه‌دهنده هستند و هنوز درس پولی باز نمی‌کنند.</span><span class="only-en">Developer purchase-test tools cannot unlock premium lessons yet.</span></p>
 </section>
 <section class="termehStoreOnly" aria-label="Purchase model" style="padding:14px 12px;margin:14px 0;border:2px solid #a7f3d0;border-radius:16px;background:#ecfdf5">
-  <h3 style="font-size:17px;font-weight:900;color:#065f46">🎹 <span class="only-fa">تمرین مقدماتی رایگان؛ درس‌های ویژه در آینده</span><span class="only-en">Free starter lessons; premium is coming later</span></h3>
-  <p><span class="only-fa">این نسخهٔ رایگان فعلاً پنج نت آغازین کلید سل را دارد. خرید یک‌بارهٔ درس‌های پیشرفته هنوز فعال نیست. تا قبل از ارائهٔ واقعی محتوای خریداری‌شده و تست امنِ پرداخت و بازیابی، هیچ وجهی دریافت نخواهد شد.</span><span class="only-en">This free edition currently contains five introductory treble notes. The one-time premium upgrade is not yet available. No payment will be collected until the actual lessons, checkout and restore are tested.</span></p>
+  <h3 style="font-size:17px;font-weight:900;color:#065f46">🎹 <span class="only-fa">تمرین رایگان؛ ارتقای دائمی اختیاری</span><span class="only-en">Free starter practice · Optional lifetime upgrade</span></h3>
+  <p><span class="only-fa">پنج نت آغازین کلید سل همیشه رایگان‌اند. درس‌های پیشرفته در صورت عرضهٔ رسمی کالا با یک خرید دائمی و غیرمصرفی از بازار فعال می‌شوند؛ قیمت واقعی بازار در همین بخش نمایش داده می‌شود و تأیید جداگانهٔ والدین لازم است. اگر قیمت و دکمهٔ فعال دیده نمی‌شود، امکان پرداخت وجود ندارد.</span><span class="only-en">The first five treble notes are always free. Once the official Bazaar product is active, advanced lessons are unlocked by one permanent, non-consumable purchase. This parent section shows the real store price and asks for separate parental confirmation; no enabled button means no payment.</span></p>
 </section>
 
 <section id="dailyReminderPanel" aria-label="Optional daily practice reminders" style="padding:14px 12px;margin:14px 0;border:2px solid #fed7aa;border-radius:16px;background:#fff7ed">
@@ -2808,7 +2808,7 @@ window.termehBazaarStatus=function(code){
   const en=localStorage.getItem('termeh_language')==='en';
   const messages={
     not_configured:['کلید عمومی بازار هنوز تنظیم نشده است.','Bazaar public verification key is not configured yet.'],
-    ready:['اتصال بازار آماده است؛ خرید همچنان غیرفعال است.','Bazaar connected; payments remain disabled.'],
+    ready:['اتصال رسمی بازار برقرار است؛ خرید فقط پس از نمایش قیمت و تأیید والدین امکان‌پذیر است.','Bazaar connected. Purchases require an official price and parental confirmation.'],
     unavailable:['ارتباط با بازار در دسترس نیست.','Bazaar is unavailable.'],
     checking:['در حال بررسی محلی خریدهای حساب بازار…','Checking locally verified Bazaar purchases…'],
     owned_unverified:['خرید معتبر محلی شناسایی شد؛ اما بازکردن درس‌های کامل هنوز فعال نیست.','Locally verified ownership found; full lesson unlock is not enabled yet.'],
@@ -2829,6 +2829,7 @@ window.termehBazaarStatus=function(code){
     purchase_verifying:['در حال بررسی مجدد مالکیت امضاشده در بازار…','Rechecking signed ownership in your Bazaar account…'],
     purchase_failed:['خرید انجام نشد یا مالکیت معتبر نبود؛ درسی باز نشد.','Checkout failed or ownership was not verified; no lessons were unlocked.'],
     purchase_cancelled:['خرید لغو شد؛ همچنان می‌توانید رایگان تمرین کنید.','Purchase canceled; free practice remains available.'],
+    parent_verification_required:['پاسخ پرسش والدین درست نبود؛ هیچ صفحهٔ پرداختی باز نشد.','The parent check was incorrect. Bazaar checkout was not opened.'],
     restore_no_purchase:['خرید قبلی برای نسخه کامل پیدا نشد؛ هیچ مجوز پولی فعال نشد.','No prior lifetime purchase found; no paid access was activated.'],
     restore_failed:['بررسی بازیابی انجام نشد؛ در صورت وجود مجوز قبلی، به‌دلیل خطای ارتباط حذف نشد.','Restore check failed; an existing cached entitlement was not deleted due to network failure.'],
     query_failed:['بررسی خرید انجام نشد؛ بعداً دوباره امتحان کنید.','Purchase lookup failed; try again later.']
@@ -3029,7 +3030,7 @@ html[data-termeh-theme=dark] #appMenuToggle{background:#1e293b;color:#f5f3ff;bor
       <p><span class="only-fa">طراح، توسعه‌دهنده و صاحب امتیاز محتوای اختصاصی: بهمن جوانی</span><span class="only-en">Creator, developer and rights holder for original content: Bahman Javani</span></p>
       <p>© 2026 Bahman Javani · Termeh Piano Adventure — <span class="only-fa">تمامی حقوق محتوای اختصاصی محفوظ است.</span><span class="only-en">All rights in original content reserved.</span></p>
       <p><span class="only-fa">مجوز کتابخانه‌ها، فونت‌ها و اجزای متعلق به اشخاص ثالث تابع شرایط صاحبان آن‌هاست و باید پیش از انتشار تجاری بررسی شود.</span><span class="only-en">Third-party libraries, fonts and assets retain their own licensing terms, which must be reviewed before commercial release.</span></p>
-      <p>© 2026 · <span class="only-fa">نسخهٔ آزمایشی کافه‌بازار؛ حساب آنلاین و خرید درون‌برنامه‌ای واقعی هنوز فعال نیستند.</span><span class="only-en">Cafe Bazaar beta candidate · online accounts and real in-app checkout are not yet active.</span></p>
+      <p>© 2026 · <span class="only-fa">بازی بدون حساب کودک؛ قیمت و پرداخت ویژه فقط در بخش والدین و با تأیید بازار.</span><span class="only-en">No child account · Optional paid lessons only with parental consent and official Bazaar billing.</span></p>
     </section>
     <button type="button" class="termehMenuAction" onclick="closeTermehInfo()">🎹 <span class="only-fa">بازگشت به بازی</span><span class="only-en">Return to game</span></button>
   </div>
