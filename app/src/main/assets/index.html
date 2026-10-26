@@ -179,6 +179,24 @@
             border-radius: 10px;
         }
     </style>
+
+    <style>
+    /* Unobtrusive status: no explanation until the child/parent taps. */
+    .masteryDock{background:#ffffffeb;border:1px solid #c4b5fd;border-radius:15px;padding:8px 10px;box-shadow:0 2px 10px #312e8133;position:relative;color:#312e81}
+    #masteryBarsButton{display:flex;align-items:center;gap:7px;width:100%;padding:8px 5px;border:0;background:transparent;cursor:pointer;min-height:42px}
+    #masteryBarsButton:focus-visible{outline:3px solid #6d28d9;border-radius:10px}
+    .masteryMeter{display:block;flex:1;min-width:0;height:10px;overflow:hidden;border-radius:999px;background:#e2e8f0;box-shadow:inset 0 1px 2px #64748b44}
+    .masteryMeterFill{height:100%;display:block;border-radius:999px;transition:width .3s ease}
+    .masteryInfoIcon{font-size:20px;color:#6d28d9;font-weight:900}
+    #masteryDashboard{border-top:1px solid #ddd6fe;padding:9px 4px 3px;line-height:1.7;font-size:13px}
+    #masteryDashboard[hidden]{display:none!important}
+    #masteryDashboard p{margin:4px 0}
+    #masteryDashboard .masteryLegend{display:flex;align-items:center;gap:8px;font-weight:800;font-size:12px}
+    .masterySwatch{display:inline-block;flex-shrink:0;width:11px;height:11px;border-radius:999px}
+    #staffCard .equippedStaffTrophy{position:absolute;left:12px;bottom:6px;opacity:.22;font-size:42px;line-height:1;pointer-events:none;z-index:0;filter:drop-shadow(0 1px 1px #ffffff)}
+    .equippedPianoTrophy{position:absolute;right:12px;top:1px;opacity:.78;font-size:22px;line-height:1;pointer-events:none;z-index:22;filter:drop-shadow(0 1px 1px #000)}
+    #shopEquippedPreview{background:#f0fdf4;border:1px solid #86efac;border-radius:11px;padding:8px;font-weight:800;font-size:13px;text-align:center;color:#166534}
+    </style>
 </head>
 <body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
 
@@ -330,6 +348,7 @@
                     </svg>
                 </div>
 
+                <span id="equippedTrophyStaff" class="equippedStaffTrophy" aria-hidden="true">🌟</span>
                 <!-- Celebration Overlay Badge when Answered Correctly -->
                 <div id="correctOverlayBadge" class="hidden absolute top-3 left-3 bg-emerald-500 text-white font-black text-xs sm:text-sm px-3 py-1.5 rounded-2xl shadow-lg border-2 border-white flex items-center gap-1 animate-bounce">
                     <span class="only-fa">🌟 آفرین! نت</span><span class="only-en">🌟 Correct note:</span>
@@ -348,6 +367,7 @@
 
                 <!-- Piano Container -->
                 <div dir="ltr" class="relative bg-slate-900 p-2.5 pt-4 rounded-3xl shadow-2xl border-4 border-slate-700 select-none">
+                    <span id="equippedTrophyPiano" class="equippedPianoTrophy" aria-hidden="true">🌟</span>
                     <!-- Decorative Piano Top Red Felt Strip -->
                     <div class="w-full h-2 bg-rose-600 rounded-full mb-1.5 opacity-90"></div>
 
@@ -375,15 +395,7 @@
                     <span id="nextBtnText">اول نت درست رو پیدا کن تا قفل باز بشه!</span>
                 </button>
             </div>
-            <section id="masteryDashboard" aria-label="Note-reading mastery progress" style="padding:12px;border:2px solid #c4b5fd;background:#f5f3ff;border-radius:16px;color:#312e81">
-                <p id="masteryStageTitle" style="margin:0 0 7px;font-weight:900;font-size:15px">🎯 مرحله ۱: شناخت همه نت‌ها</p>
-                <div id="masteryProgressTrack" role="progressbar" aria-label="Readiness for final assessment" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:13px;background:#ddd6fe;border-radius:999px;overflow:hidden">
-                    <div id="masteryProgressFill" style="width:0%;height:100%;border-radius:999px;background:#7c3aed;transition:width .2s ease"></div>
-                </div>
-                <p id="masteryStats" style="font-size:13px;font-weight:800;line-height:1.7;margin:7px 0 3px">در حال بررسی پیشرفت...</p>
-                <p id="masteryTrend" style="font-size:12px;line-height:1.75;margin:6px 0 3px;padding:7px;background:white;border-radius:10px">📈 روند خطا و سرعت بعد از ۴۰ سؤال نمایش داده می‌شود.</p>
-                <p id="masteryNextGoal" style="font-size:12px;line-height:1.8;margin:0">با تمرین‌های کوتاه و دقیق پیش برو.</p>
-            </section>
+
             <button id="examStartBtn" type="button" onclick="beginFinalAssessment()" disabled style="border-radius:14px;padding:11px;background:#5b21b6;color:white;font-weight:800;opacity:.9">🎓 آزمون پایانی / Final Assessment</button>
         </main>
 
@@ -526,6 +538,25 @@
                 </button>
             </div>
         </main>
+
+        <!-- Compact progress strip BELOW the active music game; detail only after a tap. -->
+        <section id="masteryDock" aria-label="Progress / پیشرفت" class="masteryDock">
+            <button id="masteryBarsButton" type="button" aria-expanded="false" aria-controls="masteryDashboard" aria-label="Tap for progress details / برای توضیح نوارهای پیشرفت بزن" onclick="toggleMasteryDetails()">
+                <span id="masteryProgressTrack" class="masteryMeter" role="progressbar" aria-label="Learning readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="masteryProgressFill" class="masteryMeterFill" style="width:0%;background:#7c3aed"></span></span>
+                <span id="masteryAccuracyTrack" class="masteryMeter" role="progressbar" aria-label="Recent first-try accuracy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="masteryAccuracyFill" class="masteryMeterFill" style="width:0%;background:#16a34a"></span></span>
+                <span id="masterySpeedTrack" class="masteryMeter" role="progressbar" aria-label="Response speed toward practice target" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="masterySpeedFill" class="masteryMeterFill" style="width:0%;background:#f59e0b"></span></span>
+                <span class="masteryInfoIcon" aria-hidden="true">ⓘ</span>
+            </button>
+            <div id="masteryDashboard" role="region" aria-label="Learning progress explanation" hidden>
+                <p class="masteryLegend"><span class="masterySwatch" style="background:#7c3aed"></span><span class="only-fa">بنفش: آمادگی مرحله و آزمون</span><span class="only-en">Purple: Stage and assessment readiness</span></p>
+                <p class="masteryLegend"><span class="masterySwatch" style="background:#16a34a"></span><span class="only-fa">سبز: دقت پاسخ اول در سؤال‌های اخیر</span><span class="only-en">Green: First-try accuracy in recent questions</span></p>
+                <p class="masteryLegend"><span class="masterySwatch" style="background:#f59e0b"></span><span class="only-fa">طلایی: سرعت تشخیص نسبت به هدف تمرین (۴٫۲ ثانیه)</span><span class="only-en">Gold: Recognition speed relative to the 4.2-second practice goal</span></p>
+                <p id="masteryStageTitle" style="margin:0 0 7px;font-weight:900;font-size:15px">🎯 مرحله ۱: شناخت همه نت‌ها</p>
+                <p id="masteryStats" style="font-size:13px;font-weight:800;line-height:1.7;margin:7px 0 3px">در حال بررسی پیشرفت...</p>
+                <p id="masteryTrend" style="font-size:12px;line-height:1.75;margin:6px 0 3px;padding:7px;background:white;border-radius:10px">📈 روند خطا و سرعت بعد از ۴۰ سؤال نمایش داده می‌شود.</p>
+                <p id="masteryNextGoal" style="font-size:12px;line-height:1.8;margin:0">با تمرین‌های کوتاه و دقیق پیش برو.</p>
+            </div>
+        </section>
 
     </div>
 
