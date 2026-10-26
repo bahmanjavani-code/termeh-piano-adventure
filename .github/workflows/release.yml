@@ -89,8 +89,13 @@ jobs:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_RELEASE_CERT_SHA256: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
+          CONTROLLED_CHECKOUT_REQUESTED: ${{ inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
         run: |
           set -euo pipefail
+          if [ "$CONTROLLED_CHECKOUT_REQUESTED" = '1' ] && [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
+            echo "::error::A real-money payment test requires the ORIGINAL pinned signing certificate SHA-256"
+            exit 1
+          fi
           FINGERPRINT="$(bash tools/check-release-key.sh)"
           echo "sha256=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "### Termeh Piano release certificate" >> "$GITHUB_STEP_SUMMARY"
@@ -98,6 +103,29 @@ jobs:
           if [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
             echo "::warning::First signing run: set repository variable TERMEH_RELEASE_CERT_SHA256 to the fingerprint above before future updates."
           fi
+      - name: Show safe Bazaar payment test readiness
+        shell: bash
+        env:
+          MERCHANT_PUBLIC_KEY: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
+          ENCRYPTION_KEY: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
+          CHARGE_CONFIRMATION: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
+          CHECKOUT_ALLOWED: ${{ inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0' }}
+        run: |
+          set -euo pipefail
+          echo "### Bazaar controlled payment readiness" >> "$GITHUB_STEP_SUMMARY"
+          for item in MERCHANT_PUBLIC_KEY ENCRYPTION_KEY; do
+            if [ -n "${!item}" ]; then
+              echo "$item: configured" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "$item: missing (no real checkout)" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          if [ "$CHECKOUT_ALLOWED" = '1' ] && [ "$CHARGE_CONFIRMATION" = 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' ]; then
+            echo "New real-money checkout: REQUESTED by owner (still requires full build checks)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "New real-money checkout: OFF (safe QA candidate)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Never share passwords, signing keys or the encrypted content key in chat." >> "$GITHUB_STEP_SUMMARY"
       - name: Package authenticated paid lessons if owner provisioned an AES build key
         shell: bash
         env:
