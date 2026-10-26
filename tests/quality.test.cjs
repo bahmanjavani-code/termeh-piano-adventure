@@ -12,9 +12,9 @@ for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)){
 }
 assert(scriptCount>=3,'Unexpected or missing scripts');
 // The release APK must contain ONLY introductory treble note data.
-const freeStart=html.indexOf('const TREBLE_NOTES = ')+ 'const TREBLE_NOTES = '.length;
+const freeStart=html.indexOf('let TREBLE_NOTES = ')+ 'let TREBLE_NOTES = '.length;
 const freeEnd=html.indexOf('].concat(window.TERMEH_DEBUG_PREMIUM',freeStart);
-assert(freeStart>='const TREBLE_NOTES = '.length && freeEnd>freeStart,'Missing free note list in common HTML');
+assert(freeStart>='let TREBLE_NOTES = '.length && freeEnd>freeStart,'Missing free note list in common HTML');
 const freeTreble=vm.runInNewContext('('+html.slice(freeStart,freeEnd+1)+')');
 const debugAsset=fs.readFileSync('app/src/debug/assets/premium-preview.js','utf8');
 const releaseAsset=fs.readFileSync('app/src/release/assets/premium-preview.js','utf8');
