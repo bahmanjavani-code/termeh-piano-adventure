@@ -170,6 +170,24 @@ final class BazaarBillingBridge {
         });
     }
 
+    /**
+     * Numeric keyboards on Persian/Arabic locales can emit non-ASCII digits.
+     * This remains a NATIVE guardian check: accept only decimal numerals and
+     * convert them to ASCII before comparing with the fresh random challenge.
+     */
+    private static String normalizeParentAnswer(CharSequence input) {
+        if (input == null) return "";
+        String candidate = input.toString().trim();
+        if (candidate.length() < 1 || candidate.length() > 6) return "";
+        StringBuilder result = new StringBuilder(candidate.length());
+        for (int i = 0; i < candidate.length(); i++) {
+            int digit = Character.digit(candidate.charAt(i), 10);
+            if (digit < 0 || digit > 9) return "";
+            result.append((char) ('0' + digit));
+        }
+        return result.toString();
+    }
+
     /** Called only by a deliberate tap in the parent math-gated screen. */
     @JavascriptInterface
     public void beginLifetimePurchase(String requestedLanguage) {
@@ -212,7 +230,7 @@ final class BazaarBillingBridge {
                         publishStatus("purchase_cancelled");
                     })
                     .setPositiveButton(en ? "Continue in Bazaar" : "ادامه در کافه‌بازار", (dialog, which) -> {
-                        if (!expected.equals(answer.getText().toString().trim())) {
+                        if (!expected.equals(normalizeParentAnswer(answer.getText()))) {
                             purchaseInProgress.set(false);
                             publishStatus("parent_verification_required");
                             return; // NEVER enter Bazaar billing when failed.
