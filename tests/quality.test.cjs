@@ -159,6 +159,14 @@ assert(billing.includes('VerifiedPremiumLessons.enabled()'),
   'No charge unless native checkout, signed ownership and encrypted pack are enabled');
 assert(billing.includes('new AlertDialog.Builder(activity)'),
   'A purchase requires a parent confirmation in Android native UI');
+assert(billing.includes('new SecureRandom()')&&billing.includes('new EditText(activity)'),
+  'A purchase should have a second, native parent arithmetic challenge independent of WebView');
+assert(billing.includes('if (!expected.equals(answer.getText().toString().trim()))'),
+  'Wrong native arithmetic answer must prevent starting a real Bazaar transaction');
+assert(billing.includes('publishStatus("parent_verification_required")'),
+  'Wrong-answer status must be clear and never take money');
+assert(html.includes('parent_verification_required:'),
+  'Native purchase rejection needs bilingual on-device explanation');
 assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),
   'Reject refunded and pending purchases');
 assert(billing.includes('getInAppSkuDetails('),
