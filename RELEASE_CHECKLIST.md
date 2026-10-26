@@ -5,16 +5,23 @@
 - [x] توسعهٔ خروجی جداگانه Family متوقف شد؛ ساخت و انتشار فایل Family از GitHub Actions حذف شد.
 - [x] ابزارهای آزمایشیِ خرید، قفل نمونه و حساب‌های غیرفعال از رابط **Release** پنهان شده‌اند؛ در debug برای بررسی توسعه باقی می‌مانند.
 - [x] متن و چک‌لیست عملی بازار در [BAZAAR_LAUNCH_PACKET_FA.md](BAZAAR_LAUNCH_PACKET_FA.md) آماده شد.
-- [x] کاندید فروش به مدل **یک پرداخت در کافه‌بازار قبل از دانلود** منتقل شد؛ دکمهٔ خرید داخلی در نسخهٔ امضاشده فعال نیست و پل خرید فقط در debug متصل است.
-- [x] فایل Release کاندید اکنون ۱۲ نت کلید سل، ۱۰ نت کلید فا و آموزش کشش/وزن‌خوانی را شامل می‌شود. مراحل آموزشی همچنان قفل یادگیری دارند و **نیازی به خرید دوباره ندارند**.
-- [ ] **هنوز نسخهٔ قابل فروش نیست:** بازبینی مستقل موسیقی، تست دستگاه، سیاست‌ها/قیمت نهایی بازار و پشتیبان مطمئن امضای دائمی باقی است.
+- [ ] **تصمیم پرداخت نهایی:** همان خرید یک‌بارهٔ درون‌برنامه‌ایِ از قبل انتخاب‌شده یا (فقط با تصمیم صاحب محصول) برنامهٔ کاملاً پولی قبل از دانلود.
+- [ ] مهم: فایل Release فعلی تنها پنج نت رایگان دارد و **هنوز نسخهٔ قابل فروش نیست**. فعال‌سازی واقعی خرید، دروس پیشرفته و تست برگشت وجه مانده‌اند.
+
+## آزمون اعلان روزانه (جدید)
+
+- [ ] آزمایش روی اندروید ۱۳ به بالا: پس از اجازهٔ اختیاری والدین مجوز اعلان درخواست شود، در حالت ردِ مجوز هیچ اعلان و درخواست خودکار تکراری نباشد.
+- [ ] آزمایش روی اندروید ۸ تا ۱۲: بدون درخواست مجوز runtime، روشن/خاموش‌شدن در بخش والدین درست کار کند؛ تنظیمات سراسری اعلان باید رعایت شود.
+- [ ] با حداقل یک تمرین کامل در همان روز، اعلان آن روز ارسال نشود؛ در غیر این صورت حداکثر روزی یک بار حوالی ۱۸ (نه لزوماً دقیقاً ۱۸) باشد؛ مزاحم خواب نباشد.
+- [ ] بعد از لغو والدین، ادامهٔ پیام‌ها متوقف و اعلان نمایش‌داده‌شده پاک شود؛ بدون حساب کودک، تبلیغ یا شبکه.
+- [ ] امضای اصلی APK و پیشرفت قبلی هنگام نصب به‌روزرسانی حفظ شود؛ نسخهٔ رایگان نت‌های پولی را در APK نداشته باشد.
 
 ## قبل از انتشار رسمی: ممیزی متن‌های آزمایشی داخل اپ (الزامی)
 
 **این موارد باید پیش از ثبت نسخهٔ تجاری بررسی و از متنِ قابل‌دیدن خریدار حذف/با متن واقعی جایگزین شوند.** داشتن این چک‌لیست به معنی آماده‌بودن نسخهٔ فعلی برای فروش نیست.
 
 - [ ] همهٔ اشاره‌های قابل‌مشاهده به `beta`، `QA`، «آزمایشی»، «هنوز فعال نیست»، «به‌زودی»، «پیشنهادی/برنامه‌ریزی‌شده» و پیام‌های تست داخلی از منو، «دربارهٔ برنامه»، اطلاعیهٔ اولین اجرا، پنل والدین و صفحهٔ قفل حذف یا با وضعیت واقعی محصول جایگزین شوند؛ **اما محدودیت‌های واقعیِ باقی‌مانده صادقانه اعلام شوند.**
-- [ ] اطلاعیهٔ نخستین اجرا دقیقاً با **قیمت نهایی پرداخت پیش از دانلود، شرایط نصب مجدد و محتوای واقعاً عرضه‌شده** مطابقت داشته باشد. هر تغییر مهم در شرایط/اطلاعیه، نسخهٔ `termeh_parent_welcome_v3` و `REVISION` را برای درخواست تأیید مجدد افزایش دهد؛ تاریخچهٔ تمرین حذف نشود.
+- [ ] اطلاعیهٔ نخستین اجرا دقیقاً با **قیمت نهایی، نحوهٔ خرید، بازیابی خرید و محتوای واقعاً عرضه‌شده** مطابقت داشته باشد. هر تغییر مهم در شرایط/اطلاعیه، نسخهٔ `termeh_parent_welcome_v4` و `REVISION` را برای درخواست تأیید مجدد افزایش دهد؛ تاریخچهٔ تمرین حذف نشود.
 - [ ] متن مرتبط با «قفل آموزشی» و «قفل خرید» را در همهٔ حالت‌های قفل‌شده قابل‌فهم کنیم و فقط دربارهٔ مرحله‌بندی‌هایی ادعا کنیم که واقعاً در نرم‌افزار پیاده شده‌اند.
 - [ ] تمام دکمه‌های مرتبط با آزمایش رمزنگاری، کلید عمومی، بررسی فنیِ مالکیت و پرداختِ غیرفعال از تجربهٔ عادی خانواده پنهان یا به ابزار QA غیرتجاری منتقل شوند.
 - [ ] به‌جای ادعای «استاندارد جهانی تأیید کرد» از توضیحات دقیقِ «طراحی‌شده با الهام از شواهد پژوهشی» استفاده شود؛ حق استفاده از لوگوها/مراجع حفظ گردد.
@@ -46,8 +53,8 @@
 - Mandatory updates have a user-experience tradeoff: they may interrupt children's offline learning. Prefer reserving them for incompatible releases or urgent security repairs, with an accessible and functioning store link.
 
 ## Blockers before public commercial release
-1. **Paid download on Cafe Bazaar**: Decide final price in the Bazaar developer console, confirm the app can be sold as a paid download, ensure the APK includes all advertised lessons and there is NO in-app checkout. Confirm store-side download/refund/reinstall terms. Bundled lessons are paid for by the initial store transaction, not by locally forged flags.
-2. **No compulsory account or cloud sync**: Keep children's progress device-local. Do NOT block launch waiting for disabled sign-in/backup placeholders. Remove placeholders from production screens; offer future optional opt-in backup only if independently justified and privacy-reviewed.
+1. **Cafe Bazaar billing**: Create a permanent/non-consumable SKU in the developer console, implement purchase via the supported Bazaar Android billing SDK, server-verify receipts and entitlement ownership, handle pending/canceled/refunded purchases, restore purchase without requiring in-app registration. The current HTML must never be trusted as proof of payment.
+2. **Optional parent account**: Choose a verified HTTPS identity and backup provider, integrate real sign-in / sign-out / registration, opt-in cloud sync, session invalidation, rate limiting, account deletion, and privacy controls. The current buttons are deliberately disabled. Do not request child names, ages, photographs, contacts, location, or audio.
 3. **Signing**: Create/secure a long-lived developer-owned release keystore using the private [SIGNING_SETUP_FA.md](SIGNING_SETUP_FA.md) instructions, not ephemeral test keys. Configure repository Actions secrets:
    - `TERMEH_KEYSTORE_BASE64`
    - `TERMEH_KEYSTORE_PASSWORD`
@@ -67,5 +74,5 @@
 ## Security limitations
 - R8 obfuscates native Java release code; **bundled HTML/JavaScript is inspectable**.
 - Offline training progress and unlocks can be modified on a rooted/tampered device. They are **not purchase entitlements**.
-- Commercial lessons are now **bundled in a paid-before-download APK**; there is no in-app digital entitlement to validate. Distribution and re-download are handled by Cafe Bazaar, subject to its terms. **APK copying remains possible** and must not be described as impossible.
+- Server-issued, cryptographically verified purchase entitlement is mandatory for commercially restricted content, balanced against legitimate offline access.
 - A multiplication question is only a parent-directed friction step; it does **not** verify adult identity or meet all child-safety obligations on its own.
