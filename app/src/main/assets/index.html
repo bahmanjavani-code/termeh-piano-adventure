@@ -1944,56 +1944,104 @@
 <style>#languageGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#60a5fa,#8b5cf6,#f472b6);display:flex;align-items:center;justify-content:center;padding:24px}#languageGate.hide{display:none}#languageGate .card{max-width:420px;width:100%;background:white;border:5px solid #fde68a;border-radius:32px;text-align:center;padding:30px 18px;box-shadow:0 18px 45px #312e8166}#languageGate button{display:block;width:100%;font-size:21px;font-weight:900;border-radius:20px;padding:18px;margin-top:14px;background:#7c3aed;color:white;box-shadow:0 5px 0 #4c1d95}#languageGate button:last-child{background:#ec4899;box-shadow:0 5px 0 #9d174d}#langSwitcher{position:static;z-index:auto;min-height:44px;background:#fff;color:#5b21b6;border:2px solid #c4b5fd;border-radius:15px;padding:8px 12px;font-weight:900}html[lang=en] body{direction:ltr}</style>
 <div id="languageGate"><div class="card"><div style="font-size:70px">🎹🌈</div><h2 style="color:#6d28d9">ماجراجویی پیانوی ترمه<br><span style="font-size:20px">Termeh's Piano Adventure</span></h2><p>زبان بازی را انتخاب کن / Choose your language</p><button onclick="chooseLanguage('fa')">🇮🇷 فارسی</button><button onclick="chooseLanguage('en')">🇬🇧 English</button></div></div>
 <style>
-#parentWelcome{position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(20,19,56,.92);box-sizing:border-box}
+/* Mandatory, one-time parent briefing (re-shown when the notice revision changes). */
+#parentWelcome{position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;padding:12px;background:rgba(20,19,56,.94);box-sizing:border-box}
 #parentWelcome.open{display:flex}
-#parentWelcome .panel{width:100%;max-width:490px;max-height:92dvh;overflow-y:auto;box-sizing:border-box;background:white;border:4px solid #fbbf24;border-radius:24px;padding:20px;color:#1e293b;box-shadow:0 20px 45px #0006;text-align:start;line-height:1.7}
-#parentWelcome h2{font-size:23px;font-weight:900;color:#5b21b6;text-align:center;margin:0 0 12px}
-#parentWelcome p{font-size:14px;margin:10px 0}
-#parentWelcome .notice{background:#fef3c7;border-radius:12px;padding:10px 12px}
-#parentWelcome label{display:flex;align-items:flex-start;gap:10px;padding:12px;border:2px solid #ddd6fe;border-radius:12px;margin-top:14px;font-weight:700}
-#parentWelcome input{width:23px;height:23px;flex-shrink:0;margin-top:4px;accent-color:#6d28d9}
-#parentWelcome button{width:100%;min-height:48px;background:#6d28d9;color:white;font-weight:900;border:0;border-radius:14px;margin-top:12px;padding:10px}
+#parentWelcome .panel{width:100%;max-width:490px;max-height:94dvh;overflow-y:auto;box-sizing:border-box;background:white;border:4px solid #fbbf24;border-radius:24px;padding:18px;color:#1e293b;box-shadow:0 20px 45px #0006;text-align:start;line-height:1.8;overscroll-behavior:contain}
+#parentWelcome h2{font-size:24px;font-weight:900;color:#5b21b6;text-align:center;margin:0 0 8px}
+#parentWelcome .intro{font-size:15px;font-weight:750;margin:8px 0 12px}
+#parentWelcome .notice{background:#fef3c7;border:2px solid #fcd34d;border-radius:14px;padding:10px 12px;margin:10px 0}
+#parentWelcome .notice:nth-of-type(even){background:#f5f3ff;border-color:#ddd6fe}
+#parentWelcome .notice strong{display:block;color:#4c1d95;font-size:15px}
+#parentWelcome .notice p{font-size:14px;margin:3px 0}
+#parentWelcome .legalLinks{font-size:14px;background:#eff6ff;border-radius:12px;padding:10px 12px;line-height:2.1}
+#parentWelcome label{display:flex;align-items:flex-start;gap:12px;padding:14px 12px;border:2px solid #7c3aed;border-radius:14px;margin-top:14px;font-size:15px;font-weight:900;background:#faf5ff;cursor:pointer}
+#parentWelcome input{width:25px;height:25px;flex-shrink:0;margin-top:4px;accent-color:#6d28d9}
+#parentWelcome button{width:100%;min-height:52px;background:#6d28d9;color:white;font-weight:900;font-size:17px;border:0;border-radius:14px;margin-top:12px;padding:10px}
 #parentWelcome button:disabled{background:#94a3b8;color:#1e293b;cursor:not-allowed}
-#parentWelcome a{color:#1d4ed8;text-decoration:underline;font-weight:700}
+#parentWelcome a{color:#1d4ed8;text-decoration:underline;font-weight:800}
+#parentWelcome .fineprint{font-size:12px;color:#475569;margin:8px 0;text-align:center}
 </style>
-<div id="parentWelcome" role="dialog" aria-modal="true" aria-labelledby="welcomeHeading">
-<div class="panel">
-<h2 id="welcomeHeading">👨‍👩‍👧 <span class="only-fa">سخنی با والدین</span><span class="only-en">A note to parents</span></h2>
-<p><span class="only-fa">لطفاً پیش از سپردن گوشی به کودک، این نکات را بخوانید.</span><span class="only-en">Please read this information before handing the phone to your child.</span></p>
-<p class="notice">🛍️ <strong><span class="only-fa">خرید اختیاری:</span><span class="only-en">Optional purchases:</span></strong> <span class="only-fa">درس‌های مقدماتی رایگان هستند. خرید یک‌باره و دائمی بخش‌های پیشرفته با قیمت پیشنهادی ۹۹٬۰۰۰ تومان برنامه‌ریزی شده است. خرید فقط با اقدام والدین و تأیید فروشگاه انجام می‌شود. در این نسخه آزمایشی خرید غیرفعال است و پولی دریافت نمی‌شود.</span><span class="only-en">Starter lessons are free. A one-time lifetime purchase for advanced lessons is planned at 99,000 toman. Purchases will require parent action and store confirmation. Purchases are disabled in this beta; no money is collected.</span></p>
-<p>🔒 <strong><span class="only-fa">امنیت کودک:</span><span class="only-en">Child safety:</span></strong> <span class="only-fa">خرید و تنظیمات والدین برای بزرگسالان است. اطلاعات پرداخت را در اختیار کودک نگذارید.</span><span class="only-en">Purchases and parent settings are for adults. Keep payment credentials away from children.</span></p>
-<p>💾 <strong><span class="only-fa">پیشرفت و حریم خصوصی:</span><span class="only-en">Progress and privacy:</span></strong> <span class="only-fa">پیشرفت فعلاً فقط روی این دستگاه ذخیره می‌شود و ممکن است با حذف برنامه یا پاک‌کردن داده‌ها از بین برود. درس‌های اصلی آفلاین کار می‌کنند؛ بررسی به‌روزرسانی ممکن است اینترنت بخواهد.</span><span class="only-en">Progress is stored on this device and may be lost after uninstalling or clearing data. Core lessons work offline; update checks may use the internet.</span></p>
-<p>📧 <strong><span class="only-fa">گزارش خطا:</span><span class="only-en">Error reports:</span></strong> <span class="only-fa">ایمیل گزارش خطا فقط با بازبینی و ارسال والدین فرستاده می‌شود، نه خودکار.</span><span class="only-en">Error emails are sent only when a parent reviews and sends them, never automatically.</span></p>
-<p>📄 <a id="welcomePrivacy" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html"><span class="only-fa">سیاست حریم خصوصی</span><span class="only-en">Privacy policy</span></a> · <a id="welcomeTerms" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html"><span class="only-fa">شرایط استفاده</span><span class="only-en">Terms of use</span></a></p>
-<label><input id="welcomeAccepted" type="checkbox" onchange="document.getElementById('welcomeContinue').disabled=!this.checked"><span class="only-fa">من والد یا سرپرست کودک هستم و نکات بالا را خوانده‌ام.</span><span class="only-en">I am the child's parent or guardian and have read the information above.</span></label>
-<button id="welcomeContinue" type="button" disabled onclick="confirmParentWelcome()"><span class="only-fa">تأیید والدین و شروع بازی 🎹</span><span class="only-en">Parent confirmation — Start playing 🎹</span></button>
+<div id="parentWelcome" role="dialog" aria-modal="true" aria-labelledby="welcomeHeading" aria-describedby="welcomeIntroduction">
+<div class="panel" tabindex="-1">
+<h2 id="welcomeHeading">👨‍👩‍👧 <span class="only-fa">سخنی مهم با والدین</span><span class="only-en">Important information for parents</span></h2>
+<p id="welcomeIntroduction" class="intro">
+  <span class="only-fa">پیش از شروع بازی، لطفاً به‌عنوان والد یا سرپرست این نکات را بخوانید. این اطلاعیه در اولین اجرا یا پس از تغییر مهم متن نمایش داده می‌شود.</span>
+  <span class="only-en">Before play begins, please read these points as a parent or guardian. This notice appears on first launch or when important terms change.</span>
+</p>
+<section class="notice">
+  <strong>🎹 <span class="only-fa">ماهیت و هدف آموزشی برنامه</span><span class="only-en">Purpose and educational scope</span></strong>
+  <p><span class="only-fa">پیانوی ترمه یک <b>بازی کمک‌آموزشی</b> برای تمرین نت‌خوانی مقدماتی است؛ <b>مرجع اصلی یادگیری موسیقی نیست</b> و جایگزین مدرس واجد صلاحیت یا تمرین عملی با ساز نمی‌شود. نتیجهٔ یادگیری یا مهارت نوازندگی مشخصی تضمین نمی‌شود.</span><span class="only-en">Termeh Piano is a <b>supplementary educational game</b> for introductory note reading. It is <b>not the primary source of music education</b> or a substitute for a qualified teacher or practice on a real instrument. No specific learning or playing outcome is guaranteed.</span></p>
+</section>
+<section class="notice">
+  <strong>🎼 <span class="only-fa">مراحل، پیشرفت و نت‌های جدید</span><span class="only-en">Progression and new notes</span></strong>
+  <p><span class="only-fa">تمرین‌های آموزشی به‌تدریج پیش می‌روند؛ بعضی فعالیت‌ها بر اساس پیشرفت باز می‌شوند و بعضی درس‌های پیشرفته ممکن است در نسخهٔ آزمایشی هنوز موجود نباشند. دیرتر نمایش داده شدن نت‌های بالاتر الزاماً خطا نیست. در بخش قفل‌شده، علت محدودیت نمایش داده می‌شود.</span><span class="only-en">Exercises progress gradually. Some activities unlock through learning progress, while advanced lessons may not yet be available in this beta. Not seeing higher notes immediately is not necessarily a bug. Locked lessons explain why they are unavailable.</span></p>
+</section>
+<section class="notice">
+  <strong>👨‍👩‍👧 <span class="only-fa">نظارت والدین و زمان تمرین</span><span class="only-en">Parental supervision and practice time</span></strong>
+  <p><span class="only-fa">زمان استفاده و مناسب‌بودن تمرین برای سن و شرایط کودک را والدین تعیین می‌کنند. تمرین‌های کوتاه و بدون فشار پیشنهاد می‌شود. تنظیمات حساس، خرید و ارسال پیشنهادها باید توسط والدین مدیریت شوند.</span><span class="only-en">Parents decide appropriate screen time and activities for their child's age and needs. Short, pressure-free practice is encouraged. Sensitive settings, purchases, and feedback should be managed by a parent.</span></p>
+</section>
+<section class="notice">
+  <strong>💾 <span class="only-fa">داده‌ها، حریم خصوصی و بازیابی پیشرفت</span><span class="only-en">Privacy and saved progress</span></strong>
+  <p><span class="only-fa">بازی بدون حساب آنلاین اجرا می‌شود و پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود. حذف برنامه یا پاک‌کردن داده‌ها ممکن است پیشرفت را از بین ببرد. تمرین‌ها آفلاین‌اند؛ بررسی به‌روزرسانی ممکن است از اینترنت استفاده کند. گزارش خطا و پیشنهاد فقط پس از بازبینی و ارسال والدین با برنامهٔ ایمیل گوشی فرستاده می‌شوند.</span><span class="only-en">No online account is required. Progress is currently stored on this device only and may be lost if the app or its data are removed. Lessons work offline; update checks may use the internet. Errors and feedback are sent only when a parent reviews and sends an email from the device.</span></p>
+</section>
+<section class="notice">
+  <strong>🛍️ <span class="only-fa">دسترسی به درس‌ها و خرید اختیاری</span><span class="only-en">Lessons and optional purchases</span></strong>
+  <p><span class="only-fa">درس‌های پایه رایگان‌اند. برای درس‌های پیشرفته خرید یک‌باره و دائمی در کافه‌بازار برنامه‌ریزی شده است؛ قفل <b>آموزشی</b> با قفل <b>خرید</b> متفاوت است. <b>در این نسخهٔ آزمایشی خرید واقعی فعال نیست و هزینه‌ای دریافت نمی‌شود.</b> قبل از فروش، شرایط و قیمت نهایی در فروشگاه اعلام خواهند شد.</span><span class="only-en">Starter lessons are free. A one-time permanent unlock for advanced lessons is planned through Cafe Bazaar; <b>learning locks</b> differ from <b>purchase locks</b>. <b>Real checkout is disabled in this beta, and no payment is taken.</b> Final terms and pricing will be disclosed before sale.</span></p>
+</section>
+<p class="legalLinks">📄 <span class="only-fa">متن کامل اسناد:</span><span class="only-en">Full documents:</span>
+  <a id="welcomePrivacy" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html"><span class="only-fa">حریم خصوصی</span><span class="only-en">Privacy policy</span></a> ·
+  <a id="welcomeTerms" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html"><span class="only-fa">شرایط استفاده</span><span class="only-en">Terms of use</span></a>
+</p>
+<label for="welcomeAccepted"><input id="welcomeAccepted" type="checkbox" onchange="document.getElementById('welcomeContinue').disabled=!this.checked">
+  <span class="only-fa">من والد یا سرپرست کودک هستم؛ متن بالا را خواندم و نکات مهم آن را متوجه شدم.</span>
+  <span class="only-en">I am the child's parent or guardian. I have read and understood the important points above.</span>
+</label>
+<button id="welcomeContinue" type="button" disabled onclick="confirmParentWelcome()"><span class="only-fa">✅ متوجه شدم؛ شروع بازی 🎹</span><span class="only-en">✅ I understand — Start playing 🎹</span></button>
+<p class="fineprint"><span class="only-fa">تأیید شما فقط روی همین گوشی ثبت می‌شود. قوانین حمایتی مصرف‌کننده همچنان برقرارند.</span><span class="only-en">Your acknowledgment is stored only on this device. Statutory consumer rights still apply.</span></p>
 </div></div>
 <script>
 (function(){
-'use strict';
-const KEY='termeh_parent_welcome_v1';
-let acceptedThisSession=false;
-window.showParentWelcomeIfNeeded=function(){
-  let accepted=acceptedThisSession;
-  try{accepted=accepted||localStorage.getItem(KEY)==='accepted'}catch(e){}
-  const dialog=document.getElementById('parentWelcome');
-  if(accepted){dialog.classList.remove('open');return}
-  document.getElementById('welcomeAccepted').checked=false;
-  document.getElementById('welcomeContinue').disabled=true;
-  document.getElementById('welcomePrivacy').href=document.documentElement.lang==='en'
-    ?'https://bahmanjavani-code.github.io/termeh-piano-adventure/en/privacy.html'
-    :'https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html';
-  document.getElementById('welcomeTerms').href=document.documentElement.lang==='en'
-    ?'https://bahmanjavani-code.github.io/termeh-piano-adventure/en/terms.html'
-    :'https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html';
-  dialog.classList.add('open');
-};
-window.confirmParentWelcome=function(){
-  if(!document.getElementById('welcomeAccepted').checked)return;
-  acceptedThisSession=true;
-  try{localStorage.setItem(KEY,'accepted')}catch(e){}
-  document.getElementById('parentWelcome').classList.remove('open');
-};
+  'use strict';
+  // Revision-specific key: a material change reopens the briefing on existing phones.
+  // Keep this separate from game progress, so a notice update never resets learning.
+  const KEY='termeh_parent_welcome_v2',REVISION=2;
+  let acceptedThisSession=false;
+  function previouslyAccepted(){
+    if(acceptedThisSession)return true;
+    try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');return !!(saved&&saved.revision===REVISION&&saved.acknowledged===true)}
+    catch(e){return false}
+  }
+  window.showParentWelcomeIfNeeded=function(forceReview=false){
+    const dialog=document.getElementById('parentWelcome');
+    if(!forceReview&&previouslyAccepted()){dialog.classList.remove('open');return}
+    const box=document.getElementById('welcomeAccepted');
+    box.checked=false;
+    document.getElementById('welcomeContinue').disabled=true;
+    const lang=document.documentElement.lang;
+    document.getElementById('welcomePrivacy').href=lang==='en'
+      ?'https://bahmanjavani-code.github.io/termeh-piano-adventure/en/privacy.html'
+      :'https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html';
+    document.getElementById('welcomeTerms').href=lang==='en'
+      ?'https://bahmanjavani-code.github.io/termeh-piano-adventure/en/terms.html'
+      :'https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html';
+    dialog.classList.add('open');
+    dialog.querySelector('.panel').scrollTop=0;
+    dialog.querySelector('.panel').focus();
+  };
+  window.confirmParentWelcome=function(){
+    if(!document.getElementById('welcomeAccepted').checked)return;
+    acceptedThisSession=true;
+    const record={revision:REVISION,acknowledged:true,acknowledgedAt:new Date().toISOString(),language:document.documentElement.lang};
+    try{localStorage.setItem(KEY,JSON.stringify(record))}catch(e){}
+    document.getElementById('parentWelcome').classList.remove('open');
+    const menu=document.getElementById('appMenuToggle');if(menu)menu.focus();
+  };
+  // Parent-gated reread: the onboarding notice stays available after installation.
+  window.reviewParentWelcome=function(){
+    if(typeof window.closeParentHub==='function')window.closeParentHub();
+    window.showParentWelcomeIfNeeded(true);
+  };
 })();
 </script>
 <script>
