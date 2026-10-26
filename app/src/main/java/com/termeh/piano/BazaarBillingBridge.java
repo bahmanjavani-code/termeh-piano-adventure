@@ -104,6 +104,18 @@ final class BazaarBillingBridge {
     }
 
 
+    /**
+     * Recheck non-consumable ownership when returning from Bazaar or another app.
+     * This is a read-only inventory query: it cannot start checkout and cannot
+     * remove an offline entitlement on a network/connection failure.
+     * Avoid racing the actual purchase flow (which restores on success).
+     */
+    void recheckOwnershipOnResume() {
+        if (destroyed || !connected || payment == null
+                || !VerifiedPremiumLessons.enabled() || purchaseInProgress.get()) return;
+        restoreVerifiedPurchase();
+    }
+
     private boolean checkoutConfigured() {
         // A valid previously purchased course can be RESTORED even when this
         // signed build deliberately disables any new monetary transaction.
