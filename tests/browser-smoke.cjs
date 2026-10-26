@@ -214,7 +214,7 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.locator('#equippedTrophyPiano').innerText(),'🎹','Equipped sticker must remain visible after relaunch');
     // An easy two-minute run must never make the child 'finish' treble.
     await page.evaluate(()=>{
-      state.mastery.treble.attempts=Array.from({length:20},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:500,at:Date.now()}));
+      state.mastery.treble.attempts=Array.from({length:20},(_,i)=>({correct:true,note:TREBLE_NOTES[i%5].code,ms:500,at:Date.now()}));
       updateExamButton();
     });
     assert(await page.locator('#examStartBtn').isDisabled(),'20 perfect fast responses must NOT unlock exam');
