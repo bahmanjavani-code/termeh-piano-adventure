@@ -297,14 +297,16 @@
                 <span>مود کلید سل</span>
             </button>
 
-            <button id="modeTab-bass" onclick="switchGameMode('bass')" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
+            <button id="modeTab-bass" onclick="switchGameMode('bass')" aria-disabled="true" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
                 <span class="text-2xl leading-none">𝄢</span>
                 <span>مود کلید فا</span>
+                <span id="modeAccess-bass" class="text-[10px] leading-tight" aria-live="polite">🔒 خرید لازم</span>
             </button>
 
-            <button id="modeTab-rhythm" onclick="switchGameMode('rhythm')" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
+            <button id="modeTab-rhythm" onclick="switchGameMode('rhythm')" aria-disabled="true" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
                 <span class="text-2xl leading-none">⏱️</span>
                 <span>کشش نت‌ها</span>
+                <span id="modeAccess-rhythm" class="text-[10px] leading-tight" aria-live="polite">🔒 خرید لازم</span>
             </button>
         </nav>
 
@@ -960,6 +962,7 @@
             saveState();
             if(state.mode!=='treble' && !isModeUnlocked(state.mode))state.mode='treble';
             switchGameMode(state.mode);
+            if(typeof window.refreshPremiumModeTabs==='function')window.refreshPremiumModeTabs();
             if(window.termehBazaarStatus)window.termehBazaarStatus('restore_active');
         };
         window.termehNativePremiumRevoked=function(){
@@ -969,6 +972,7 @@
             BASS_NOTES=[];NOTE_DURATIONS=[];
             state.exam=null;
             switchGameMode('treble');
+            if(typeof window.refreshPremiumModeTabs==='function')window.refreshPremiumModeTabs();
             if(window.termehBazaarStatus)window.termehBazaarStatus('restore_no_purchase');
         };
 
@@ -2102,6 +2106,7 @@
             const en=isEnglish();
             const result=getMastery(state.mode);
             updateMasteryDashboard(state.mode,result);
+            if(typeof window.refreshPremiumModeTabs==='function')window.refreshPremiumModeTabs();
             if(state.exam && state.exam.active){
                 btn.textContent=en?'Assessment: '+(state.exam.index+1)+'/20 — Cancel':'آزمون: '+(state.exam.index+1)+' از ۲۰ — انصراف';
                 btn.disabled=false;
@@ -2205,6 +2210,8 @@
                     tab.className = 'btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow';
                 }
             });
+
+            if(typeof window.refreshPremiumModeTabs==='function')window.refreshPremiumModeTabs();
 
             const staffArea = document.getElementById('staffGameArea');
             const rhythmArea = document.getElementById('rhythmGameArea');
@@ -2675,17 +2682,37 @@ window.termehMakeParentChallenge=function(){
   return {text:a+' + '+(b*3)+' − '+c+' = ?',answer:a+b*3-c};
 };
 </script>
-<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 <span class="only-fa">بخش والدین</span><span class="only-en">Parents</span></button><button class="secondary" onclick="closeUnlock()"><span class="only-fa">ادامه تمرین</span><span class="only-en">Keep practicing</span></button><div id="parentChallenge" style="display:none"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="parentMath"></p><input id="parentAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer"><button onclick="checkParentGate()"><span class="only-fa">تأیید</span><span class="only-en">Continue</span></button><p id="parentMessage" aria-live="polite"></p></div></div></div>
+<div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button id="unlockParentsBtn" onclick="showParentGate()">👨‍👩‍👧 <span class="only-fa">بخش والدین</span><span class="only-en">Parents</span></button><button class="secondary" onclick="closeUnlock()"><span class="only-fa">ادامه تمرین</span><span class="only-en">Keep practicing</span></button><div id="parentChallenge" style="display:none"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="parentMath"></p><input id="parentAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer"><button onclick="checkParentGate()"><span class="only-fa">تأیید</span><span class="only-en">Continue</span></button><p id="parentMessage" aria-live="polite"></p></div></div></div>
 <script>
 (function(){
 let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
+// Ownership and learning milestones are separate. These indicators are
+// presentation only; premium lesson data is still supplied by the native
+// signature-verified Bazaar purchase and never by these buttons.
 window.isModeUnlocked=function(mode){
   if(mode==='treble')return true;
   if(!window.TERMEH_DEBUG_PREMIUM&&!window.TERMEH_NATIVE_PREMIUM)return false;
-  // QA preview bypasses ONLY instructional navigation in a distinct .qa APK;
-  // it never unlocks real paid content or changes any mastery certification.
   if(window.termehQaPreviewActive&&window.termehQaPreviewActive())return true;
-  return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed;
+  // Both extra modes start after a completed treble-clef curriculum.
+  return getMastery('treble').passed;
+};
+window.refreshPremiumModeTabs=function(){
+  const owned=!!(window.TERMEH_NATIVE_PREMIUM||window.TERMEH_DEBUG_PREMIUM);
+  const en=localStorage.getItem('termeh_language')==='en';
+  for(const mode of ['bass','rhythm']){
+    const tab=document.getElementById('modeTab-'+mode);
+    const badge=document.getElementById('modeAccess-'+mode);
+    if(!tab||!badge)continue;
+    const ready=window.isModeUnlocked(mode);
+    // Disabled LOOK, not disabled clicks: clicking explains next steps.
+    tab.classList.toggle('grayscale',!owned);
+    tab.classList.toggle('opacity-55',!owned);
+    tab.classList.toggle('border-emerald-400',owned&&!ready);
+    tab.classList.toggle('bg-emerald-100',owned&&!ready);
+    tab.setAttribute('aria-disabled',String(!ready));
+    tab.setAttribute('aria-label',(mode==='bass'?(en?'Bass clef':'کلید فا'):(en?'Note durations':'کشش نت‌ها'))+' — '+(ready?(en?'Ready':'آماده'):owned?(en?'Purchased; finish treble lessons':'خرید تأیید شد؛ بعد از کلید سل'):(en?'Requires lifetime purchase':'نیازمند خرید دائمی')));
+    badge.textContent=ready?(en?'✅ Ready':'✅ آماده'):owned?(en?'✅ Owned · after treble':'✅ خریداری شد · بعد از کلید سل'):(en?'🔒 Premium':'🔒 خرید لازم');
+  }
 };
 window.showUnlock=function(mode){
   pendingMode=mode;
@@ -2694,24 +2721,27 @@ window.showUnlock=function(mode){
   const en=localStorage.getItem('termeh_language')==='en';
   const title=document.getElementById('unlockTitle');
   const text=document.getElementById('unlockText');
-  if(!window.TERMEH_DEBUG_PREMIUM&&!window.TERMEH_NATIVE_PREMIUM){
-    title.textContent=en?'Premium lessons locked 🔒':'درس‌های ویژه قفل هستند 🔒';
+  const parents=document.getElementById('unlockParentsBtn');
+  const owned=!!(window.TERMEH_NATIVE_PREMIUM||window.TERMEH_DEBUG_PREMIUM);
+  if(parents)parents.style.display=owned?'none':'';
+  if(!owned){
+    title.textContent=en?'Premium lesson — purchase required 🔒':'درس ویژه — نیازمند خرید 🔒';
     text.textContent=en?
-      'Advanced lessons require the official one-time purchase once available. Parents can check the Bazaar offer in the Parent Hub. Starter practice remains free.':
-      'درس‌های پیشرفته در نسخهٔ رایگان قفل‌اند. والدین می‌توانند در بخش والدین، فقط در صورت فعال بودن فروش رسمی بازار، قیمت و خرید دائمی را بررسی کنند. تمرین مقدماتی رایگان می‌ماند.';
+      'Bass clef and note durations are included in the optional one-time Bazaar upgrade. Ask a parent to check the official offer. Five beginner notes remain free. After purchase, complete the treble-clef learning path to begin these lessons.':
+      'کلید فا و کشش نت‌ها شامل خرید دائمیِ اختیاری کافه‌بازار هستند. برای بررسی خرید رسمی به بخش والدین بروید. پنج نت آغازین رایگان می‌مانند. بعد از خرید، این درس‌ها پس از تکمیل مسیر آموزشی کلید سل شروع می‌شوند.';
     return;
   }
-  title.textContent=en?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';
-  const source=mode==='bass'?'treble':'bass';
-  const result=getMastery(source);
+  title.textContent=en?'✅ Purchase successful — next lesson comes after treble':'✅ خرید موفق بود؛ شروع درس بعد از کلید سل';
+  const result=getMastery('treble');
   text.textContent=en?
-    `Practice stage ${Math.min(3,result.stage)}/3. Completed ${result.total}/150 first-answer questions, with ${result.accuracy60}% first-try accuracy over the latest 60. Progress requires fast, accurate recognition across all notes, three strong practice rounds, and the 20-question final assessment. When the premium pack becomes available, purchase and educational progress are separate.`:
-    `تمرین ${Math.min(3,result.stage)} از ۳. تا الان ${result.total} از ۱۵۰ سؤال تمرینی؛ دقت تلاش اول در ۶۰ سؤال اخیر: ${result.accuracy60}٪. برای رفتن به درس بعد، سرعت و دقت تشخیص همه نت‌ها، سه دور تمرین موفق و قبولی در آزمون ۲۰ سؤالی لازم است. پس از عرضهٔ نسخهٔ ویژه، خرید جای تمرین و پیشرفت آموزشی را نمی‌گیرد.`;
+    `Your lifetime upgrade is active and paid lessons belong to you. No second purchase is needed. To start ${mode==='bass'?'bass clef':'note durations'}, finish the treble-clef practice and pass its final 20-question assessment. Treble progress: stage ${Math.min(3,result.stage)} of 3, ${result.total} of 150 practice questions, ${result.accuracy60}% first-try accuracy over the last 60. Your progress is saved.`:
+    `خرید دائمی شما موفق و فعال است؛ درس‌های ویژه را خریده‌اید و نیازی به پرداخت دوباره نیست. برای شروع ${mode==='bass'?'کلید فا':'کشش نت‌ها'}، ابتدا تمرین‌های کلید سل را کامل کنید و در آزمون پایانی ۲۰ سؤالی قبول شوید. پیشرفت فعلی کلید سل: مرحله ${Math.min(3,result.stage)} از ۳، ${result.total} از ۱۵۰ سؤال تمرینی و دقت تلاش اول ${result.accuracy60}٪ در ۶۰ سؤال اخیر. پیشرفت شما محفوظ است.`;
 };
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');document.getElementById('parentChallenge').style.display='none';pendingMode=null};
 document.getElementById('unlockOverlay').addEventListener('click',function(e){if(e.target===this)closeUnlock()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeUnlock()});
 window.showParentGate=function(){const question=window.termehMakeParentChallenge();answer=question.answer;document.getElementById('parentMath').textContent=question.text;document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
+window.refreshPremiumModeTabs();
 window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent=localStorage.getItem('termeh_language')==='en'?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const raw=document.getElementById('parentAnswer').value.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));if(raw!=='' && Number(raw)===answer){attempts=0;msg.textContent=localStorage.getItem('termeh_language')==='en'?'✅ Verified. Online accounts are not offered; official lifetime purchase is in the parent section.':'✅ تأیید شد. حساب آنلاین ارائه نمی‌شود؛ خرید دائمی رسمی از بخش والدین انجام می‌شود.';document.getElementById('parentAnswer').value='';return;}attempts++;msg.textContent=localStorage.getItem('termeh_language')==='en'?'❌ Incorrect answer':'❌ پاسخ نادرست است';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;msg.textContent=localStorage.getItem('termeh_language')==='en'?'Too many attempts. Wait one minute.':'تلاش‌های زیاد؛ یک دقیقه صبر کنید';}};
 })();
 </script><style>
@@ -2823,7 +2853,7 @@ window.termehBazaarStatus=function(code){
     restore_busy:['بررسی قبلی هنوز در حال انجام است.','Previous ownership check is still running.'],
     restore_checking:['در حال بررسی خریدهای قبلی بازار و مجوز امن گوشی…','Checking previously owned Bazaar purchases and device entitlement…'],
     restore_cached_no_unlock:['✅ خرید قبلی توسط بازار تأیید و مجوز آفلاین در گوشی ذخیره شد؛ درس‌های پولی هنوز فعال نیستند.','✅ Prior purchase verified and cached on device; paid lessons remain disabled.'],
-    restore_active:['✅ مالکیت خرید تأیید شد و درس‌های خریداری‌شده آفلاین باز شدند.','✅ Verified purchase: owned lessons are now available offline.'],
+    restore_active:['✅ خرید دائمی با موفقیت تأیید شد! درس‌های ویژه مال شما هستند و آفلاین در دسترس‌اند. برای شروع کلید فا و کشش نت‌ها ابتدا تمرین‌ها و آزمون پایانی کلید سل را کامل کنید؛ نیازی به خرید دوباره نیست.','✅ Lifetime purchase verified! Your premium lessons are owned and available offline. Finish the treble-clef practice and final assessment to start bass clef and note durations. No need to pay again.'],
     purchase_started:['در حال ورود به صفحهٔ رسمی پرداخت بازار…','Opening official Bazaar checkout…'],
     purchase_unavailable:['خرید واقعی این نسخه هنوز آماده نیست؛ پولی دریافت نشد.','Checkout is not available in this build; no payment was taken.'],
     purchase_busy:['یک درخواست خرید دیگر در حال انجام است.','A purchase request is already running.'],
