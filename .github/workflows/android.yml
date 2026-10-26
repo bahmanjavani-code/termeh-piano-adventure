@@ -72,6 +72,11 @@ jobs:
           fi
           unzip -p "$APK" assets/premium-preview.js | grep -q 'debug-full-preview'
           unzip -p "$APK" assets/premium-preview.js | grep -q 'trebleExtra'
+          # QA APK installs NEXT TO the commercial candidate; never replaces it.
+          AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
+          "$AAPT" dump badging "$APK" | grep -q "package: name='com.termeh.piano.qa'"
+          "$AAPT" dump badging "$APK" | grep -q "application-label:'Termeh Piano QA'"
+          echo "PASS: separate com.termeh.piano.qa package with explicit QA app label."
           # Make Gradle merge release assets without creating or signing a release APK.
           gradle --no-daemon :app:mergeReleaseAssets
           RELEASE_ASSET="$(find app/build/intermediates -type f -path '*/release/*' -name 'premium-preview.js' | head -1)"
@@ -135,11 +140,11 @@ jobs:
           ls -lh app/build/outputs/apk/debug/
           test -s app/build/outputs/apk/debug/app-debug.apk
           echo 'APK exists and is nonempty.'
-      - name: Upload installable APK
+      - name: Upload parallel installable QA preview APK
         id: apk_upload
         uses: actions/upload-artifact@v4
         with:
-          name: Termeh-Piano-APK
+          name: Termeh-Piano-QA-FULL-LESSON-PREVIEW-NOT-FOR-BAZAAR
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

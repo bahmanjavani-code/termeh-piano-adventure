@@ -150,6 +150,23 @@ assert(html.includes('id="buyPremiumBtn"') && html.includes('id="restorePremiumB
 assert(/id="buyPremiumBtn"[^>]*disabled/.test(html),'Unverified purchase flow must be disabled');
 assert(/id="restorePremiumBtn"[^>]*disabled/.test(html),'Unverified restore must be disabled');
 assert(html.includes('window.checkBazaarOwnership'),'Parent read-only query UI missing');
+assert(gradle.includes("applicationIdSuffix '.qa'"),'Internal QA preview must be a separate Android package');
+assert(gradle.includes("manifestPlaceholders = [termehAppLabel: 'Termeh Piano QA']"),
+  'Parents must recognize the parallel QA app by its name');
+assert(manifest.includes('android:label="${termehAppLabel}"'),
+  'Signed release and QA app need distinct installed labels');
+assert(html.includes('id="qaPreviewPanel" class="termehQaOnly"'),
+  'Inspecting advanced lessons must be hidden from all release buyers');
+assert(html.includes('id="qaPreviewBadge" hidden'),
+  'Testers must see a clear persistent QA-only watermark');
+assert(html.includes("window.TERMEH_CONTENT_VARIANT === 'debug-full-preview'"),
+  'QA inspection must be impossible for regular release assets');
+assert(html.includes("return TREBLE_NOTES;")&&html.includes("window.termehQaPreviewActive"),
+  'QA preview must expose all 12 treble notes without changing true mastery');
+assert(html.includes("||el('parentHubOptions').hidden"),
+  'QA toggle must require a successful parent challenge');
+assert(html.includes('state.exam=null;'),'QA navigation must not leave an active exam');
+
 assert(manifest.includes('android.permission.POST_NOTIFICATIONS'),'Optional notification permission must be declared');
 assert(html.includes('id="dailyReminderPanel"'),'Reminders must be controlled within parent hub');
 assert(html.includes('window.termehRefreshPracticeReminder'),'Parent should see genuine Android reminder status');

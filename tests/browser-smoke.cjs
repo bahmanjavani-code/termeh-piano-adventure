@@ -359,6 +359,55 @@ const { chromium }=require('playwright-core');
     await faPage.locator('#welcomeContinue').click();
     assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v4')).language),'fa');
     await faPage.close();
+
+    // User-facing QA inspector: parents can look at later lessons now,
+    // without faking 150 real learning results or changing the production app.
+    const qaPage=await browser.newPage({viewport:{width:390,height:844}});
+    qaPage.on('pageerror',e=>errors.push('qa-preview '+e.message));
+    await qaPage.goto(debugUrl);
+    await qaPage.locator("button[onclick=\"chooseLanguage('en')\"]").click();
+    await qaPage.locator('#welcomeAccepted').check();
+    await qaPage.locator('#welcomeContinue').click();
+    assert.equal(await qaPage.evaluate(()=>state.trebleNoteTier),1,'QA must start with real learning level');
+    assert.equal(await qaPage.evaluate(()=>getActiveTrebleNotes().length),5,'QA inspector must start OFF');
+    await qaPage.locator('#modeTab-bass').click();
+    assert(await qaPage.locator('#unlockOverlay').evaluate(el=>el.classList.contains('open')),
+      'Normal QA gameplay must retain educational gates until parent explicitly opts in');
+    await qaPage.locator('#unlockOverlay button.secondary').click();
+    await qaPage.locator('#appMenuToggle').click();
+    await qaPage.locator('#parentLaunch').click();
+    assert(!(await qaPage.locator('#qaPreviewPanel').isVisible()),'QA preview must be parent-gated');
+    const mathChallenge=await qaPage.locator('#hubMath').innerText();
+    const mathMatch=mathChallenge.match(/^(\d+)\s*([×+−])\s*(\d+)\s*([+−])\s*(\d+)\s*=\s*\?$/);
+    assert(mathMatch,'QA inspector must retain varied parent arithmetic');
+    const qaMathCalc=(x,op,y)=>op==='×'?x*y:op==='+'?x+y:x-y;
+    const qaMathAnswer=qaMathCalc(qaMathCalc(+mathMatch[1],mathMatch[2],+mathMatch[3]),mathMatch[4],+mathMatch[5]);
+    await qaPage.locator('#hubAnswer').fill(String(qaMathAnswer));
+    await qaPage.locator('button[onclick="verifyParentHub()"]').click();
+    assert(await qaPage.locator('#qaPreviewPanel').isVisible(),'QA inspector should appear only inside verified parent hub');
+    await qaPage.locator('#qaPreviewToggle').click();
+    assert(await qaPage.locator('#qaPreviewBadge').isVisible(),'QA mode must have persistent visible preview warning');
+    assert.equal(await qaPage.evaluate(()=>getActiveTrebleNotes().length),12,
+      'QA should let parents inspect all upper treble notes without doing all practice');
+    assert.equal(await qaPage.evaluate(()=>state.trebleNoteTier),1,
+      'QA navigation must not pretend child earned higher-level certification');
+    assert.equal(await qaPage.evaluate(()=>state.mastery.treble.attempts.length),0,
+      'Opening QA preview must never fabricate mastery attempts');
+    await qaPage.locator('#modeTab-bass').click();
+    assert.equal(await qaPage.evaluate(()=>state.mode),'bass','Parent should inspect bass staff immediately');
+    assert.equal(await qaPage.evaluate(()=>BASS_NOTES.length),10,'Bass notes remain in debug QA assets');
+    await qaPage.locator('#modeTab-rhythm').click();
+    assert.equal(await qaPage.evaluate(()=>state.mode),'rhythm','Parent should inspect rhythm immediately');
+    await qaPage.locator('#rhythmSub-meter').click();
+    assert(await qaPage.locator('#rhythmMeterSection').isVisible(),'QA must show full measure builder');
+    await qaPage.reload();
+    assert.equal(await qaPage.evaluate(()=>getActiveTrebleNotes().length),5,
+      'Preview must be session-only, not a saved master-key for later installs');
+    assert(!(await qaPage.locator('#qaPreviewBadge').isVisible()),'Preview warning must reset on reload');
+    assert.equal(await qaPage.evaluate(()=>isModeUnlocked('bass')),false,
+      'QA preview must never permanently bypass actual mastery');
+    await qaPage.close();
+
     const freePage=await browser.newPage({viewport:{width:390,height:844}});
     freePage.on('pageerror',e=>errors.push('release '+e.message));
     await freePage.goto(releaseUrl);
@@ -366,6 +415,11 @@ const { chromium }=require('playwright-core');
     await freePage.locator('#welcomeAccepted').check();
     await freePage.locator('#welcomeContinue').click();
     assert.equal(await freePage.evaluate(()=>document.documentElement.getAttribute('data-termeh-edition')),'store','Store-specific polish must be applied');
+    assert(!(await freePage.locator('#qaPreviewPanel').isVisible()),'Production must never show the QA lesson bypass');
+    assert.equal(await freePage.evaluate(()=>{
+      window.TERMEH_QA_PREVIEW=true;
+      return window.termehQaPreviewActive();
+    }),false,'The real release must ignore a manually forced JavaScript QA flag');
     await freePage.locator('#appMenuToggle').click();
     await freePage.locator('#parentLaunch').click();
     const parentMath=await freePage.locator('#hubMath').innerText();
