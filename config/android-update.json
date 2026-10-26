@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 19,
+  "latestVersionCode": 20,
   "storeUrl": "",
-  "notes": "1.3.14-beta QA: compact three-color mastery strip at bottom of note game with 7-second tap explanation; previously purchased cosmetic trophies visibly appear on the staff/piano and can be equipped; future rewards cost more practice and coins accrue once per four completed questions. No progression or paid entitlement change."
+  "notes": "1.3.15-beta QA: new treble note levels unlock gradually (5 starter, 8 mixed, 12 mixed) based on repeated correct first tries and recent accuracy; old notes keep returning. An end-of-lesson on-staff recap highlights mistake/hesitation notes. Family-only signed QA variant exposes full noncommercial practice while public release keeps five free notes and payments disabled. No forced updates."
 }
