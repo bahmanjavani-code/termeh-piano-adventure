@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 15,
+  "latestVersionCode": 16,
   "storeUrl": "",
-  "notes": "1.3.10 beta QA: parent-only, no-charge Bazaar prior-purchase lookup with native Android Keystore cache; no checkout, no premium unlock, no forced update."
+  "notes": "1.3.11 beta QA: adaptive, meaningful treble/bass note mastery (30/80/150 questions, first-try accuracy, recognition speed, balanced final assessment). Existing progress/rewards remain saved; no real checkout or paid unlock."
 }
