@@ -96,6 +96,9 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.evaluate(()=>TREBLE_NOTES.length),12,'Debug-only upper G5 practice expected');
     assert.equal(await page.evaluate(()=>getActiveTrebleNotes().length),5,'First lesson should start with five beginner notes');
     assert.equal(await page.evaluate(()=>BASS_NOTES.length),10,'Debug preview should include bass');
+    assert.equal(await page.locator('[data-pitch]').count(),5,'Starter keyboard must display only five taught pitches');
+    assert(await page.locator('#pianoKey-C4').count()===1,'Starting keyboard must label middle C with octave 4');
+    assert(!(await page.locator('#pianoKey-C5').count()),'Untaught upper C must not be shown in stage one');
     assert.equal(await page.evaluate(()=>NOTE_DURATIONS.length),4,'Debug preview should include rhythm');
     await assertEnglishScreen('initial staff');
     assert(await page.locator('#masteryDock').isVisible(),'Compact progress strip must be visible under the music game');
@@ -146,7 +149,7 @@ const { chromium }=require('playwright-core');
       assert(!/[\u0600-\u06ff]/.test(txt),'Persian leaked in English '+id+': '+txt);
     }
     await page.locator('#nextQuestionBtn').click();
-    const wrong=await page.evaluate(()=>['A','B','C','D','E','F','G'].find(x=>x!==state.currentStaffNote.keyId));
+    const wrong=await page.evaluate(()=>getActiveTrebleNotes().find(x=>x.keyId!==state.currentStaffNote.keyId).keyId);
     await page.locator('#pianoKey-'+wrong).click();
     const wrongText=await page.locator('#mascotSpeech').innerText();
     assert(!/[\u0600-\u06ff]/.test(wrongText),'Wrong-answer guidance not translated: '+wrongText);
@@ -258,6 +261,12 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.evaluate(()=>state.trebleNoteTier),3);
     assert.deepEqual(await page.evaluate(()=>getActiveTrebleNotes().map(n=>n.code)),['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5']);
     await assertEnglishScreen('upper treble lesson completion');
+    assert.equal(await page.locator('[data-pitch]').count(),12,'High-note stage requires 12 separate octave-specific piano keys');
+    assert(await page.locator('#pianoKey-C4').count()===1);
+    assert(await page.locator('#pianoKey-C5').count()===1);
+    assert.notEqual(await page.locator('#pianoKey-C4').getAttribute('aria-label'),
+                    await page.locator('#pianoKey-C5').getAttribute('aria-label'),
+      'Piano labels must tell C4 apart from C5');
     await page.locator('#learningMilestoneContinue').click();
     await page.reload();
     assert.equal(await page.evaluate(()=>state.trebleNoteTier),3,'Full preview tier must persist across reload');
@@ -282,6 +291,9 @@ const { chromium }=require('playwright-core');
     await page.locator('#modeTab-bass').click();
     assert.equal(await page.evaluate(()=>state.mode),'bass','Bass did not unlock after assessment');
     await assertEnglishScreen('bass clef');
+    assert.equal(await page.locator('[data-pitch]').count(),10,'Bass should have ten octave-specific pitch keys');
+    assert(await page.locator('#pianoKey-C3').count()===1 && await page.locator('#pianoKey-C4').count()===1,
+      'Bass must not collapse C3 and C4 into the same piano key');
     await page.evaluate(()=>{
       state.mastery.bass.attempts=Array.from({length:150},(_,i)=>({correct:true,note:BASS_NOTES[i%BASS_NOTES.length].code,ms:1200,at:Date.now()}));
       updateExamButton();
@@ -500,6 +512,9 @@ const { chromium }=require('playwright-core');
     assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
     await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
+    assert.equal(await freePage.locator('[data-pitch]').count(),5,'Public release must retain only taught beginner keys');
+    assert.equal(await freePage.locator('#pianoKey-C5').count(),0,
+      'A missing paid high note must not leak into the free keyboard');
     assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
     assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
     assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
