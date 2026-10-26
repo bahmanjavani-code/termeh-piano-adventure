@@ -34,8 +34,10 @@ final class VerifiedPremiumLessons {
     private VerifiedPremiumLessons() {}
 
     static boolean enabled() {
+        // Previously purchased content must still restore while sales are
+        // temporarily paused for merchant QA. This does NOT authorize new
+        // charges: checkoutConfigured() has a separate explicit sale flag.
         return !BuildConfig.DEBUG
-                && BuildConfig.BAZAAR_CHECKOUT_ENABLED
                 && BuildConfig.PAID_PACK_STAGED
                 && BuildConfig.PREMIUM_CONTENT_KEY_HEX.length() == 64
                 && !BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty();
