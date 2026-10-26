@@ -8,7 +8,7 @@ const html = fs.readFileSync('app/src/main/assets/index.html', 'utf8');
 const manifest = fs.readFileSync('app/src/main/AndroidManifest.xml', 'utf8');
 assert.match(gradle,/versionCode 33\s+versionName '1\.0\.0'/, 'Official 1.0.0 must upgrade in place from beta build 32');
 assert.equal(update.latestVersionCode,33, 'Update metadata must match official build 33');
-assert(gradle.includes("applicationId 'com.termeh.piano'"), 'Do not reset child's saved local progress by changing the package');
+assert(gradle.includes("applicationId 'com.termeh.piano'"), 'Preserve previously saved local progress by changing the package');
 assert(manifest.includes('android:allowBackup="false"'), 'Do not silently change backup/security policy');
 assert(!html.includes('(پس از تکمیل و آزمایش)'), 'Final checkout screen cannot advertise unfinished beta plans');
 assert(!html.includes('Advanced lessons are planned for'), 'Final checkout screen cannot advertise unfinished beta plans');
