@@ -59,7 +59,7 @@ try{
   assert.equal(beta.schema,1);
   assert.equal(beta.packageName,PACKAGE_NAME);
   assert.equal(beta.productId,SKU);
-  assert.equal(beta.trebleExtra.length,6);
+  assert.equal(beta.trebleExtra.length,7);
   assert.equal(beta.bass.length,10);
   assert.equal(beta.durations.length,4);
   fs.writeFileSync(file('beta-demo.json'),JSON.stringify(beta));

@@ -28,6 +28,8 @@ jobs:
         run: node tests/quality.test.cjs
       - name: Test long-term note mastery, adaptive drill and balanced final assessment
         run: node tests/mastery-engine.test.cjs
+      - name: Test stepwise note curriculum and retention of old notes
+        run: node tests/note-curriculum.test.cjs
       - name: Test cosmetic economy and avoid easy trophy farming
         run: node tests/rewards-economy.test.cjs
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
@@ -146,6 +148,52 @@ jobs:
         run: |
           echo "### Signed QA candidate — DO NOT PUBLISH (billing and restoration unfinished)" >> "$GITHUB_STEP_SUMMARY"
           echo "[Download signed candidate]($URL)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Build family-only full-curriculum QA APK (never publish)
+        env:
+          TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
+          TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
+          TERMEH_KEY_PASSWORD: ${{ secrets.TERMEH_KEY_PASSWORD }}
+        run: gradle --no-daemon :app:assembleFamily
+      - name: Verify private family APK signing and content segregation
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/family/app-family.apk"
+          PUBLIC="app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          test -s "$PUBLIC"
+          APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -1)"
+          AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
+          "$APKSIGNER" verify "$APK"
+          CERT="$("$APKSIGNER" verify --print-certs "$APK" | awk '/certificate SHA-256 digest:/ {print $NF; exit}' | tr 'A-F' 'a-f' | tr -d '[:space:]')"
+          test "$CERT" = "${{ steps.signing_cert.outputs.sha256 }}"
+          "$AAPT" dump badging "$APK" | grep -q "package: name='com.termeh.piano'"
+          if "$AAPT" dump badging "$APK" | grep -q 'application-debuggable'; then
+            echo "::error::Family QA APK must not be debuggable"
+            exit 1
+          fi
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'debug-full-preview'
+          unzip -p "$APK" assets/premium-preview.js | grep -q '"code": "G5"'
+          unzip -p "$PUBLIC" assets/premium-preview.js | grep -q 'release-free'
+          if unzip -p "$PUBLIC" assets/premium-preview.js | grep -Eq '(debug-full-preview|trebleExtra|G5)'; then
+            echo "::error::Family preview leaked into public release APK"
+            exit 1
+          fi
+          echo "PASS: family-only practice APK is signed with original key; public release excludes preview."
+      - name: Upload private family training APK — NEVER PUBLISH
+        id: family_upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Termeh-Piano-FAMILY-FULL-TRAINING-SIGNED-QA-NEVER-PUBLISH
+          path: app/build/outputs/apk/family/app-family.apk
+          if-no-files-found: error
+          retention-days: 14
+      - name: Show clearly marked family-only download
+        env:
+          FAMILY_URL: ${{ steps.family_upload.outputs.artifact-url }}
+        run: |
+          echo "### For the creator family's device ONLY (not a commercial or store APK)" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Download signed family full-training QA APK]($FAMILY_URL)" >> "$GITHUB_STEP_SUMMARY"
       - name: Remove temporary signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/termeh-release.jks"
