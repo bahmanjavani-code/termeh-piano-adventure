@@ -31,11 +31,19 @@ assert(text.includes('allow_controlled_real_checkout:'),'Explicit per-run contro
 assert(text.includes('default: false'),'Real charging MUST be OFF by default');
 assert(text.includes('  push:') && text.includes('    branches: [main]'),
   'Latest main must automatically generate a signed nonchargeable APK candidate');
-const onlyExplicit="github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0'";
-assert.equal(text.split(onlyExplicit).length-1,3,
-  'All billing gate paths (certificate, summary and APK build) must require EXPLICIT manual dispatch');
-assert(!text.includes('TERMEH_ENABLE_LIVE_CHECKOUT: ' + '${{ inputs.allow_controlled_real_checkout'),
-  'A push must never allow live checkout even if stale repository variables are enabled');
+const confirmGate="github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES'";
+assert.equal(text.split(confirmGate).length-1,7,
+  'Every checkout trigger, summary, package name and build check must require manual checkbox AND exact typed acknowledgement');
+assert(text.includes('owner_payment_acknowledgement:') && text.includes("default: ''"),
+  'A blank acknowledgement is required by default');
+assert(!text.includes('vars.TERMEH_ENABLE_LIVE_CHECKOUT') &&
+       !text.includes('vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED'),
+  'Sticky repository variables must never authorize real money');
+assert(text.includes('BAZAAR_CHECKOUT_ENABLED = false;') &&
+       text.includes('BAZAAR_CHECKOUT_ENABLED = true;'),
+  'Signed build must fail if compiled checkout mode disagrees with the requested one-time setting');
+assert(text.includes('Termeh-Piano-CONTROLLED-REAL-PAYMENT-TEST-DO-NOT-PUBLISH'),
+  'A money-enabled test artifact must be clearly distinguished from nonchargeable QA');
 assert(text.includes("TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED:"),
   'Real controlled checkout must ALSO require the merchant owner approval variable');
 assert(text.includes('TERMEH_KEYSTORE_BASE64'),'Never publish using an ephemeral QA keystore');
