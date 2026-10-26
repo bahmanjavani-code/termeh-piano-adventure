@@ -69,6 +69,9 @@ assert(preview.includes('release-free')&&preview.includes('TERMEH_DEBUG_PREMIUM 
   'The public preview must NOT expose full paid content for sideload sharing');
 assert(!preview.includes('trebleExtra')&&!preview.includes('"code": "G5"'),
   'Premium lesson definitions must not ship in free public APK');
-assert(activity.includes('if (BuildConfig.DEBUG)')&&activity.includes('new BazaarBillingBridge(this, web)'),
-  'Keep checkout disabled in release while retaining read-only development QA');
+assert(activity.includes('if (BuildConfig.DEBUG || !BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty())')
+    && activity.includes('new BazaarBillingBridge(this, web)'),
+  'Native billing available only in debug or when actual merchant public key is configured');
+assert(gradle.includes("System.getenv('TERMEH_ENABLE_LIVE_CHECKOUT') == '1'"),
+  'Release checkout remains disabled until the owner explicitly approves payment QA');
 console.log('PASS: explicit parent opt-in, Android permission, one daily local reminder, quiet hours, no-data practice detection, safe free release.');
