@@ -58,7 +58,7 @@ const { chromium }=require('playwright-core');
     await page.goto(debugUrl);
     // Upgrading from the original notice must require acknowledgment of its revised scope,
     // without touching any previously stored learning progress.
-    await page.evaluate(()=>{localStorage.setItem('termeh_parent_welcome_v1','accepted');localStorage.setItem('termeh_keep_progress_probe','preserve-me')});
+    await page.evaluate(()=>{localStorage.setItem('termeh_parent_welcome_v2',JSON.stringify({revision:2,acknowledged:true}));localStorage.setItem('termeh_keep_progress_probe','preserve-me')});
     await page.locator("button[onclick=\"chooseLanguage('en')\"]").click();
     await page.waitForTimeout(300);
     // A parent must acknowledge once, after choosing the language, before the child can play.
@@ -66,7 +66,7 @@ const { chromium }=require('playwright-core');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Notice must not auto-accept');
     assert((await page.locator('#parentWelcome').innerText()).includes('not the primary source of music education'),'Educational scope must be conspicuous before play');
     assert((await page.locator('#parentWelcome').innerText()).includes('No specific learning or playing outcome is guaranteed'),'No-guaranteed-results notice missing');
-    assert((await page.locator('#parentWelcome').innerText()).includes('Real checkout is disabled in this beta'),'Purchase limitations must be clear');
+    assert((await page.locator('#parentWelcome').innerText()).includes('no in-app purchases or subscription'),'One paid download, no second payment must be clear to parents');
     // The parent cannot bypass the notice by reloading or invoking the handler directly.
     await page.evaluate(()=>confirmParentWelcome());
     assert(await page.locator('#parentWelcome').isVisible(),'Missing checkbox must block acknowledgment');
@@ -82,8 +82,8 @@ const { chromium }=require('playwright-core');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Unticking should lock continue again');
     await page.locator('#welcomeAccepted').check();
     await page.locator('#welcomeContinue').click();
-    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v2')));
-    assert.equal(noticeRecord.revision,2);
+    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v3')));
+    assert.equal(noticeRecord.revision,3);
     assert.equal(noticeRecord.acknowledged,true);
     assert.equal(noticeRecord.language,'en');
     assert(!Number.isNaN(Date.parse(noticeRecord.acknowledgedAt)),'Acknowledgment date missing');
@@ -344,8 +344,8 @@ const { chromium }=require('playwright-core');
 
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en','English preference not persisted');
     assert.equal(await page.evaluate(()=>document.documentElement.getAttribute('data-termeh-theme')),'dark','Dark theme preference must persist');
-    // A different release asset is packaged for paying/non-paying production users.
-    // The release must remain free and must NOT embed premium lesson definitions.
+    // The signed paid-before-download candidate MUST bundle the same full
+    // teaching content while keeping the educational mastery gates.
     // Confirm the same parental briefing works in Persian without automatically consenting.
     const faPage=await browser.newPage({viewport:{width:390,height:844}});
     faPage.on('pageerror',e=>errors.push('fa '+e.message));
@@ -357,7 +357,7 @@ const { chromium }=require('playwright-core');
     assert(await faPage.locator('#welcomeContinue').isDisabled());
     await faPage.locator('#welcomeAccepted').check();
     await faPage.locator('#welcomeContinue').click();
-    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v2')).language),'fa');
+    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v3')).language),'fa');
     await faPage.close();
     const freePage=await browser.newPage({viewport:{width:390,height:844}});
     freePage.on('pageerror',e=>errors.push('release '+e.message));
@@ -379,23 +379,33 @@ const { chromium }=require('playwright-core');
       assert(!(await freePage.locator('#'+id).isVisible()),'Do not show inaccessible QA/checkout button to release parents: '+id);
     }
     assert(await freePage.locator('#sendParentFeedback').isVisible(),'Parent feedback should remain accessible');
-    assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
+    assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Upfront-payment terms must be shown');
+    assert((await freePage.locator('.termehStoreOnly').first().innerText()).includes('no in-app payment'),
+      'Paid-before-download must never imply a second purchase');
     await freePage.locator('#parentHub .close').click();
-    assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
-    assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
-    assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
-    assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
+    assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),12,'Paid release must include twelve treble notes');
+    assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),3,
+      'Paid release must include all three gradual tiers');
+    assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),10,'Paid release must include bass lessons');
+    assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),4,'Paid release must include rhythm lessons');
+    assert.equal(await freePage.evaluate(()=>TermehMeterEngine.METERS['6/8'].beats),2,
+      'Paid release must have compound 6/8 meter builder');
+    assert.equal(await freePage.evaluate(()=>state.trebleNoteTier),1,
+      'Paid download must not instantly skip the first educational lesson');
     await freePage.locator('#modeTab-rhythm').click();
     assert(await freePage.locator('#unlockOverlay').evaluate(el=>el.classList.contains('open')),
-      'Free release must not make paid rhythm activities navigable');
+      'Purchasing download must never bypass required learning and assessments');
     await freePage.locator('#unlockOverlay button.secondary').first().click();
     await freePage.evaluate(()=>{
       state.mastery.treble.attempts=Array.from({length:80},()=>({correct:true,note:'G4',ms:800,at:Date.now()}));
       state.mastery.treble.examPassed=true;
     });
-    assert(!(await freePage.evaluate(()=>isModeUnlocked('bass'))),'Local progress must not unlock missing paid lessons');
+    assert(!(await freePage.evaluate(()=>isModeUnlocked('bass'))),
+      'Forged local progress cannot bypass note recognition coverage and final test');
     await freePage.locator('#modeTab-bass').click();
-    assert(await freePage.locator('#unlockOverlay').evaluate(x=>x.classList.contains('open')),'Free release must show locked premium lesson notice');
+    assert(await freePage.locator('#unlockOverlay').evaluate(x=>x.classList.contains('open')),
+      'Paid app must describe EDUCATIONAL lock rather than a second purchase');
+    assert((await freePage.locator('#unlockText').innerText()).includes('Buying the app never bypasses learning stages.'));
     assert(!errors.length,'Browser JavaScript errors: '+errors.join(' | '));
     console.log('PASS: English flow, parent gate, 20/80-question false-completion regression, 150-question fluency and independent treble/bass exams.');
   }finally{await browser.close();for(const dir of dirs)fs.rmSync(dir,{recursive:true,force:true})}
