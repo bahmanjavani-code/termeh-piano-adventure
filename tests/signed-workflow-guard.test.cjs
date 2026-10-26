@@ -36,6 +36,13 @@ assert.equal(text.split(confirmGate).length-1,7,
   'Every checkout trigger, summary, package name and build check must require manual checkbox AND exact typed acknowledgement');
 assert(text.includes('owner_payment_acknowledgement:') && text.includes("default: ''"),
   'A blank acknowledgement is required by default');
+// One-time test charge authorization is scoped to a single, known main push
+// immediately after a reviewed 1.0.0 release merge, never to routine updates.
+const temporaryOneShot="github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '382adce0446788b74ed8bd58f35712da946d7499' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.0-paid-qa-binary')";
+assert.equal(text.split(temporaryOneShot).length - 1, 7,
+  'One-time checkout must be tied to a specific prior main SHA, approval marker and all monetary build gates');
+assert(text.includes('Termeh-Piano-CONTROLLED-REAL-PAYMENT-TEST-DO-NOT-PUBLISH'),
+  'Charged QA must be clearly distinguishable from normal no-payment production builds');
 assert(!text.includes('vars.TERMEH_ENABLE_LIVE_CHECKOUT') &&
        !text.includes('vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED'),
   'Sticky repository variables must never authorize real money');
