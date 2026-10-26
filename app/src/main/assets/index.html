@@ -1263,6 +1263,89 @@
             // The answer sound is played after a correct response, not before it.
         }
 
+        let milestoneContinueNext=false;
+        // This review is shown ONLY after finishing a real learning checkpoint.
+        // It uses first-attempt mistakes / slow correct answers recorded in the
+        // last 60 questions. It is not a medical or scientific assessment.
+        function openLearningMilestone(mode,practicePool,newNotes=[],advanceNext=false){
+            const en=isEnglish();
+            const box=document.getElementById('learningMilestone');
+            const title=document.getElementById('learningMilestoneHeading');
+            const desc=document.getElementById('learningMilestoneDescription');
+            const caption=document.getElementById('learningMilestoneWeakTitle');
+            const names=document.getElementById('learningMilestoneNoteNames');
+            const svg=document.getElementById('learningMilestoneStaff');
+            const history=(state.mastery[mode]||{attempts:[]}).attempts;
+            const difficult=TermehNoteCurriculum.hardestNotes(history,practicePool,3);
+            milestoneContinueNext=advanceNext;
+            const newList=newNotes.map(n=>en?n.code:n.faName).join(en?', ':'، ');
+            title.textContent=newNotes.length?(en?'🌟 New notes unlocked!':'🌟 نت‌های جدید باز شدند!'):
+                (en?'🎼 Your practice review':'🎼 مرور نتیجهٔ تمرین');
+            desc.textContent=newNotes.length?
+                (en?`You earned new notes: ${newList}. Earlier notes stay in every practice session.`:
+                    `آفرین! نت‌های ${newList} باز شدند. نت‌های قبلی هم همیشه در تمرین‌ها می‌مانند.`):
+                (en?'Here are notes to revisit from your recent practice.':
+                    'این نت‌ها در تمرین‌های اخیر به مرور بیشتری نیاز داشتند.');
+            caption.textContent=difficult.length?
+                (en?'A few notes to practice again:':'این نت‌ها را یک بار دیگر تمرین کنیم:'):
+                (en?'Nice work! No recent trouble notes were detected.':
+                    'آفرین! در تمرین‌های اخیر نت مشکل‌داری ثبت نشده.');
+            const lineYs=[140,120,100,80,60];
+            const lineParts=lineYs.map(y=>`<line x1="25" y1="${y}" x2="475" y2="${y}" stroke="#475569" stroke-width="2.3"/>`).join('');
+            const clef=mode==='bass'?'𝄢':'𝄞';
+            const ref=mode==='bass'?'#6d28d9':'#e11d48';
+            const clefX=mode==='bass'?63:36;
+            const clefY=mode==='bass'?109:150;
+            const clefSize=mode==='bass'?78:125;
+            const noteMarks=difficult.map(({note},i)=>{
+                const x=170+115*i,y=note.svgY;
+                const ledger=note.ledgerY===null?'':`<line x1="${x-23}" y1="${note.ledgerY}" x2="${x+23}" y2="${note.ledgerY}" stroke="#334155" stroke-width="3"/>`;
+                const text=en?note.code:note.faName;
+                // Display names BELOW the staff; never use note color to hint at an answer in gameplay.
+                return ledger+`<ellipse cx="${x}" cy="${y}" rx="13" ry="10" transform="rotate(-16 ${x} ${y})" fill="#4c1d95"/><line x1="${x+12}" y1="${y}" x2="${x+12}" y2="${y-42}" stroke="#4c1d95" stroke-width="3"/><text x="${x}" y="196" font-size="16" font-weight="800" fill="#312e81" text-anchor="middle">${text}</text>`;
+            }).join('');
+            // The SVG only uses constant staff geometry and validated in-app note data.
+            svg.innerHTML=`${lineParts}<text x="${clefX}" y="${clefY}" font-family="serif" font-size="${clefSize}" fill="${ref}">${clef}</text>${noteMarks}`;
+            names.textContent=difficult.length?(en?'Mistakes and slow answers help choose these notes.':
+                'این انتخاب بر اساس اشتباه‌ها و مکث‌های طولانی است.'):'';
+            box.classList.add('open');
+            box.querySelector('.box').focus();
+        }
+        function closeLearningMilestone(){
+            document.getElementById('learningMilestone').classList.remove('open');
+            const move=milestoneContinueNext;milestoneContinueNext=false;
+            if(move)loadNewStaffQuestion();
+            else document.getElementById('nextQuestionBtn').focus();
+        }
+        function showWeakNoteReview(){
+            if(state.mode==='rhythm')switchGameMode('treble');
+            const pool=state.mode==='treble'?getActiveTrebleNotes():BASS_NOTES;
+            openLearningMilestone(state.mode,pool,[],false);
+        }
+        function showUpcomingMilestone(){
+            if(state.mode==='treble'){
+                const previous=getActiveTrebleNotes();
+                const checked=TermehNoteCurriculum.promotionStatus(
+                    state.trebleNoteTier,TREBLE_NOTES,state.mastery.treble.attempts);
+                if(checked.eligible&&checked.nextTier>state.trebleNoteTier){
+                    state.trebleNoteTier=checked.nextTier;
+                    const newNotes=getActiveTrebleNotes().slice(previous.length);
+                    saveState();updateExamButton();
+                    openLearningMilestone('treble',previous,newNotes,true);
+                    return true;
+                }
+            }else if(state.mode==='bass'){
+                const stage=getMastery('bass').stage;
+                if(stage>state.reviewedBassStage){
+                    state.reviewedBassStage=stage;
+                    saveState();
+                    openLearningMilestone('bass',BASS_NOTES,[],true);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function goToNextStaffQuestion() {
             if (state.exam && state.exam.active) return;
             if (!state.staffQuestionSolved) return;
@@ -2499,6 +2582,7 @@ html[data-termeh-theme=dark] #appMenuToggle{background:#1e293b;color:#f5f3ff;bor
     <button id="parentLaunch" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">👨‍👩‍👧 <span class="only-fa">بخش والدین و مدیریت حساب</span><span class="only-en">Parent controls and account</span></button>
     <button type="button" class="termehMenuAction" onclick="closeTermehMenu();showMasteryFromMenu()">📊 <span class="only-fa">نمایش پیشرفت آموزشی</span><span class="only-en">View learning progress</span></button>
     <button id="menuFeedback" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">💬 <span class="only-fa">نظرات و پیشنهادها (فقط والدین)</span><span class="only-en">Suggestions and feedback (parents only)</span></button>
+    <button type="button" class="termehMenuAction" onclick="closeTermehMenu();showWeakNoteReview()">🎼 <span class="only-fa">نت‌های نیازمند تمرین بیشتر روی حامل</span><span class="only-en">Notes to revisit on the music staff</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('science')">📚 <span class="only-fa">روش آموزشی و منابع معتبر</span><span class="only-en">Learning approach and sources</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('limits')">⚖️ <span class="only-fa">محدودیت آموزشی و شرایط استفاده</span><span class="only-en">Educational limitations and terms</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('privacy')">🛡️ <span class="only-fa">خلاصهٔ حریم خصوصی</span><span class="only-en">Privacy summary</span></button>
