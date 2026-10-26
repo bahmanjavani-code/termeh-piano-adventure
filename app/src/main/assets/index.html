@@ -583,7 +583,7 @@
             <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3">
                 <div>
                     <h3 class="font-black text-lg text-amber-800">🏆 قفسه جوایز و استیکرها</h3>
-                    <p class="text-xs font-bold text-slate-500">با سکه‌هایی که از جواب‌های درست می‌گیری جایزه باز کن!</p>
+                    <p class="text-xs font-bold text-slate-500"><span class="only-fa">نشان‌ها رو بگیر و روی پیانوت نصب کن!</span><span class="only-en">Earn a badge and decorate your piano!</span></p>
                 </div>
                 <button onclick="closeTrophyModal()" class="w-9 h-9 rounded-full bg-rose-100 text-rose-600 font-black text-lg flex items-center justify-center">✕</button>
             </div>
@@ -602,6 +602,8 @@
                 </div>
             </div>
 
+            <p id="shopEquippedPreview" role="status"><span class="only-fa">🌟 نشانِ روی پیانو</span><span class="only-en">🌟 Your piano badge</span></p>
+            <p class="text-xs font-bold text-slate-700"><span class="only-fa">🪙 هر ۴ تمرین کامل یک سکه؛ نشان‌های ویژه به تمرین بیشتری هم نیاز دارند. جایزه‌ها فقط تزئینی‌اند.</span><span class="only-en">🪙 Earn one coin for every four completed exercises; special badges also require more practice. Rewards are cosmetic only.</span></p>
             <div id="trophyGrid" class="grid grid-cols-2 gap-3">
                 <!-- Populated via JS -->
             </div>
@@ -1900,45 +1902,55 @@
         }
 
         function renderTrophyModalContent() {
-            document.getElementById('modalCoinBalance').textContent = state.coins;
-            document.getElementById('modalStarBalance').textContent = state.stars;
-
-            const grid = document.getElementById('trophyGrid');
-            grid.innerHTML = TROPHIES.map(t => {
-                const isUnlocked = state.unlockedBadges.includes(t.id);
-                const canAfford = state.coins >= t.cost;
-
+            document.getElementById('modalCoinBalance').textContent=state.coins;
+            document.getElementById('modalStarBalance').textContent=state.stars;
+            showEquippedTrophy();
+            const en=isEnglish();
+            const grid=document.getElementById('trophyGrid');
+            grid.innerHTML=TROPHIES.map(t=>{
+                const owned=state.unlockedBadges.includes(t.id);
+                const worn=owned&&state.equippedBadgeId===t.id;
+                const ready=TermehRewards.canBuy(t,state.coins,state.stars,state.unlockedBadges);
+                const starsLeft=Math.max(0,t.minStars-state.stars);
+                const coinsLeft=Math.max(0,t.cost-state.coins);
+                const name=en?EN_TROPHIES[t.id][0]:t.name;
+                const desc=en?EN_TROPHIES[t.id][1]:t.desc;
+                const requirement=en?
+                    `Need ${t.minStars} practice stars · ${t.cost} coins`:
+                    `نیاز به ${t.minStars} ستاره تمرین و ${t.cost} سکه`;
+                const pending=en?
+                    `Still needed: ${starsLeft} stars, ${coinsLeft} coins`:
+                    `باقی‌مانده: ${starsLeft} ستاره و ${coinsLeft} سکه`;
+                let action;
+                if(owned) {
+                    action=`<button type="button" onclick="equipTrophy('${t.id}')" aria-pressed="${worn}" class="mt-auto w-full rounded-xl px-2 py-2 font-black text-xs ${worn?'bg-emerald-600 text-white':'bg-violet-600 text-white'}">${worn?(en?'✓ On the piano':'✓ روی پیانو نصب شد'):(en?'✨ Show on piano':'✨ نصب روی پیانو')}</button>`;
+                } else {
+                    action=`<button type="button" onclick="buyTrophy('${t.id}')" ${ready?'':'disabled'} class="mt-auto w-full rounded-xl px-2 py-2 font-black text-xs ${ready?'bg-amber-400 text-slate-900':'bg-slate-300 text-slate-600'}">${ready?(en?'🎁 Earn badge':'🎁 گرفتن نشان'):(en?'🔒 Keep practicing':'🔒 تمرین بیشتری لازم است')}</button>`;
+                }
                 return `
-                    <div class="p-3 rounded-2xl border-2 flex flex-col items-center text-center gap-1.5 ${isUnlocked ? 'bg-gradient-to-b from-yellow-50 to-amber-100 border-amber-400 shadow' : 'bg-slate-100 border-slate-300 opacity-85'}">
-                        <div class="w-14 h-14 rounded-2xl bg-white shadow-inner flex items-center justify-center text-3xl ${isUnlocked ? '' : 'grayscale opacity-50'}">
-                            ${t.emoji}
-                        </div>
-                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${isEnglish() ? EN_TROPHIES[t.id][0] : t.name}</h4>
-                        <p class="text-[11px] text-slate-500 leading-tight">${isEnglish() ? EN_TROPHIES[t.id][1] : t.desc}</p>
-                        ${
-                            isUnlocked
-                            ? `<span class="mt-auto bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-xl w-full">✓ باز شده!</span>`
-                            : `<button onclick="buyTrophy('${t.id}')" ${canAfford ? '' : 'disabled'} class="mt-auto btn-cartoon w-full py-1.5 px-2 rounded-xl font-black text-xs border-b-4 ${canAfford ? 'bg-amber-400 hover:bg-amber-500 text-slate-900 border-amber-600' : 'bg-slate-300 text-slate-500 border-slate-400 cursor-not-allowed'}">
-                                🔓 باز کردن (${t.cost} 🪙)
-                               </button>`
-                        }
-                    </div>
-                `;
+                    <div class="p-3 rounded-2xl border-2 flex flex-col items-center text-center gap-1.5 ${owned?'bg-gradient-to-b from-yellow-50 to-amber-100 border-amber-400 shadow':'bg-slate-100 border-slate-300'}">
+                        <div class="w-14 h-14 rounded-2xl bg-white shadow-inner flex items-center justify-center text-3xl ${owned?'':'grayscale opacity-50'}">${t.emoji}</div>
+                        <h4 class="font-black text-xs sm:text-sm text-slate-800">${name}</h4>
+                        <p class="text-[11px] text-slate-600 leading-tight">${desc}</p>
+                        ${owned?'':`<p class="text-[11px] font-bold text-amber-900">${requirement}</p><p class="text-[11px] text-slate-600">${pending}</p>`}
+                        ${action}
+                    </div>`;
             }).join('');
         }
 
         function buyTrophy(trophyId) {
-            const trophy = TROPHIES.find(t => t.id === trophyId);
-            if (!trophy || state.unlockedBadges.includes(trophyId)) return;
-            if (state.coins < trophy.cost) {
+            const trophy=TROPHIES.find(t=>t.id===trophyId);
+            if(!TermehRewards.canBuy(trophy,state.coins,state.stars,state.unlockedBadges)) {
                 playWrongSound();
                 return;
             }
-            state.coins -= trophy.cost;
+            state.coins-=trophy.cost;
             state.unlockedBadges.push(trophyId);
+            state.equippedBadgeId=trophyId;
             saveState();
             updateHeaderUI();
             renderTrophyModalContent();
+            closeTrophyModal(); // Show the earned sticker on the staff and piano.
             playSuccessSound();
             launchConfetti();
         }
