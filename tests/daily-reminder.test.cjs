@@ -63,7 +63,7 @@ assert(html.includes('window.TermehPractice.recordExercise();'),
   'Correctly completed exercises suppress same-day reminders');
 assert(html.includes('window.termehRefreshPracticeReminder();'),
   'Show real setting once parent arithmetic gate passes');
-assert(html.includes("const KEY='termeh_parent_welcome_v4',REVISION=4"),
+assert(html.includes("const KEY='termeh_parent_welcome_v5',REVISION=5"),
   'Parent must acknowledge revised permissions and purchase model without resetting learning');
 assert(preview.includes('release-free')&&preview.includes('TERMEH_DEBUG_PREMIUM = null'),
   'The public preview must NOT expose full paid content for sideload sharing');
