@@ -2,7 +2,10 @@ package com.termeh.piano;
 
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
-import android.app.Activity;
+import android.app.AlertDialog;
+import androidx.activity.ComponentActivity;
+import ir.cafebazaar.poolakey.request.PurchaseRequest;
+import java.util.Collections;
 
 import org.json.JSONObject;
 
@@ -16,32 +19,30 @@ import kotlin.Unit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Safe phase-one integration with Cafe Bazaar's official Poolakey SDK.
+ * Native Bazaar lifetime-purchase bridge with explicit BUILD-TIME safeties.
+ * By default (including ALL QA builds), checkout is off. A signed APK can
+ * enable it ONLY after RSA verification, AES paid-lesson pack provisioning and
+ * explicit opt-in. The real Cafe Bazaar catalog must also return this SKU.
  *
- * This bridge only queries locally verified ownership from Poolakey.
- * Parent-only restore checks can cache a native Android Keystore entitlement
- * for ALREADY-OWNED purchases. They NEVER initiate a charge or unlock content.
- * No purchase token or receipt is stored or sent to WebView JavaScript.
- * Two self-tests verify noncommercial AES content and disposable Keystore
- * storage without creating any purchase entitlement.
- *
- * The owner selected local Poolakey verification without a server; this has
- * limited resistance to patched APKs. No paid functionality may be enabled
- * until authenticated lesson decoding, offline ownership and restore are tested.
+ * The UI receives only constant statuses, a public price string and lesson
+ * DATA on a verified native entitlement; never receipt, token or developer key.
+ * Without our own trusted backend, sophisticated APK patching is still possible.
  */
 final class BazaarBillingBridge {
     static final String PACKAGE_ID = "com.termeh.piano";
     static final String LIFETIME_SKU = "termeh_premium_lifetime";
 
-    private final Activity activity;
+    private final ComponentActivity activity;
     private final WebView web;
     private Payment payment;
     private Connection connection;
     private volatile boolean connected;
     private volatile boolean destroyed;
     private final AtomicBoolean restoreInProgress = new AtomicBoolean(false);
+    private final AtomicBoolean purchaseInProgress = new AtomicBoolean(false);
+    private volatile boolean catalogReady;
 
-    BazaarBillingBridge(Activity activity, WebView web) {
+    BazaarBillingBridge(ComponentActivity activity, WebView web) {
         this.activity = activity;
         this.web = web;
     }
@@ -56,6 +57,13 @@ final class BazaarBillingBridge {
                 callback.connectionSucceed(() -> {
                     connected = true;
                     publishStatus("ready");
+                    if (VerifiedPremiumLessons.enabled()) {
+                        checkProductCatalog();
+                        // A successful online query will revoke a refunded offline
+                        // license. If Bazaar is offline, the prior genuine license
+                        // stays cached for legitimate offline use.
+                        restoreVerifiedPurchase();
+                    }
                     return Unit.INSTANCE;
                 });
                 callback.connectionFailed(error -> {
@@ -81,6 +89,172 @@ final class BazaarBillingBridge {
     public String status() {
         if (BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty()) return "not_configured";
         return connected ? "ready" : "unavailable";
+    }
+
+
+    private boolean checkoutConfigured() {
+        return !destroyed && connected && payment != null
+                && VerifiedPremiumLessons.enabled();
+    }
+
+    /**
+     * Browse one product's PUBLIC store price and confirm SKU provisioning.
+     * Never initiate a payment just by opening the parent section.
+     */
+    @JavascriptInterface
+    public void checkProductCatalog() {
+        activity.runOnUiThread(() -> {
+            if (!checkoutConfigured()) {
+                catalogReady = false;
+                publishOffer("offer_unavailable", "");
+                return;
+            }
+            try {
+                payment.getInAppSkuDetails(Collections.singletonList(LIFETIME_SKU), callback -> {
+                    callback.getSkuDetailsSucceed(details -> {
+                        boolean found = false;
+                        String price = "";
+                        if (details != null) {
+                            for (ir.cafebazaar.poolakey.entity.SkuDetails item : details) {
+                                if (item != null && LIFETIME_SKU.equals(item.getSku())
+                                        && item.getPrice() != null && !item.getPrice().trim().isEmpty()) {
+                                    found = true;
+                                    price = item.getPrice();
+                                    break;
+                                }
+                            }
+                        }
+                        catalogReady = found;
+                        publishOffer(found ? "offer_ready" : "offer_missing", found ? price : "");
+                        return Unit.INSTANCE;
+                    });
+                    callback.getSkuDetailsFailed(error -> {
+                        catalogReady = false;
+                        publishOffer("offer_unavailable", "");
+                        return Unit.INSTANCE;
+                    });
+                    return Unit.INSTANCE;
+                });
+            } catch (RuntimeException ignored) {
+                catalogReady = false;
+                publishOffer("offer_unavailable", "");
+            }
+        });
+    }
+
+    /** Called only by a deliberate tap in the parent math-gated screen. */
+    @JavascriptInterface
+    public void beginLifetimePurchase(String requestedLanguage) {
+        activity.runOnUiThread(() -> {
+            if (!checkoutConfigured() || !catalogReady) {
+                publishStatus("purchase_unavailable");
+                return;
+            }
+            if (!purchaseInProgress.compareAndSet(false, true)) {
+                publishStatus("purchase_busy");
+                return;
+            }
+            boolean en = "en".equals(requestedLanguage);
+            new AlertDialog.Builder(activity)
+                    .setTitle(en ? "One-time Termeh Piano upgrade" : "ارتقای دائمی پیانوی ترمه")
+                    .setMessage(en ?
+                        "You are leaving the game for Cafe Bazaar's official checkout. The store shows the final price. No subscriptions." :
+                        "برای پرداخت به صفحهٔ رسمی کافه‌بازار می‌روید. قیمت نهایی در خود بازار نشان داده می‌شود. این خرید اشتراکی نیست.")
+                    .setNegativeButton(en ? "Cancel" : "انصراف", (dialog, which) -> {
+                        purchaseInProgress.set(false);
+                        publishStatus("purchase_cancelled");
+                    })
+                    .setOnCancelListener(dialog -> {
+                        purchaseInProgress.set(false);
+                        publishStatus("purchase_cancelled");
+                    })
+                    .setPositiveButton(en ? "Continue in Bazaar" : "ادامه در کافه‌بازار", (dialog, which) -> {
+                        if (!checkoutConfigured() || !catalogReady) {
+                            purchaseInProgress.set(false);
+                            publishStatus("purchase_unavailable");
+                            return;
+                        }
+                        try {
+                            // Do not consume a lifetime/non-consumable purchase.
+                            payment.purchaseProduct(activity.getActivityResultRegistry(),
+                                new PurchaseRequest(LIFETIME_SKU, "termeh_lifetime", null),
+                                callback -> {
+                                    callback.purchaseFlowBegan(() -> {
+                                        publishStatus("purchase_started");
+                                        return Unit.INSTANCE;
+                                    });
+                                    callback.failedToBeginFlow(error -> {
+                                        purchaseInProgress.set(false);
+                                        publishStatus("purchase_failed");
+                                        return Unit.INSTANCE;
+                                    });
+                                    callback.purchaseSucceed(purchase -> {
+                                        purchaseInProgress.set(false);
+                                        if (purchase != null
+                                                && PACKAGE_ID.equals(purchase.getPackageName())
+                                                && LIFETIME_SKU.equals(purchase.getProductId())
+                                                && purchase.getPurchaseState() == PurchaseState.PURCHASED) {
+                                            publishStatus("purchase_verifying");
+                                            // Query CURRENT inventory again; never unlock on
+                                            // a purchase callback or receipt from JavaScript.
+                                            restoreVerifiedPurchase();
+                                        } else publishStatus("purchase_failed");
+                                        return Unit.INSTANCE;
+                                    });
+                                    callback.purchaseCanceled(() -> {
+                                        purchaseInProgress.set(false);
+                                        publishStatus("purchase_cancelled");
+                                        return Unit.INSTANCE;
+                                    });
+                                    callback.purchaseFailed(error -> {
+                                        purchaseInProgress.set(false);
+                                        publishStatus("purchase_failed");
+                                        return Unit.INSTANCE;
+                                    });
+                                    return Unit.INSTANCE;
+                                });
+                        } catch (RuntimeException ignored) {
+                            purchaseInProgress.set(false);
+                            publishStatus("purchase_failed");
+                        }
+                    }).show();
+        });
+    }
+
+    private void publishOffer(String status, String publicPrice) {
+        activity.runOnUiThread(() -> {
+            if (destroyed) return;
+            String cleaned = publicPrice == null ? "" : publicPrice.replaceAll("[\\p{Cntrl}]", "");
+            String safePrice = cleaned.substring(0, Math.min(80, cleaned.length()));
+            web.evaluateJavascript("window.termehBazaarOffer && window.termehBazaarOffer("
+                    + JSONObject.quote(status) + "," + JSONObject.quote(safePrice) + ");", null);
+        });
+    }
+
+    /** A LOCAL offline license only; no JS flag can call this accessor. */
+    void deliverCachedContent() {
+        if (!VerifiedPremiumLessons.enabled() || destroyed) return;
+        new Thread(() -> {
+            JSONObject result = VerifiedPremiumLessons.loadOwnedContent(activity);
+            if (result != null) publishPremiumContent(result);
+        }, "termeh-offline-paid-content").start();
+    }
+
+    private void publishPremiumContent(JSONObject content) {
+        if (content == null) return;
+        activity.runOnUiThread(() -> {
+            if (destroyed || !VerifiedPremiumLessons.enabled()) return;
+            // JSON DATA, never receipt/token. Quote as JS string before parsing.
+            web.evaluateJavascript("window.termehNativePremiumLoaded && window.termehNativePremiumLoaded(JSON.parse("
+                    + JSONObject.quote(content.toString()) + "));", null);
+        });
+    }
+
+    private void revokePremiumContent() {
+        activity.runOnUiThread(() -> {
+            if (destroyed) return;
+            web.evaluateJavascript("window.termehNativePremiumRevoked && window.termehNativePremiumRevoked();", null);
+        });
     }
 
     /** Read-only query. Results are NOT an entitlement until the native ownership gate is complete. */
@@ -204,11 +378,20 @@ final class BazaarBillingBridge {
                                 if (owned != null) {
                                     if (vault.recordVerifiedPurchase(owned)
                                             && vault.isOwnedOffline()) {
-                                        result = "restore_cached_no_unlock";
+                                        // The pack decrypts ONLY after the native
+                                        // signature-checked ownership is cached.
+                                        JSONObject lessons = VerifiedPremiumLessons.loadOwnedContent(activity);
+                                        if (lessons != null) {
+                                            publishPremiumContent(lessons);
+                                            result = "restore_active";
+                                        } else {
+                                            result = "restore_cached_no_unlock";
+                                        }
                                     }
                                 } else if (vault.clearAfterConfirmedNotOwned()) {
                                     // Clear only on a SUCCESSFUL Bazaar query with no
                                     // valid ownership, never for offline/network errors.
+                                    revokePremiumContent();
                                     result = "restore_no_purchase";
                                 }
                             } catch (Exception ignored) {
@@ -235,6 +418,8 @@ final class BazaarBillingBridge {
         });
     }
 
+    // Restoring a genuinely purchased SKU is harmless offline; the QA
+    // manual restore action and automatic catalog check share this path.
     private void publishStatus(String status) {
         activity.runOnUiThread(() -> {
             if (destroyed) return;
@@ -247,6 +432,8 @@ final class BazaarBillingBridge {
     void shutdown() {
         destroyed = true;
         connected = false;
+        catalogReady = false;
+        purchaseInProgress.set(false);
         if (connection != null) connection.disconnect();
         connection = null;
         payment = null;

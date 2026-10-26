@@ -49,10 +49,11 @@ public class MainActivity extends ComponentActivity {
         settings.setSafeBrowsingEnabled(true);
         settings.setBlockNetworkLoads(true); // WebView never loads Internet resources.
 
-        // Paid-download Bazaar model: no in-app checkout or ownership gate.
-        // Keep read-only legacy Poolakey test bridge strictly DEBUG-only for QA.
-        // Signed release NEVER exposes the bridge to WebView or contacts Bazaar.
-        if (BuildConfig.DEBUG) {
+        // Bazaar's official library uses a PUBLIC RSA verification key.
+        // QA keeps read-only diagnostics; a signed release registers its native
+        // bridge only when the merchant key is configured. Real purchases
+        // require a separate compile-time opt-in AND encrypted paid lessons.
+        if (BuildConfig.DEBUG || !BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty()) {
             billing = new BazaarBillingBridge(this, web);
             web.addJavascriptInterface(billing, "TermehBazaar");
         }
@@ -100,6 +101,13 @@ public class MainActivity extends ComponentActivity {
             }
             @Override public void onPageStarted(WebView view, String url, Bitmap icon) {
                 if (!START_PAGE.equals(url)) view.stopLoading();
+            }
+            @Override public void onPageFinished(WebView view, String url) {
+                if (START_PAGE.equals(url) && billing != null) {
+                    // Genuine previously purchased content becomes accessible
+                    // offline on relaunch; do not ask for another payment.
+                    billing.deliverCachedContent();
+                }
             }
             @Override public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
                 support.recordRendererCrash();

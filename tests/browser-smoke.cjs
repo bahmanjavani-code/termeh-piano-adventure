@@ -531,6 +531,25 @@ const { chromium }=require('playwright-core');
     await freePage.locator('#hubAnswer').fill(String(arithmetic(arithmetic(+m[1],m[2],+m[3]),m[4],+m[5])));
     await freePage.locator('button[onclick="verifyParentHub()"]').click();
     assert(await freePage.locator('#parentHubOptions').isVisible(),'Release parent gate must open');
+    assert(!(await freePage.locator('#realBazaarOffer').isVisible()),
+      'No store SKU/price in an unconfigured beta: must not show purchase controls');
+    assert(await freePage.locator('#realBazaarBuyBtn').isDisabled(),
+      'Never enable a buy button before the official native Bazaar SKU query');
+    // A simulated native public PRICE string can render safely, but it
+    // cannot charge or unlock anything without a real Android bridge.
+    await freePage.evaluate(()=>window.termehBazaarOffer('offer_ready','123,000 تومان <b>raw</b>'));
+    assert(await freePage.locator('#realBazaarOffer').isVisible());
+    assert((await freePage.locator('#realBazaarPrice').innerText()).includes('<b>raw</b>'),
+      'Bazaar price must be assigned as text, not untrusted HTML');
+    assert.equal(await freePage.locator('#realBazaarPrice b').count(),0,
+      'No HTML injection from public SDK SKU price');
+    await freePage.locator('#realBazaarBuyBtn').click();
+    assert((await freePage.locator('#realBazaarStatus').innerText()).includes('Checkout is not available'),
+      'Missing native bridge must always fail closed without initiating payment');
+    await freePage.evaluate(()=>window.termehBazaarOffer('offer_unavailable',''));
+    assert(!(await freePage.locator('#realBazaarOffer').isVisible()),
+      'Disabled native catalog signal must hide store purchase offer');
+
     for(const id of ['checkBazaarBtn','checkEncryptedPackBtn','checkOfflineVaultBtn','restoreExistingBazaarBtn','buyPremiumBtn','restorePremiumBtn']){
       assert(!(await freePage.locator('#'+id).isVisible()),'Do not show inaccessible QA/checkout button to release parents: '+id);
     }
@@ -541,7 +560,7 @@ const { chromium }=require('playwright-core');
     assert(await freePage.locator('#dailyReminderEnable').isEnabled(),'Parent opt-in control should be visible only after math gate');
     assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('five introductory treble notes'),
       'Release should explain five free notes and no charge during QA');
-    assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
+    assert(await freePage.locator('[aria-label="Purchase model"]').isVisible(),'Honest current free product scope must be shown');
     await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
     assert.equal(await freePage.locator('[data-pitch]').count(),5,'Public release must retain only taught beginner keys');
@@ -581,6 +600,50 @@ const { chromium }=require('playwright-core');
       state.mastery.treble.examPassed=true;
     });
     assert(!(await freePage.evaluate(()=>isModeUnlocked('bass'))),'Local progress must not unlock missing paid lessons');
+    // Simulate ONLY the already-native-verified JSON delivery callback.
+    // Browser tests cannot and do not claim to verify Bazaar receipts.
+    const context={window:{}};
+    require('node:vm').runInNewContext(
+      fs.readFileSync('app/src/debug/assets/premium-preview.js','utf8'),context
+    );
+    const fixture={
+      schema:1,productId:'termeh_premium_lifetime',
+      trebleExtra:JSON.parse(JSON.stringify(context.window.TERMEH_DEBUG_PREMIUM.trebleExtra)),
+      bass:JSON.parse(JSON.stringify(context.window.TERMEH_DEBUG_PREMIUM.bass)),
+      durations:JSON.parse(JSON.stringify(context.window.TERMEH_DEBUG_PREMIUM.durations))
+    };
+    const freshPaid=await browser.newPage({viewport:{width:390,height:844}});
+    freshPaid.on('pageerror',e=>errors.push('paid-data '+e.message));
+    await freshPaid.goto(releaseUrl);
+    await freshPaid.locator("button[onclick=\"chooseLanguage('en')\"]").click();
+    await freshPaid.locator('#welcomeAccepted').check();
+    await freshPaid.locator('#welcomeContinue').click();
+    await freshPaid.evaluate(()=>{
+      state.stars=22;
+      state.mastery.treble.examPassed=true;
+      state.mastery.treble.certifiedVersion=TermehMasteryEngine.POLICY_VERSION;
+      state.trebleNoteTier=1; // a certificate from five free starter notes
+    });
+    await freshPaid.evaluate(payload=>window.termehNativePremiumLoaded(payload),fixture);
+    assert.equal(await freshPaid.evaluate(()=>TREBLE_NOTES.length),12,
+      'Only after native verification can the extra seven treble notes be added');
+    assert.equal(await freshPaid.evaluate(()=>BASS_NOTES.length),10);
+    assert.equal(await freshPaid.evaluate(()=>NOTE_DURATIONS.length),4);
+    assert.equal(await freshPaid.evaluate(()=>state.stars),22,
+      'Purchased lessons must preserve earned stars');
+    assert.equal(await freshPaid.evaluate(()=>state.mastery.treble.examPassed),false,
+      'Passing just five free notes must NOT certify the complete twelve-note curriculum');
+    assert.equal(await freshPaid.evaluate(()=>isModeUnlocked('bass')),false,
+      'Paying once must not bypass gradual educational requirements');
+    await freshPaid.evaluate(()=>{
+      window.termehNativePremiumRevoked();
+    });
+    assert.equal(await freshPaid.evaluate(()=>TREBLE_NOTES.length),5);
+    assert.equal(await freshPaid.evaluate(()=>BASS_NOTES.length),0);
+    assert.equal(await freshPaid.evaluate(()=>state.stars),22,
+      'Native confirmed refund must close paid lesson access without deleting practice');
+    await freshPaid.close();
+
     await freePage.locator('#modeTab-bass').click();
     assert(await freePage.locator('#unlockOverlay').evaluate(x=>x.classList.contains('open')),'Free release must show locked premium lesson notice');
     assert(!errors.length,'Browser JavaScript errors: '+errors.join(' | '));

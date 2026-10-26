@@ -12,9 +12,9 @@ for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)){
 }
 assert(scriptCount>=3,'Unexpected or missing scripts');
 // The release APK must contain ONLY introductory treble note data.
-const freeStart=html.indexOf('const TREBLE_NOTES = ')+ 'const TREBLE_NOTES = '.length;
+const freeStart=html.indexOf('let TREBLE_NOTES = ')+ 'let TREBLE_NOTES = '.length;
 const freeEnd=html.indexOf('].concat(window.TERMEH_DEBUG_PREMIUM',freeStart);
-assert(freeStart>='const TREBLE_NOTES = '.length && freeEnd>freeStart,'Missing free note list in common HTML');
+assert(freeStart>='let TREBLE_NOTES = '.length && freeEnd>freeStart,'Missing free note list in common HTML');
 const freeTreble=vm.runInNewContext('('+html.slice(freeStart,freeEnd+1)+')');
 const debugAsset=fs.readFileSync('app/src/debug/assets/premium-preview.js','utf8');
 const releaseAsset=fs.readFileSync('app/src/release/assets/premium-preview.js','utf8');
@@ -154,7 +154,17 @@ assert(billing.includes('LIFETIME_SKU.equals(purchase.getProductId())'),'Owned S
 assert(billing.includes('PACKAGE_ID.equals(purchase.getPackageName())'),'Owned package must be checked');
 assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),'Refunded purchases must not be treated as owned');
 assert(!billing.includes('payment.consumeProduct('),'Lifetime products must NEVER be consumed');
-assert(!billing.includes('payment.purchaseProduct('),'Checkout must not start until server verifier is ready');
+assert(billing.includes('payment.purchaseProduct('),'Native Poolakey lifetime checkout callback missing');
+assert(billing.includes('VerifiedPremiumLessons.enabled()'),
+  'No charge unless native checkout, signed ownership and encrypted pack are enabled');
+assert(billing.includes('new AlertDialog.Builder(activity)'),
+  'A purchase requires a parent confirmation in Android native UI');
+assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),
+  'Reject refunded and pending purchases');
+assert(billing.includes('getInAppSkuDetails('),
+  'Public Bazaar SKU must exist and return a verified catalog price before a buy button is enabled');
+assert(billing.includes('restoreVerifiedPurchase();'),
+  'Re-query purchased inventory after native purchase success, never trust JS or callback alone');
 assert(!billing.includes('localStorage'),'Local storage is not a payment entitlement');
 assert(html.includes('id="buyPremiumBtn"') && html.includes('id="restorePremiumBtn"'));
 assert(/id="buyPremiumBtn"[^>]*disabled/.test(html),'Unverified purchase flow must be disabled');

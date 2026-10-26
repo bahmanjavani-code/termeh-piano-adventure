@@ -38,6 +38,8 @@ jobs:
         run: node tests/rewards-economy.test.cjs
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
         run: node tests/secure-premium-pack.test.cjs
+      - name: Test secure lifetime content staging (disposable AES, no purchase)
+        run: node tests/staged-bazaar-premium.test.cjs
       - name: Test safe offline premium entitlement core (mocks only, never charge)
         run: node tests/secure-activation.test.cjs
       - name: Guard serverless purchase flow until paid content and restore QA are ready
@@ -88,11 +90,26 @@ jobs:
           if [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
             echo "::warning::First signing run: set repository variable TERMEH_RELEASE_CERT_SHA256 to the fingerprint above before future updates."
           fi
+      - name: Package authenticated paid lessons if owner provisioned an AES build key
+        shell: bash
+        env:
+          TERMEH_PREMIUM_CONTENT_KEY_HEX: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
+        run: |
+          set -euo pipefail
+          if [ -n "$TERMEH_PREMIUM_CONTENT_KEY_HEX" ]; then
+            node tools/stage-bazaar-premium.cjs
+            echo "Paid lessons staged as encrypted ciphertext only."
+          else
+            echo "::warning::Premium content key not provisioned: no paid lesson pack, checkout MUST remain OFF."
+          fi
       - name: Build release APK using signed keystore
         env:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_KEY_PASSWORD: ${{ secrets.TERMEH_KEY_PASSWORD }}
+          TERMEH_PREMIUM_CONTENT_KEY_HEX: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
+          TERMEH_ENABLE_LIVE_CHECKOUT: ${{ vars.TERMEH_ENABLE_LIVE_CHECKOUT }}
+          TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
         run: gradle --no-daemon :app:assembleRelease
       - name: Verify APK signature, Android target, and privacy
         shell: bash
@@ -108,6 +125,65 @@ jobs:
             exit 1
           fi
           unzip -p "$APK" assets/premium-preview.js | grep -q 'release-free'
+          # Paid curriculum is optional until merchant readiness. When staged,
+          # it MUST be encrypted and contain no literal lesson records.
+          if unzip -Z1 "$APK" | grep -q '^assets/premium-lessons.tpk
+          if unzip -p "$APK" assets/premium-preview.js | grep -Eq '(debug-full-preview|trebleExtra|beatsLabel)'; then
+            echo "::error::Premium debug lesson content is bundled in release APK"
+            exit 1
+          fi
+          AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
+          APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          # Accept either 'Signer #1 certificate ...' or 'V2 Signer: certificate ...'.
+          ACTUAL_CERT="$("$APKSIGNER" verify --print-certs "$APK" | awk '/certificate SHA-256 digest:/ {print $NF; exit}' | tr 'A-F' 'a-f' | tr -d '[:space:]')"
+          if ! [[ "$ACTUAL_CERT" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::Could not read SHA-256 signing certificate digest from APK"
+            exit 1
+          fi
+          EXPECTED_CERT="${{ steps.signing_cert.outputs.sha256 }}"
+          if [ "$ACTUAL_CERT" != "$EXPECTED_CERT" ]; then
+            echo "::error::APK signature does not match the approved release signing key"
+            exit 1
+          fi
+          "$AAPT" dump badging "$APK" | grep -q "package: name='com.termeh.piano'"
+          if "$AAPT" dump badging "$APK" | grep -q 'application-debuggable'; then
+            echo "::error::Release APK must never be debuggable"
+            exit 1
+          fi
+          "$AAPT" dump badging "$APK" | grep 'targetSdkVersion:' | tee /tmp/termeh-target.txt
+          grep -q "targetSdkVersion:'35'" /tmp/termeh-target.txt
+          "$AAPT" dump permissions "$APK" | tee /tmp/termeh-permissions.txt
+          if grep -Ei 'android.permission.(RECORD_AUDIO|CAMERA|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION|ACCESS_BACKGROUND_LOCATION|ACCESS_MEDIA_LOCATION|LOCATION_HARDWARE)' /tmp/termeh-permissions.txt; then
+            echo "::error::Sensitive permission found in signed release APK"
+            exit 1
+          fi
+      - name: Upload signed APK for controlled review
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Termeh-Piano-SIGNED-QA-CANDIDATE-DO-NOT-PUBLISH
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+      - name: Display artifact link
+        env:
+          URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          echo "### Signed QA candidate — DO NOT PUBLISH (billing and restoration unfinished)" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Download signed candidate]($URL)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove temporary signing and paid-content material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/termeh-release.jks"
+          rm -f app/src/release/assets/premium-lessons.tpk
+; then
+            unzip -p "$APK" assets/premium-lessons.tpk | grep -q '"ciphertext"'
+            if unzip -p "$APK" assets/premium-lessons.tpk | grep -Eq '(trebleExtra|beatsLabel|hintText)'; then
+              echo "::error::Paid lessons found in plaintext inside signed APK"
+              exit 1
+            fi
+          fi
           if unzip -p "$APK" assets/premium-preview.js | grep -Eq '(debug-full-preview|trebleExtra|beatsLabel)'; then
             echo "::error::Premium debug lesson content is bundled in release APK"
             exit 1
