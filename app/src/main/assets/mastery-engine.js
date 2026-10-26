@@ -31,6 +31,9 @@
     x&&codes.includes(x.note)&&typeof x.correct==='boolean'&&Number.isFinite(x.ms)&&x.ms>=0
   ).slice(-240):[];
 
+  // Once a child earns the NEW independent exam certificate, keep it earned
+  // even if later practice is imperfect. This educational award is NEVER an
+  // authorization for paid content.
   function evaluate(history,poolCodes,examPassed=false,certifiedVersion=0){
     const codes=[...new Set((poolCodes||[]).filter(x=>typeof x==='string'&&x.length))];
     if(!codes.length)return {stage:1,ready:false,passed:false,score:0,total:0,
@@ -87,7 +90,7 @@
       return countByNote[a]-countByNote[b];
     })[0];
     return {
-      stage,ready:fluent,passed:fluent&&examPassed===true&&certifiedVersion>=POLICY_VERSION,
+      stage,ready:fluent,passed:examPassed===true&&certifiedVersion>=POLICY_VERSION,
       score,total:h.length,accuracy40:percent(last40.filter(x=>x.correct).length,last40.length),
       accuracy60:percent(last60.filter(x=>x.correct).length,last60.length),
       medianMs:Number.isFinite(medianMs)?Math.round(medianMs):null,
