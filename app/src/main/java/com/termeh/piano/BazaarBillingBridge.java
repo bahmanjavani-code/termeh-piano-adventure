@@ -13,13 +13,15 @@ import ir.cafebazaar.poolakey.config.SecurityCheck;
 import ir.cafebazaar.poolakey.entity.PurchaseInfo;
 import ir.cafebazaar.poolakey.entity.PurchaseState;
 import kotlin.Unit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Safe phase-one integration with Cafe Bazaar's official Poolakey SDK.
  *
- * This bridge only checks locally verified ownership in a parent-only area.
- * It NEVER starts checkout, consumes the lifetime SKU, unlocks content,
- * stores purchase tokens, or hands purchase receipts to WebView JavaScript.
+ * This bridge only queries locally verified ownership from Poolakey.
+ * Parent-only restore checks can cache a native Android Keystore entitlement
+ * for ALREADY-OWNED purchases. They NEVER initiate a charge or unlock content.
+ * No purchase token or receipt is stored or sent to WebView JavaScript.
  * Two self-tests verify noncommercial AES content and disposable Keystore
  * storage without creating any purchase entitlement.
  *
@@ -37,6 +39,7 @@ final class BazaarBillingBridge {
     private Connection connection;
     private volatile boolean connected;
     private volatile boolean destroyed;
+    private final AtomicBoolean restoreInProgress = new AtomicBoolean(false);
 
     BazaarBillingBridge(Activity activity, WebView web) {
         this.activity = activity;
@@ -146,6 +149,89 @@ final class BazaarBillingBridge {
                 boolean passed = new OfflineLicenseVault(activity).disposableSelfTest();
                 publishStatus(passed ? "vault_demo_ok" : "vault_demo_failed");
             }, "termeh-disposable-keystore-test").start();
+        });
+    }
+
+    /**
+     * Check and restore an ALREADY-OWNED lifetime purchase. No checkout starts.
+     *
+     * Only the Poolakey callback is allowed to supply PurchaseInfo. Poolakey's
+     * signature checking is enabled at connection creation. JavaScript can
+     * request a check, but cannot submit a purchase, receipt or owned flag.
+     *
+     * This is deliberately NOT a premium unlock: no content key is returned
+     * and no lesson is made available. The native Keystore record is a first
+     * prerequisite for a future tested, serverless purchase/restore flow.
+     */
+    @JavascriptInterface
+    public void restoreVerifiedPurchase() {
+        activity.runOnUiThread(() -> {
+            if (destroyed) return;
+            if (!connected || payment == null) {
+                publishStatus("restore_unavailable");
+                return;
+            }
+            if (!restoreInProgress.compareAndSet(false, true)) {
+                publishStatus("restore_busy");
+                return;
+            }
+            publishStatus("restore_checking");
+            try {
+                payment.getPurchasedProducts(callback -> {
+                    callback.querySucceed(purchases -> {
+                        if (purchases == null) {
+                            restoreInProgress.set(false);
+                            publishStatus("restore_failed");
+                            return Unit.INSTANCE;
+                        }
+
+                        PurchaseInfo validOwned = null;
+                        for (PurchaseInfo purchase : purchases) {
+                            if (purchase != null
+                                    && PACKAGE_ID.equals(purchase.getPackageName())
+                                    && LIFETIME_SKU.equals(purchase.getProductId())
+                                    && purchase.getPurchaseState() == PurchaseState.PURCHASED) {
+                                validOwned = purchase;
+                                break;
+                            }
+                        }
+                        final PurchaseInfo owned = validOwned;
+                        // AndroidKeyStore may block; do not use the UI callback thread.
+                        new Thread(() -> {
+                            String result = "restore_failed";
+                            try {
+                                OfflineLicenseVault vault = new OfflineLicenseVault(activity);
+                                if (owned != null) {
+                                    if (vault.recordVerifiedPurchase(owned)
+                                            && vault.isOwnedOffline()) {
+                                        result = "restore_cached_no_unlock";
+                                    }
+                                } else if (vault.clearAfterConfirmedNotOwned()) {
+                                    // Clear only on a SUCCESSFUL Bazaar query with no
+                                    // valid ownership, never for offline/network errors.
+                                    result = "restore_no_purchase";
+                                }
+                            } catch (Exception ignored) {
+                                // No tokens, account data or SDK errors leave native code.
+                            } finally {
+                                restoreInProgress.set(false);
+                                publishStatus(result);
+                            }
+                        }, "termeh-native-restore-qa").start();
+                        return Unit.INSTANCE;
+                    });
+                    callback.queryFailed(error -> {
+                        restoreInProgress.set(false);
+                        // Preserve any offline entitlement on a failed query.
+                        publishStatus("restore_failed");
+                        return Unit.INSTANCE;
+                    });
+                    return Unit.INSTANCE;
+                });
+            } catch (RuntimeException ignored) {
+                restoreInProgress.set(false);
+                publishStatus("restore_failed");
+            }
         });
     }
 
