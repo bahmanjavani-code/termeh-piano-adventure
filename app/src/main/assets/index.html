@@ -396,7 +396,7 @@
                     </div>
 
                     <!-- 7 White Keys (Do, Re, Mi, Fa, Sol, La, Si) -->
-                    <div id="pianoKeysGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                    <div id="pianoKeysGrid" class="grid gap-1.5 sm:gap-2" role="group" aria-label="Piano keys by pitch and octave">
                         <!-- Generated dynamically by JS -->
                     </div>
                 </div>
@@ -883,7 +883,7 @@
         const TREBLE_NOTES = [
             {
                 "code": "C4",
-                "keyId": "C",
+                "keyId": "C4",
                 "faName": "دو (میانی)",
                 "freq": 261.63,
                 "svgY": 160,
@@ -893,7 +893,7 @@
             },
             {
                 "code": "D4",
-                "keyId": "D",
+                "keyId": "D4",
                 "faName": "ر",
                 "freq": 293.66,
                 "svgY": 150,
@@ -903,7 +903,7 @@
             },
             {
                 "code": "E4",
-                "keyId": "E",
+                "keyId": "E4",
                 "faName": "می",
                 "freq": 329.63,
                 "svgY": 140,
@@ -913,7 +913,7 @@
             },
             {
                 "code": "F4",
-                "keyId": "F",
+                "keyId": "F4",
                 "faName": "فا",
                 "freq": 349.23,
                 "svgY": 130,
@@ -923,7 +923,7 @@
             },
             {
                 "code": "G4",
-                "keyId": "G",
+                "keyId": "G4",
                 "faName": "سل",
                 "freq": 392,
                 "svgY": 120,
@@ -1062,7 +1062,7 @@
             if (!svg || !note) return;
 
             const isTreble = state.mode === 'treble';
-            const keyMeta = SOLFEGE_KEYS.find(k => k.id === note.keyId);
+            const keyMeta = SOLFEGE_KEYS.find(k => k.id === note.code[0]);
             const noteFillColor = state.staffQuestionSolved && !(state.exam && state.exam.active) ? keyMeta.colorHex : '#1e1b4b'; // No color-coded answer before solving
 
             const stemDown = note.svgY <= 100;
@@ -1138,35 +1138,35 @@
         function renderPianoKeyboard() {
             const grid = document.getElementById('pianoKeysGrid');
             if (!grid) return;
-
-            grid.innerHTML = SOLFEGE_KEYS.map(key => {
-                const isWrong = state.wrongKeysPressed.has(key.id);
-                const isSolvedRight = state.staffQuestionSolved && state.currentStaffNote && state.currentStaffNote.keyId === key.id;
-
-                const badgeColorClass = state.staffQuestionSolved && isSolvedRight
-                    ? `${key.bgClass} text-white`
-                    : 'bg-slate-200 text-slate-700';
-
-                let extraBtnStyle = 'bg-white hover:bg-slate-50 border-2 border-slate-300';
-                if (isWrong) {
-                    extraBtnStyle = 'bg-rose-100 border-2 border-rose-400 opacity-60';
-                } else if (isSolvedRight) {
-                    extraBtnStyle = 'bg-emerald-100 border-4 border-emerald-500 ring-4 ring-emerald-300';
-                }
-
-                return `
-                    <button
-                        id="pianoKey-${key.id}"
-                        onclick="handlePianoKeyClick('${key.id}')"
-                        class="piano-key-white ${extraBtnStyle} h-36 sm:h-44 rounded-b-2xl rounded-t-lg flex flex-col items-center justify-end pb-3 px-1 relative select-none"
-                    >
-                        ${state.staffQuestionSolved && isSolvedRight ? `<span class="w-3.5 h-3.5 rounded-full ${key.bgClass} mb-auto mt-14 shadow-sm"></span>` : ''}
-                        <span class="text-[11px] font-bold text-slate-400 mb-1">${key.enName}</span>
-                        <span class="w-full py-1.5 rounded-xl font-black text-sm sm:text-base shadow-sm ${badgeColorClass}">
-                            ${localStorage.getItem('termeh_language')==='en' ? key.enName : key.faName}
-                        </span>
-                    </button>
-                `;
+            // Pitches MUST include octave numbers. Earlier seven-button
+            // keyboard treated C4 and C5 as identical, invalidating real
+            // note-reading accuracy; this visual keyboard matches the staff.
+            const pool=state.mode==='bass'?BASS_NOTES:getActiveTrebleNotes();
+            const columns=pool.length<=5?pool.length:pool.length<=8?4:pool.length<=10?5:6;
+            grid.style.gridTemplateColumns='repeat('+columns+', minmax(0,1fr))';
+            grid.innerHTML=pool.map(note=>{
+                const key=SOLFEGE_KEYS.find(k=>k.id===note.code[0]);
+                if(!key)return '';
+                const code=note.code,solved=state.staffQuestionSolved
+                    && state.currentStaffNote
+                    && state.currentStaffNote.code===code;
+                const wrong=state.wrongKeysPressed.has(code);
+                const badge=solved?`${key.bgClass} text-white`:'bg-slate-200 text-slate-700';
+                const style=wrong?'bg-rose-100 border-2 border-rose-400 opacity-60':
+                    solved?'bg-emerald-100 border-4 border-emerald-500 ring-4 ring-emerald-300':
+                    'bg-white hover:bg-slate-50 border-2 border-slate-300';
+                const name=isEnglish()?code:key.faName+' '+code.slice(1);
+                const aria=isEnglish()?'Piano key '+code:
+                    'کلید '+key.faName+'، اکتاو '+code.slice(1);
+                return `<button
+                    id="pianoKey-${code}"
+                    type="button" data-pitch="${code}" aria-label="${aria}"
+                    onclick="handlePianoKeyClick('${code}')"
+                    class="piano-key-white ${style} ${pool.length>5?'h-24 sm:h-32':'h-32 sm:h-40'} rounded-b-2xl rounded-t-lg flex flex-col items-center justify-end pb-2 px-1 relative select-none">
+                    ${solved?`<span class="w-3 h-3 rounded-full ${key.bgClass} mb-auto mt-7 shadow-sm"></span>`:''}
+                    <span dir="ltr" class="text-[11px] font-extrabold text-slate-600 mb-1">${code}</span>
+                    <span class="w-full py-1 rounded-lg font-black text-xs sm:text-base shadow-sm ${badge}">${name}</span>
+                </button>`;
             }).join('');
         }
 
@@ -1234,7 +1234,7 @@
                     staffCard.classList.add('animate-shake');
                 }
 
-                const pressedKeyMeta = SOLFEGE_KEYS.find(k => k.id === keyId);
+                const pressedKeyMeta = SOLFEGE_KEYS.find(k => k.id === keyId[0]);
                 setMascotBubble(
                     isEnglish() ? 'Try again! 💡' : 'دوباره امتحان کن! 💡',
                     localStorage.getItem('termeh_language') === 'en' ? 'Not quite. Count the lines from bottom to top and try another key.' : 'هنوز درست نیست. خط‌ها را از پایین به بالا بشمار و دوباره تلاش کن.',
