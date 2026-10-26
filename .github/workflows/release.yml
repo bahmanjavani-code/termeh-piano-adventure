@@ -36,6 +36,8 @@ jobs:
         run: node tests/encrypted-apk-demo.test.cjs
       - name: Check isolated Android Keystore entitlement vault (no payment)
         run: node tests/offline-keystore-vault.test.cjs
+      - name: Validate no-charge Bazaar restore path and fail-closed local license caching
+        run: node tests/bazaar-restore-guard.test.cjs
       - name: Run UI smoke tests
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
