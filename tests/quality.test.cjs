@@ -171,5 +171,22 @@ assert(manifest.includes('android.permission.POST_NOTIFICATIONS'),'Optional noti
 assert(html.includes('id="dailyReminderPanel"'),'Reminders must be controlled within parent hub');
 assert(html.includes('window.termehRefreshPracticeReminder'),'Parent should see genuine Android reminder status');
 assert(html.includes('window.TermehPractice.recordExercise()'),'Only completed exercises should suppress reminders');
+assert(html.includes("function rhythmBeatCount(n)"),'English one-beat vs plural labeling needs one shared formatter');
+assert(html.includes("target.beats===1?'beat':'beats'") ||
+       html.includes("n===1?'beat':'beats'"),
+       'Singular beat grammar must be handled explicitly');
+assert(html.includes("const HOLD_BEAT_MS=650"),'Hold progress must use elapsed clock time');
+assert(html.includes("performance.now()-holdStartedAt"),'A quick tap cannot count as one whole beat');
+assert(html.includes('HOLD_TOLERANCE_BEATS'),'Timing window should be child-friendly but finite');
+assert(html.includes('if (state.isHoldingPad || state.holdChallengeSolved) return'),
+       'A solved rhythm challenge must not award more stars from repeated presses');
+assert(html.includes("nextBtn.innerHTML = isEnglish()?") &&
+       html.includes('Great! Next rhythm challenge'),
+       'Screenshot regression: completed hold next action must stay English');
+assert(html.includes('Released too early') && html.includes('Held too long'),
+       'Both early and late rhythm feedback branches must remain localized');
+assert(html.includes("isEnglish()?'Half a beat!'"),
+       'Dynamic rhythm card demo must stay localized');
+
 assert(html.includes('ترمه')&&html.includes('یک‌باره'),'Store must describe opt-in practice and lifetime offer');
 console.log('PASS: JS syntax, 22 clef-note definitions, pitch frequency, staff positions, rhythm values, permissions, answer leakage and independent exam.');
