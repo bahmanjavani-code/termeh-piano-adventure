@@ -53,17 +53,38 @@ const { chromium }=require('playwright-core');
       assert.deepEqual(leaks,[],'Persian text in English UI ('+stage+'): '+leaks.join(' | '));
     }
     await page.goto(debugUrl);
+    // Upgrading from the original notice must require acknowledgment of its revised scope,
+    // without touching any previously stored learning progress.
+    await page.evaluate(()=>{localStorage.setItem('termeh_parent_welcome_v1','accepted');localStorage.setItem('termeh_keep_progress_probe','preserve-me')});
     await page.locator("button[onclick=\"chooseLanguage('en')\"]").click();
     await page.waitForTimeout(300);
     // A parent must acknowledge once, after choosing the language, before the child can play.
     assert(await page.locator('#parentWelcome').isVisible(),'First-launch parent notice missing');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Notice must not auto-accept');
+    assert((await page.locator('#parentWelcome').innerText()).includes('not the primary source of music education'),'Educational scope must be conspicuous before play');
+    assert((await page.locator('#parentWelcome').innerText()).includes('No specific learning or playing outcome is guaranteed'),'No-guaranteed-results notice missing');
+    assert((await page.locator('#parentWelcome').innerText()).includes('Real checkout is disabled in this beta'),'Purchase limitations must be clear');
+    // The parent cannot bypass the notice by reloading or invoking the handler directly.
+    await page.evaluate(()=>confirmParentWelcome());
+    assert(await page.locator('#parentWelcome').isVisible(),'Missing checkbox must block acknowledgment');
+    await page.reload();
+    assert(await page.locator('#parentWelcome').isVisible(),'Unaccepted revised notice must reappear');
+    assert(await page.locator('#welcomeContinue').isDisabled(),'Reload must not auto-enable acceptance');
     assert((await page.locator('#welcomePrivacy').getAttribute('href')).includes('/en/privacy.html'),'Wrong privacy policy language');
     assert((await page.locator('#welcomeTerms').getAttribute('href')).includes('/en/terms.html'),'Wrong Terms of Use language');
     await assertEnglishScreen('first-launch parent notice');
     await page.locator('#welcomeAccepted').check();
     assert(await page.locator('#welcomeContinue').isEnabled(),'Parent confirmation should enable continue');
+    await page.locator('#welcomeAccepted').uncheck();
+    assert(await page.locator('#welcomeContinue').isDisabled(),'Unticking should lock continue again');
+    await page.locator('#welcomeAccepted').check();
     await page.locator('#welcomeContinue').click();
+    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v2')));
+    assert.equal(noticeRecord.revision,2);
+    assert.equal(noticeRecord.acknowledged,true);
+    assert.equal(noticeRecord.language,'en');
+    assert(!Number.isNaN(Date.parse(noticeRecord.acknowledgedAt)),'Acknowledgment date missing');
+    assert.equal(await page.evaluate(()=>localStorage.getItem('termeh_keep_progress_probe')),'preserve-me','Onboarding must not wipe local progress');
     assert(!(await page.locator('#parentWelcome').isVisible()),'Parent notice should close after explicit confirmation');
     await page.reload();
     await page.waitForTimeout(200);
@@ -139,7 +160,15 @@ const { chromium }=require('playwright-core');
     assert(!(await page.locator('#buyPremiumBtn').isEnabled()),'Menu must not enable checkout');
     assert((await page.locator('#parentPrivacyPolicy').getAttribute('href')).includes('/en/privacy.html'));
     assert((await page.locator('#parentTerms').getAttribute('href')).includes('/en/terms.html'));
-    await page.locator('#parentHub .close').click();
+    assert(await page.locator('#parentReviewNotice').isVisible(),'Parents must be able to review the notice later');
+    await page.locator('#parentReviewNotice').click();
+    assert(!(await page.locator('#parentHub').isVisible()),'Parent options should close before reviewing notice');
+    assert(await page.locator('#parentWelcome').isVisible(),'Reread button must reopen notice');
+    assert(await page.locator('#welcomeContinue').isDisabled(),'Rereading must also start with unchecked confirmation');
+    await assertEnglishScreen('parent reread');
+    await page.locator('#welcomeAccepted').check();
+    await page.locator('#welcomeContinue').click();
+    assert(!(await page.locator('#parentWelcome').isVisible()),'Reread should return to game');
     await page.evaluate(()=>openMascotModal());
     await assertEnglishScreen('buddy picker');
     await page.evaluate(()=>closeMascotModal());
@@ -195,6 +224,19 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.evaluate(()=>document.documentElement.getAttribute('data-termeh-theme')),'dark','Dark theme preference must persist');
     // A different release asset is packaged for paying/non-paying production users.
     // The release must remain free and must NOT embed premium lesson definitions.
+    // Confirm the same parental briefing works in Persian without automatically consenting.
+    const faPage=await browser.newPage({viewport:{width:390,height:844}});
+    faPage.on('pageerror',e=>errors.push('fa '+e.message));
+    await faPage.goto(debugUrl);
+    await faPage.locator("button[onclick=\"chooseLanguage('fa')\"]").click();
+    assert(await faPage.locator('#parentWelcome').isVisible(),'Persian first-launch briefing must appear');
+    assert((await faPage.locator('#welcomeHeading').innerText()).includes('سخنی مهم با والدین'));
+    assert((await faPage.locator('#parentWelcome').innerText()).includes('مرجع اصلی یادگیری موسیقی نیست'));
+    assert(await faPage.locator('#welcomeContinue').isDisabled());
+    await faPage.locator('#welcomeAccepted').check();
+    await faPage.locator('#welcomeContinue').click();
+    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v2')).language),'fa');
+    await faPage.close();
     const freePage=await browser.newPage({viewport:{width:390,height:844}});
     freePage.on('pageerror',e=>errors.push('release '+e.message));
     await freePage.goto(releaseUrl);
