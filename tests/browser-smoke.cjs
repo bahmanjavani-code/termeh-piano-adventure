@@ -550,6 +550,39 @@ const { chromium }=require('playwright-core');
     assert(!(await freePage.locator('#realBazaarOffer').isVisible()),
       'Disabled native catalog signal must hide store purchase offer');
 
+    // Previously purchased lessons must stay restorable if NEW sales pause.
+    await freePage.evaluate(()=>{
+      window.TermehBazaar={
+        isLiveCheckoutEnabled:()=>false,
+        canRestoreOwnedLessons:()=>true,
+        checkProductCatalog:()=>{},
+        restoreVerifiedPurchase:()=>window.termehBazaarStatus('restore_unavailable')
+      };
+      window.termehSyncBillingCapabilities();
+      window.termehBazaarOffer('offer_unavailable','');
+    });
+    assert(await freePage.locator('#realBazaarOffer').isVisible(),
+      'Paid owner needs a restore path even when storefront does not sell new items');
+    assert(await freePage.locator('#realBazaarRestoreBtn').isVisible(),
+      'Never hide restore when the catalog SKU is paused');
+    assert(!(await freePage.locator('#realBazaarBuyBtn').isVisible()),
+      'Restore-only mode must never show an unpriced new purchase button');
+
+    await freePage.evaluate(()=>{
+      window.TermehBazaar.isLiveCheckoutEnabled=()=>true;
+      window.termehSyncBillingCapabilities();
+    });
+    assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('Real charges are possible'),
+      'Guardian pricing disclosure must change before enabling chargeable checkout');
+    assert.equal(await freePage.evaluate(()=>document.documentElement.getAttribute('data-termeh-billing')),'live');
+    await freePage.evaluate(()=>{
+      delete window.TermehBazaar;
+      window.termehSyncBillingCapabilities();
+      window.termehBazaarOffer('offer_unavailable','');
+    });
+    assert(!(await freePage.locator('#realBazaarOffer').isVisible()));
+
+
     for(const id of ['checkBazaarBtn','checkEncryptedPackBtn','checkOfflineVaultBtn','restoreExistingBazaarBtn','buyPremiumBtn','restorePremiumBtn']){
       assert(!(await freePage.locator('#'+id).isVisible()),'Do not show inaccessible QA/checkout button to release parents: '+id);
     }
