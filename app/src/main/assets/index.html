@@ -2660,6 +2660,14 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <p><span class="only-fa">این نسخهٔ رایگان فعلاً پنج نت آغازین کلید سل را دارد. خرید یک‌بارهٔ درس‌های پیشرفته هنوز فعال نیست. تا قبل از ارائهٔ واقعی محتوای خریداری‌شده و تست امنِ پرداخت و بازیابی، هیچ وجهی دریافت نخواهد شد.</span><span class="only-en">This free edition currently contains five introductory treble notes. The one-time premium upgrade is not yet available. No payment will be collected until the actual lessons, checkout and restore are tested.</span></p>
 </section>
 
+<section id="dailyReminderPanel" aria-label="Optional daily practice reminders" style="padding:14px 12px;margin:14px 0;border:2px solid #fed7aa;border-radius:16px;background:#fff7ed">
+  <h3 style="font-size:17px;font-weight:900;color:#9a3412">🔔 <span class="only-fa">یادآوری تمرین روزانه</span><span class="only-en">Daily practice reminder</span></h3>
+  <p style="font-size:13px;color:#7c2d12"><span class="only-fa">اختیاری و فقط با اجازهٔ والدین. حدود ساعت ۶ عصر به وقت گوشی، حداکثر یک اعلان در روز؛ اگر امروز تمرین تکمیل شده باشد یادآوری نمی‌آید. ساعت دقیق توسط اندروید تضمین نمی‌شود. بدون اینترنت، حساب و تبلیغ.</span><span class="only-en">Parent opt-in only. Around 6 PM local time, at most one reminder a day; no reminder after today's completed exercise. Android can delay delivery. Offline, no account or ads.</span></p>
+  <p id="dailyReminderStatus" role="status" aria-live="polite" style="font-size:14px;font-weight:800;color:#7c2d12"></p>
+  <button id="dailyReminderEnable" class="action" type="button" onclick="termehChangePracticeReminder(true)">🔔 <span class="only-fa">فعال‌کردن با اجازهٔ اندروید</span><span class="only-en">Enable with Android permission</span></button>
+  <button id="dailyReminderDisable" class="action" type="button" onclick="termehChangePracticeReminder(false)">🔕 <span class="only-fa">خاموش‌کردن یادآور</span><span class="only-en">Turn off reminder</span></button>
+</section>
+
 <div role="group" aria-label="Support and app updates" style="margin-top:14px;border-top:2px solid #ddd;padding-top:12px">
 <h3><span class="only-fa">🛠️ پشتیبانی و به‌روزرسانی</span><span class="only-en">🛠️ Support & updates</span></h3>
 <p id="parentReportCount" style="font-size:13px"></p>
@@ -2735,7 +2743,40 @@ window.checkBazaarOwnership=function(){
     bridge.checkOwnedPurchase(); // NEVER charges or unlocks.
   } catch(err){window.termehBazaarStatus('unavailable');}
 };
-window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
+
+window.termehReminderStatus=function(code){
+  const target=el('dailyReminderStatus');
+  if(!target)return;
+  const en=localStorage.getItem('termeh_language')==='en';
+  const messages={
+    off:['خاموش است؛ تا وقتی والدین فعال نکنند اعلانی نمی‌آید.','Off. No reminders until a parent opts in.'],
+    on:['روشن است؛ حوالی ۱۸ به وقت گوشی، فقط در روزهای بدون تمرین.','On. Around 6 PM on days without a completed exercise.'],
+    blocked:['اجازهٔ اعلان در تنظیمات اندروید بسته شده است. در تنظیمات گوشی اجازه دهید.','Android notifications are blocked. Allow them in system app settings.'],
+    unavailable:['این گزینه فقط در برنامهٔ نصب‌شدهٔ اندروید کار می‌کند.','Available only in the installed Android app.']
+  };
+  const pair=messages[code]||messages.unavailable;
+  target.textContent=pair[en?1:0];
+  const enable=el('dailyReminderEnable'),disable=el('dailyReminderDisable');
+  if(enable)enable.disabled=code==='on';
+  if(disable)disable.disabled=code!=='on'&&code!=='blocked';
+};
+window.termehRefreshPracticeReminder=function(){
+  const bridge=window.TermehPractice;
+  if(!bridge){window.termehReminderStatus('unavailable');return;}
+  try{window.termehReminderStatus(bridge.reminderStatus());}
+  catch(e){window.termehReminderStatus('unavailable');}
+};
+window.termehChangePracticeReminder=function(enable){
+  // Android's permission dialog may appear only after deliberate parent tap.
+  if(el('parentHubOptions').hidden || !el('parentHub').classList.contains('open'))return;
+  const bridge=window.TermehPractice;
+  if(!bridge){window.termehReminderStatus('unavailable');return;}
+  try{
+    if(enable)bridge.enableReminder();
+    else bridge.disableReminder();
+  }catch(e){window.termehReminderStatus('unavailable');}
+};
+window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();return;}failures++;msg.textContent=en?'Incorrect answer':'پاسخ نادرست';if(failures>=3){failures=0;lockUntil=Date.now()+60000;msg.textContent=en?'Wait one minute':'یک دقیقه صبر کنید';}};
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
 })();
