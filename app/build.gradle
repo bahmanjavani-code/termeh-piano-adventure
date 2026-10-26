@@ -11,6 +11,20 @@ android {
         def bazaarKey = (System.getenv('TERMEH_BAZAAR_RSA_PUBLIC_KEY') ?: '').replaceAll('\\s+', '')
         if (!(bazaarKey ==~ /[A-Za-z0-9+\/=]{0,4096}/)) throw new GradleException('Invalid Bazaar public key characters')
         buildConfigField 'String', 'BAZAAR_RSA_PUBLIC_KEY', '"' + bazaarKey + '"'
+        // Production content is encrypted in CI and its key is embedded ONLY
+        // in that signed APK. This is limited no-host obfuscation, NOT DRM.
+        def paidKey = (System.getenv('TERMEH_PREMIUM_CONTENT_KEY_HEX') ?: '').trim()
+        if (paidKey && !(paidKey ==~ /[a-fA-F0-9]{64}/))
+            throw new GradleException('Invalid paid-content AES key (expected 64 hex chars)')
+        def paidAsset = file('src/release/assets/premium-lessons.tpk')
+        def paidReady = (paidKey.length() == 64 && paidAsset.isFile() && bazaarKey.length() > 0)
+        def liveRequested = System.getenv('TERMEH_ENABLE_LIVE_CHECKOUT') == '1'
+        if (liveRequested && !paidReady) {
+            throw new GradleException('Refusing checkout without signed Bazaar public RSA and encrypted real lessons')
+        }
+        buildConfigField 'String', 'PREMIUM_CONTENT_KEY_HEX', '"' + paidKey + '"'
+        buildConfigField 'boolean', 'BAZAAR_CHECKOUT_ENABLED', liveRequested && paidReady ? 'true' : 'false'
+        buildConfigField 'boolean', 'PAID_PACK_STAGED', paidReady ? 'true' : 'false'
         applicationId 'com.termeh.piano'
         // The public package is never modified by developer-only QA settings.
         manifestPlaceholders = [termehAppLabel: 'Termeh Piano']
