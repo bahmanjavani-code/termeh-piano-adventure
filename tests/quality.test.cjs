@@ -119,7 +119,7 @@ assert(html.includes('equippedTrophyPiano') && html.includes('equippedTrophyStaf
 assert(html.includes('rewards-engine.js'),'Cosmetic economy module missing from offline page');
 assert(!html.includes('state.coins += 5'),'Five coins for each easy answer defeats rarity');
 
-assert(html.includes("const KEY='termeh_parent_welcome_v2',REVISION=2"),'Materially revised parent briefing must use versioned acknowledgment');
+assert(html.includes("const KEY='termeh_parent_welcome_v3',REVISION=3"),'Materially revised parent briefing must use versioned acknowledgment');
 assert(!html.includes("const KEY='termeh_parent_welcome_v1'"),'Original acknowledgement must not auto-accept revised notice');
 assert(html.includes('id="welcomeAccepted"')&&html.includes('id="welcomeContinue"')&&html.includes('disabled onclick="confirmParentWelcome()"'),'Explicit read-and-understood tick and disabled continue required');
 assert(html.includes('window.reviewParentWelcome')&&html.includes('id="parentReviewNotice"'),'Parent must be able to review onboarding later');
