@@ -93,6 +93,16 @@ assert(activity.includes('"feedback".equals(uri.getHost())'),'Feedback route mus
 assert(support.includes('void composeFeedback()'),'Native parent feedback email required');
 assert(!html.includes('answer=a*b+13'),'Parent math must not have fixed +13');
 assert(html.includes('termehMakeParentChallenge'),'Parent math challenges must be varied');
+assert(html.includes("const KEY='termeh_parent_welcome_v2',REVISION=2"),'Materially revised parent briefing must use versioned acknowledgment');
+assert(!html.includes("const KEY='termeh_parent_welcome_v1'"),'Original acknowledgement must not auto-accept revised notice');
+assert(html.includes('id="welcomeAccepted"')&&html.includes('id="welcomeContinue"')&&html.includes('disabled onclick="confirmParentWelcome()"'),'Explicit read-and-understood tick and disabled continue required');
+assert(html.includes('window.reviewParentWelcome')&&html.includes('id="parentReviewNotice"'),'Parent must be able to review onboarding later');
+assert(html.includes('id="welcomePrivacy"')&&html.includes('id="welcomeTerms"'),'Parental policy documents must remain accessible on first launch');
+assert(html.includes('not the primary source of music education'),'Parent must be informed that this is not the primary instruction');
+assert(html.includes('No specific learning or playing outcome is guaranteed'),'No learning guarantee notice missing');
+assert(html.includes('Statutory consumer rights still apply'),'Parent acknowledgment must preserve legal rights');
+assert(html.includes('termeh_parent_welcome_v2')&&html.includes('acknowledgedAt'),'Minimal, local onboarding acknowledgment must be stored');
+
 const scientific=fs.readFileSync('SCIENTIFIC_EDUCATIONAL_FOUNDATION_FA.md','utf8');
 assert(scientific.includes('https://ies.ed.gov/ncee/wwc/PracticeGuide/1'),'Evidence link missing');
 assert(scientific.includes('National Core Arts Standards'),'Music standards link missing');
