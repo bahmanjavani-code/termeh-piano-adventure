@@ -224,8 +224,8 @@ final class BazaarBillingBridge {
     private void publishOffer(String status, String publicPrice) {
         activity.runOnUiThread(() -> {
             if (destroyed) return;
-            String safePrice = publicPrice == null ? "" :
-                    publicPrice.replaceAll("[\\p{Cntrl}]", "").substring(0, Math.min(80, publicPrice.length()));
+            String cleaned = publicPrice == null ? "" : publicPrice.replaceAll("[\\p{Cntrl}]", "");
+            String safePrice = cleaned.substring(0, Math.min(80, cleaned.length()));
             web.evaluateJavascript("window.termehBazaarOffer && window.termehBazaarOffer("
                     + JSONObject.quote(status) + "," + JSONObject.quote(safePrice) + ");", null);
         });
