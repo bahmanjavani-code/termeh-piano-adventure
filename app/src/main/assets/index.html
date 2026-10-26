@@ -211,6 +211,8 @@
     <style>
     html[data-termeh-edition="store"] .termehQaOnly{display:none!important}
     html[data-termeh-edition="qa"] .termehStoreOnly{display:none!important}
+    html[data-termeh-billing="live"] .termehBillingOffOnly{display:none!important}
+    html:not([data-termeh-billing="live"]) .termehBillingLiveOnly{display:none!important}
     </style>
 </head>
 <body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
@@ -2518,7 +2520,8 @@
 </section>
 <section class="notice">
   <strong>🎼 <span class="only-fa">مراحل، پیشرفت و نت‌های جدید</span><span class="only-en">Progression and new notes</span></strong>
-  <p><span class="only-fa">نت‌های بالاتر در طول مسیر آموزشی و پس از تمرین باز می‌شوند و نت‌های قبلی حذف نمی‌شوند. این نسخهٔ مقدماتی پنج نت کلید سل را در اختیار می‌گذارد؛ درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم هنوز در نسخهٔ عمومی قابل خرید یا اجرا نیستند.</span><span class="only-en">Higher notes unlock gradually with practice, and earlier notes stay in rotation. This introductory edition contains five beginner treble notes; advanced treble, bass and rhythm lessons are not yet available for purchase or play in the public build.</span></p>
+  <p class="termehBillingOffOnly"><span class="only-fa">نت‌های بالاتر در طول مسیر آموزشی و پس از تمرین باز می‌شوند و نت‌های قبلی حذف نمی‌شوند. این نسخهٔ مقدماتی پنج نت کلید سل را در اختیار می‌گذارد؛ درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم هنوز در نسخهٔ عمومی قابل خرید یا اجرا نیستند.</span><span class="only-en">Higher notes unlock gradually with practice, and earlier notes stay in rotation. This introductory edition contains five beginner treble notes; advanced treble, bass and rhythm lessons are not yet available for purchase or play in the public build.</span></p>
+  <p class="termehBillingLiveOnly"><span class="only-fa">پنج نت اول کلید سل رایگان‌اند؛ درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم با یک خرید دائمی درون‌برنامه‌ای از بازار قابل دریافت‌اند. خرید، آزمون‌ها و قفل‌های مرحله‌ای را دور نمی‌زند و نت‌های قبلی در تمرین باقی می‌مانند.</span><span class="only-en">Five beginner treble notes are free. Advanced treble, bass and rhythm lessons are available via one lifetime Cafe Bazaar in-app purchase. Purchase never skips learning assessments, and earlier notes remain in practice.</span></p>
 </section>
 <section class="notice">
   <strong>👨‍👩‍👧 <span class="only-fa">نظارت والدین و زمان تمرین</span><span class="only-en">Parental supervision and practice time</span></strong>
@@ -2530,7 +2533,8 @@
 </section>
 <section class="notice">
   <strong>🛍️ <span class="only-fa">خرید برنامه و دسترسی به درس‌ها</span><span class="only-en">Buying the app and accessing lessons</span></strong>
-  <p><span class="only-fa">بخش مقدماتی رایگان است. برای درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم، <b>خرید یک‌باره و دائمی داخل برنامه از طریق کافه‌بازار</b> برنامه‌ریزی شده است؛ اشتراک ماهانه نداریم. <b>در این نسخهٔ آزمایشی خرید یا فعال‌سازی درس پولی انجام نمی‌شود و هیچ هزینه‌ای دریافت نمی‌کنیم.</b> قفل خرید با قفل پیشرفت آموزشی فرق دارد.</span><span class="only-en">Starter practice is free. A <b>single lifetime in-app purchase through Cafe Bazaar</b> is planned for advanced treble, bass, and rhythm lessons; no subscription. <b>Checkout and premium unlock are disabled in this QA build. No payment is taken.</b> Educational progress gates remain separate from paid ownership.</span></p>
+  <p class="termehBillingOffOnly"><span class="only-fa">بخش مقدماتی رایگان است. برای درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم، <b>خرید یک‌باره و دائمی داخل برنامه از طریق کافه‌بازار</b> برنامه‌ریزی شده است؛ اشتراک ماهانه نداریم. <b>در این نسخهٔ آزمایشی خرید یا فعال‌سازی درس پولی انجام نمی‌شود و هیچ هزینه‌ای دریافت نمی‌کنیم.</b> قفل خرید با قفل پیشرفت آموزشی فرق دارد.</span><span class="only-en">Starter practice is free. A <b>single lifetime in-app purchase through Cafe Bazaar</b> is planned for advanced treble, bass, and rhythm lessons; no subscription. <b>Checkout and premium unlock are disabled in this QA build. No payment is taken.</b> Educational progress gates remain separate from paid ownership.</span></p>
+  <p class="termehBillingLiveOnly"><span class="only-fa"><b>در این نسخهٔ آزمایش پرداخت واقعی بازار فعال است.</b> پنج نت مقدماتی رایگان‌اند. والدین پس از ورود به بخش محافظت‌شده، می‌توانند یک بار از کافه‌بازار درس‌های کامل را بخرند. <b>این خرید ممکن است واقعاً هزینه داشته باشد.</b> مبلغ قطعی را صفحهٔ رسمی بازار پیش از پرداخت نشان می‌دهد. اشتراک یا خرید تکراری نداریم. پس از خرید نیز مراحل آموزشی باید با تمرین طی شوند.</span><span class="only-en"><b>This build enables real Cafe Bazaar checkout for controlled testing.</b> The five starter notes remain free. Only a parent in the protected section can request the lifetime course purchase. <b>This can charge real money.</b> Bazaar displays the exact price before payment. No subscription or repeat purchase. Educational mastery levels still apply after buying.</span></p>
 </section>
 <section class="notice">
   <strong>🔔 <span class="only-fa">یادآور تمرین روزانه؛ کاملاً اختیاری</span><span class="only-en">Optional daily practice reminders</span></strong>
@@ -2552,7 +2556,7 @@
   'use strict';
   // Revision-specific key: a material change reopens the briefing on existing phones.
   // Keep this separate from game progress, so a notice update never resets learning.
-  const KEY='termeh_parent_welcome_v4',REVISION=4;
+  const KEY='termeh_parent_welcome_v5',REVISION=5;
   let acceptedThisSession=false;
   function previouslyAccepted(){
     if(acceptedThisSession)return true;
@@ -2647,7 +2651,7 @@ const phrases=[
 const phrasePairs=phrases.slice().sort((a,b)=>b[0].length-a[0].length); // Longest phrases first: avoid mixing Persian and English in partial matches.
 let observer;let current='fa';
 function translate(root){if(current!=='en')return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(node=>{if(node.parentElement&&['SCRIPT','STYLE','TEXTAREA','INPUT'].includes(node.parentElement.tagName))return;let out=node.nodeValue;for(const [fa,en] of phrasePairs)out=out.split(fa).join(en);if(out!==node.nodeValue)node.nodeValue=out;});}
-window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);try{if(window.TermehPractice)window.TermehPractice.setLanguage(l);}catch(ignored){}document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');window.showParentWelcomeIfNeeded();if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
+window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);try{if(window.TermehPractice)window.TermehPractice.setLanguage(l);}catch(ignored){}if(window.termehSyncBillingCapabilities)window.termehSyncBillingCapabilities();document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');window.showParentWelcomeIfNeeded();if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
 // Static translation alone cannot update HTML created before language selection.
 // Rebuild the active exercise and piano keys in the selected language.
 if (typeof state!=='undefined' && state.currentStaffNote) {
@@ -2771,7 +2775,8 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 </section>
 <section class="termehStoreOnly" aria-label="Purchase model" style="padding:14px 12px;margin:14px 0;border:2px solid #a7f3d0;border-radius:16px;background:#ecfdf5">
   <h3 style="font-size:17px;font-weight:900;color:#065f46">🎹 <span class="only-fa">تمرین مقدماتی رایگان؛ درس‌های ویژه در آینده</span><span class="only-en">Free starter lessons; premium is coming later</span></h3>
-  <p><span class="only-fa">این نسخهٔ رایگان فعلاً پنج نت آغازین کلید سل را دارد. خرید یک‌بارهٔ درس‌های پیشرفته هنوز فعال نیست. تا قبل از ارائهٔ واقعی محتوای خریداری‌شده و تست امنِ پرداخت و بازیابی، هیچ وجهی دریافت نخواهد شد.</span><span class="only-en">This free edition currently contains five introductory treble notes. The one-time premium upgrade is not yet available. No payment will be collected until the actual lessons, checkout and restore are tested.</span></p>
+  <p class="termehBillingOffOnly"><span class="only-fa">این نسخهٔ رایگان فعلاً پنج نت آغازین کلید سل را دارد. خرید یک‌بارهٔ درس‌های پیشرفته هنوز فعال نیست. تا قبل از ارائهٔ واقعی محتوای خریداری‌شده و تست امنِ پرداخت و بازیابی، هیچ وجهی دریافت نخواهد شد.</span><span class="only-en">This free edition currently contains five introductory treble notes. The one-time premium upgrade is not yet available. No payment will be collected until the actual lessons, checkout and restore are tested.</span></p>
+  <p class="termehBillingLiveOnly"><span class="only-fa">پنج نت مقدماتی رایگان است. خرید یک‌بارهٔ دائمی تنها در بخش والدین و از مسیر رسمی کافه‌بازار انجام می‌شود. اگر درخواست خرید بدهید، <b>امکان پرداخت واقعی وجود دارد</b> و قیمت توسط بازار اعلام خواهد شد. بازکردن درس‌های بالاتر به آزمون‌های آموزشی هم وابسته است.</span><span class="only-en">Five introductory notes are free. Lifetime paid lessons are available only through parent-approved official Cafe Bazaar checkout. <b>Real charges are possible</b> after you request a purchase, and Bazaar shows the official price. Higher lessons still require educational progress.</span></p>
 </section>
 
 <section id="dailyReminderPanel" aria-label="Optional daily practice reminders" style="padding:14px 12px;margin:14px 0;border:2px solid #fed7aa;border-radius:16px;background:#fff7ed">
@@ -2837,6 +2842,24 @@ window.termehBazaarStatus=function(code){
   el('bazaarBillingStatus').textContent=pair[en?1:0];
   const real=el('realBazaarStatus');if(real)real.textContent=pair[en?1:0];
 };
+// Native capability methods are booleans only: never expose receipts,
+// account identifiers, activation keys or child learning details to JavaScript.
+window.termehCanRestoreBoughtLessons=false;
+window.termehSyncBillingCapabilities=function(){
+  const api=window.TermehBazaar;
+  let live=false,restore=false;
+  try {
+    live=!!(api && api.isLiveCheckoutEnabled && api.isLiveCheckoutEnabled());
+    restore=!!(api && api.canRestoreOwnedLessons && api.canRestoreOwnedLessons());
+  }catch(ignored){}
+  document.documentElement.setAttribute('data-termeh-billing',live?'live':'off');
+  window.termehCanRestoreBoughtLessons=restore;
+  const restoreButton=el('realBazaarRestoreBtn');
+  if(restoreButton)restoreButton.hidden=!restore;
+  const offer=el('realBazaarOffer');
+  if(offer && restore)offer.hidden=false;
+  return {live,restore};
+};
 // Live SKU price is taken from Bazaar. Merely opening this screen
 // never starts checkout. The native bridge requires official store setup.
 window.termehBazaarOffer=function(code,publicPrice){
@@ -2844,8 +2867,11 @@ window.termehBazaarOffer=function(code,publicPrice){
   if(!offer||!price||!buy)return;
   const en=localStorage.getItem('termeh_language')==='en';
   const ready=code==='offer_ready' && typeof publicPrice==='string' && !!publicPrice;
-  offer.hidden=!ready;
+  offer.hidden=!(ready||window.termehCanRestoreBoughtLessons);
+  buy.hidden=!ready;
   buy.disabled=!ready;
+  const restoreButton=el('realBazaarRestoreBtn');
+  if(restoreButton)restoreButton.hidden=!window.termehCanRestoreBoughtLessons;
   price.textContent=ready?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice:'';
 };
 window.termehBuyFromBazaar=function(){
@@ -2947,6 +2973,7 @@ window.termehToggleQaPreview=function(){
   switchGameMode('treble');
 };
 window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();if(window.termehRefreshQaPreview)window.termehRefreshQaPreview();
+  if(window.termehSyncBillingCapabilities)window.termehSyncBillingCapabilities();
   if(window.TermehBazaar && window.TERMEH_CONTENT_VARIANT==='release-free'){
     try{window.TermehBazaar.checkProductCatalog();}catch(ignored){}
   }
