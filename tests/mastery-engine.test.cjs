@@ -26,6 +26,10 @@ for(const count of [1,5,10,20,29,30,40,80,99,149]){
   assert(result.score<100);
 }
 assert.equal(engine.evaluate(createHistory(20),expected).stage,1);
+assert(engine.evaluate(createHistory(20,['G4']),expected).score>0,
+  'Practice bar must advance for effort even before all notes are familiar');
+assert(engine.evaluate(createHistory(20,['G4']),expected).score<25,
+  'Partial effort never completes stage 1 without per-note competency');
 assert.equal(engine.evaluate(createHistory(80),expected).stage,3);
 const full=engine.evaluate(createHistory(150),expected);
 assert.equal(full.stage,4);
