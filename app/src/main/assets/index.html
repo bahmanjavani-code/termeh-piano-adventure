@@ -377,6 +377,7 @@
                     <div id="masteryProgressFill" style="width:0%;height:100%;border-radius:999px;background:#7c3aed;transition:width .2s ease"></div>
                 </div>
                 <p id="masteryStats" style="font-size:13px;font-weight:800;line-height:1.7;margin:7px 0 3px">در حال بررسی پیشرفت...</p>
+                <p id="masteryTrend" style="font-size:12px;line-height:1.75;margin:6px 0 3px;padding:7px;background:white;border-radius:10px">📈 روند خطا و سرعت بعد از ۴۰ سؤال نمایش داده می‌شود.</p>
                 <p id="masteryNextGoal" style="font-size:12px;line-height:1.8;margin:0">با تمرین‌های کوتاه و دقیق پیش برو.</p>
             </section>
             <button id="examStartBtn" type="button" onclick="beginFinalAssessment()" disabled style="border-radius:14px;padding:11px;background:#5b21b6;color:white;font-weight:800;opacity:.9">🎓 آزمون پایانی / Final Assessment</button>
@@ -1546,6 +1547,7 @@
             const title=document.getElementById('masteryStageTitle');
             const stats=document.getElementById('masteryStats');
             const goal=document.getElementById('masteryNextGoal');
+            const trendBox=document.getElementById('masteryTrend');
             const fill=document.getElementById('masteryProgressFill');
             const track=document.getElementById('masteryProgressTrack');
             const speed=result.medianMs===null?(en?'not yet measured':'هنوز ثبت نشده'):
@@ -1557,6 +1559,19 @@
             if(stats)stats.textContent=en?
                 `Practice: ${result.total} questions · First-try accuracy (last 60): ${result.accuracy60}% · Typical correct speed: ${speed} · Notes learned in this stage: ${confidentNow}/${result.noteCount}`:
                 `تمرین: ${result.total} سؤال · دقت بار اول (۶۰ سؤال اخیر): ${result.accuracy60}٪ · سرعت معمول پاسخ درست: ${speed} · نت‌های یادگرفته‌شده در این مرحله: ${confidentNow} از ${result.noteCount}`;
+            if(trendBox){
+                if(!result.trend){
+                    trendBox.textContent=en?
+                        '📈 Accuracy and recognition-time trends appear after 40 practice questions.':
+                        '📈 روند خطا و سرعت بعد از ۴۰ سؤال تمرینی نمایش داده می‌شود.';
+                }else{
+                    const tr=result.trend;
+                    const t=(ms)=>Number.isFinite(ms)?(ms/1000).toFixed(1)+(en?' s':' ثانیه'):(en?'not measured':'ثبت‌نشده');
+                    trendBox.textContent=en?
+                        `📈 Mistakes (previous 20 → latest 20): ${tr.earlierErrors} → ${tr.latestErrors} · Typical correct time: ${t(tr.earlierMedianMs)} → ${t(tr.latestMedianMs)}`:
+                        `📈 خطاها (۲۰ سؤال قبلی ← ۲۰ سؤال آخر): ${tr.earlierErrors} ← ${tr.latestErrors} · زمان معمول پاسخ درست: ${t(tr.earlierMedianMs)} ← ${t(tr.latestMedianMs)}`;
+                }
+            }
             if(goal) {
                 if(result.passed)goal.textContent=en?'Great job! You can always return for more practice.':'آفرین! برای قوی‌تر شدن همیشه می‌توانی دوباره تمرین کنی.';
                 else if(result.stage===1)goal.textContent=en?
