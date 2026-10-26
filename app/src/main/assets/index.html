@@ -1585,6 +1585,10 @@
         }
 
         function switchRhythmSubMode(subMode) {
+            if (state.rhythmSubMode==='hold' && subMode!=='hold' && state.isHoldingPad) {
+                state.isHoldingPad=false;
+                stopHoldSoundAndTimer();
+            }
             state.rhythmSubMode = subMode;
             const subIds = ['learn', 'quiz', 'hold','meter'];
             subIds.forEach(id => {
@@ -1627,7 +1631,13 @@
         };
         function durationName(d){return isEnglish()?EN_DURATIONS[d.id].name:d.faName;}
         function durationDescription(d){return isEnglish()?EN_DURATIONS[d.id].desc:d.desc;}
-        function durationBeats(d){return isEnglish()?(d.beats===0.5?'½':String(d.beats))+' quarter-note beats':d.beatsLabel;}
+        function durationBeats(d){
+            if(!isEnglish())return d.beatsLabel;
+            return (d.beats===0.5?'½':String(d.beats))+' quarter-note '+(d.beats===1?'beat':'beats');
+        }
+        function rhythmBeatCount(n){
+            return isEnglish()?n+' '+(n===1?'beat':'beats'):n+' ضرب';
+        }
         const EN_TROPHIES={
             starter_star:['Beginner Musician','Your first music adventure award!'],
             golden_piano:['Golden Piano','A decoration earned after steady practice.'],
@@ -1686,7 +1696,9 @@
                     const box = document.getElementById(`demoBeat-${b}`);
                     if (box) {
                         box.className = 'h-10 rounded-xl bg-amber-400 border-2 border-white flex items-center justify-center font-black text-sm text-slate-900 scale-105 shadow-lg transition-all';
-                        box.textContent = item.beats === 0.5 ? 'نیم ضرب!' : `ضرب ${b} ✨`;
+                        box.textContent = item.beats === 0.5
+                            ? (isEnglish()?'Half a beat!':'نیم ضرب!')
+                            : (isEnglish()?`Beat ${b} ✨`:`ضرب ${b} ✨`);
                     }
                 }, (b - 1) * beatMs);
                 demoTimerIds.push(tid);
@@ -1771,13 +1783,15 @@
         ];
 
         function loadHoldChallenge() {
+            stopHoldSoundAndTimer();
+            state.isHoldingPad=false;
             state.holdChallengeSolved = false;
             const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
 
             document.getElementById('holdTargetTitle').textContent = `${durationName(target)} (${durationBeats(target)})`;
             document.getElementById('holdTargetSvg').innerHTML = getNoteDurationSvg(target.id, 75);
-            document.getElementById('holdTargetDesc').textContent = isEnglish()?`Hold the piano key for ${target.beats} beats, then release.`:`کلید پیانو رو دقیقاً ${target.beats} ضرب نگه دار و بعد رها کن!`;
-            document.getElementById('holdTargetBeatBadge').textContent = isEnglish()?`Target: ${target.beats} beats`:`هدف: ${target.beats} ضرب`;
+            document.getElementById('holdTargetDesc').textContent = isEnglish()?`Hold the piano key for ${rhythmBeatCount(target.beats)}, then release.`:`کلید پیانو رو دقیقاً ${target.beats} ضرب نگه دار و بعد رها کن!`;
+            document.getElementById('holdTargetBeatBadge').textContent = isEnglish()?`Target: ${rhythmBeatCount(target.beats)}`:`هدف: ${target.beats} ضرب`;
             document.getElementById('holdLiveCounterText').textContent = isEnglish()?'Hold the purple button below!':'دکمه بنفش پایین رو نگه دار!';
 
             resetHoldBeatLights(target.beats);
@@ -1787,7 +1801,7 @@
             nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-slate-200 text-slate-400 border-b-4 border-slate-300 cursor-not-allowed';
             nextBtn.innerHTML = isEnglish()?`<span>🔒</span><span>Hold the note for the correct duration to continue</span>`:`<span>🔒</span><span>اول کشش نت رو درست اجرا کن تا مرحله بعد باز بشه!</span>`;
 
-            setMascotBubble(isEnglish()?'Hold the note 🎹':'چالش نگه داشتن نت 🎹',isEnglish()?`Try the ${durationName(target)}. Hold the big piano key for ${target.beats} beats, then release.`:`الان نوبت «${target.faName}» است! دکمه بزرگ پیانو رو نگه دار تا ${target.beats} چراغ روشن بشه و بعد رها کن!`,'normal');
+            setMascotBubble(isEnglish()?'Hold the note 🎹':'چالش نگه داشتن نت 🎹',isEnglish()?`Try the ${durationName(target)}. Hold the big piano key for ${rhythmBeatCount(target.beats)}, then release.`:`الان نوبت «${target.faName}» است! دکمه بزرگ پیانو رو نگه دار تا ${target.beats} چراغ روشن بشه و بعد رها کن!`,'normal');
         }
 
         function resetHoldBeatLights(targetBeats) {
@@ -1800,15 +1814,21 @@
             }
         }
 
+        // One quarter-note beat lasts 650ms. Use a monotonic clock so a
+        // very quick tap cannot accidentally count as one full beat.
+        const HOLD_BEAT_MS=650;
+        const HOLD_TOLERANCE_BEATS=0.32;
         let currentHeldBeats = 0;
+        let holdStartedAt = 0;
 
         function startRhythmHold(e) {
             if (e && e.cancelable) e.preventDefault();
-            if (state.isHoldingPad) return;
+            if (state.isHoldingPad || state.holdChallengeSolved) return;
 
             const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
             state.isHoldingPad = true;
-            currentHeldBeats = 1;
+            holdStartedAt = performance.now();
+            currentHeldBeats = 0;
             resetHoldBeatLights(target.beats);
 
             const padLabel = document.getElementById('giantHoldPadLabel');
@@ -1829,18 +1849,24 @@
                 } catch (err) {}
             }
 
-            highlightHoldBeat(1, target.beats);
+            document.getElementById('holdLiveCounterText').textContent=isEnglish()?
+                `Counting: 0 of ${rhythmBeatCount(target.beats)}...`:
+                `شمارش: ۰ از ${target.beats} ضرب...`;
             playMetronomeTick(true);
 
             state.holdIntervalId = setInterval(() => {
-                currentHeldBeats += 1;
-                if (currentHeldBeats <= 4) {
-                    highlightHoldBeat(currentHeldBeats, target.beats);
+                const elapsed=Math.max(0,performance.now()-holdStartedAt);
+                const finishedBeats=Math.floor(elapsed/HOLD_BEAT_MS);
+                if(finishedBeats===currentHeldBeats)return;
+                const oldCount=currentHeldBeats;
+                currentHeldBeats=finishedBeats;
+                for(let beat=oldCount+1;beat<=Math.min(4,finishedBeats);beat++){
+                    highlightHoldBeat(beat,target.beats);
                     playMetronomeTick(false);
-                } else {
-                    document.getElementById('holdLiveCounterText').textContent = isEnglish()?'Too long! Release now. 😅':'زیاد نگه داشتی! رها کن! 😅';
                 }
-            }, 650);
+                if(finishedBeats>4)document.getElementById('holdLiveCounterText').textContent=
+                    isEnglish()?'Too long! Release now. 😅':'زیاد نگه داشتی! رها کن! 😅';
+            }, 65);
         }
 
         function highlightHoldBeat(beatNum, targetBeats) {
@@ -1849,7 +1875,9 @@
                 const isGood = beatNum <= targetBeats;
                 el.className = `h-11 rounded-xl ${isGood ? 'bg-emerald-400 text-slate-900 border-2 border-white' : 'bg-rose-500 text-white border-2 border-white'} flex flex-col items-center justify-center font-black text-xs scale-105 shadow-lg transition-all`;
             }
-            document.getElementById('holdLiveCounterText').textContent = isEnglish()?`Counting: ${beatNum} beats...`:`شمردن: ${beatNum} ضرب...`;
+            document.getElementById('holdLiveCounterText').textContent = isEnglish()?
+                `Counting: ${rhythmBeatCount(beatNum)} of ${rhythmBeatCount(targetBeats)}...`:
+                `شمردن: ${beatNum} از ${targetBeats} ضرب...`;
         }
 
         function stopHoldSoundAndTimer() {
@@ -1882,8 +1910,10 @@
             if (padLabel) padLabel.textContent = isEnglish()?'Hold here and count!':'اینجا رو نگه دار و بشمار!';
 
             const target = HOLD_CHALLENGES[state.currentHoldTargetIdx % HOLD_CHALLENGES.length];
+            const heldBeats=Math.max(0,(performance.now()-holdStartedAt)/HOLD_BEAT_MS);
+            currentHeldBeats=Math.floor(heldBeats);
 
-            if (currentHeldBeats === target.beats) {
+            if (!state.holdChallengeSolved && Math.abs(heldBeats-target.beats)<=HOLD_TOLERANCE_BEATS) {
                 if (!state.holdChallengeSolved) {
                     state.holdChallengeSolved = true;
                     state.stars += 1;
@@ -1894,18 +1924,24 @@
                 }
                 playSuccessSound();
                 launchConfetti();
-                document.getElementById('holdLiveCounterText').textContent = isEnglish()?`🌟 Great! You held for ${target.beats} beats!`:`🌟 عالی! دقیقاً ${target.beats} ضرب نگه داشتی!`;
-                setMascotBubble(isEnglish()?'Great rhythm! 🎉':'ریتم عالی! 🎉',isEnglish()?`You held the ${durationName(target)} for ${target.beats} beats. Next challenge unlocked!`:`دقیقاً به اندازه «${target.faName}» (${target.beats} ضرب) نگه داشتی! قفل مرحله بعد باز شد!`,'joy');
+                document.getElementById('holdLiveCounterText').textContent = isEnglish()?`🌟 Great! You held for ${rhythmBeatCount(target.beats)}!`:`🌟 عالی! دقیقاً ${target.beats} ضرب نگه داشتی!`;
+                setMascotBubble(isEnglish()?'Great rhythm! 🎉':'ریتم عالی! 🎉',isEnglish()?`You held the ${durationName(target)} for ${rhythmBeatCount(target.beats)}. Next challenge unlocked!`:`دقیقاً به اندازه «${target.faName}» (${target.beats} ضرب) نگه داشتی! قفل مرحله بعد باز شد!`,'joy');
 
                 const nextBtn = document.getElementById('nextHoldGameBtn');
                 nextBtn.disabled = false;
                 nextBtn.className = 'w-full py-3.5 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all btn-cartoon bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 border-b-4 border-amber-700 glow-next-btn cursor-pointer';
-                nextBtn.innerHTML = `<span>🎉</span><span>آفرین! بریم چالش ریتم بعدی ⬅️</span>`;
+                nextBtn.innerHTML = isEnglish()?
+                    '<span>🎉</span><span>Great! Next rhythm challenge ➡️</span>':
+                    '<span>🎉</span><span>آفرین! بریم چالش ریتم بعدی ⬅️</span>';
             } else {
                 playWrongSound();
-                const diffMsg = currentHeldBeats < target.beats
-                    ? `زود رها کردی (${currentHeldBeats} ضرب)! باید تا ضرب ${target.beats} نگه داری.`
-                    : `بیشتر از ${target.beats} ضرب نگه داشتی! سر ضرب ${target.beats} رها کن.`;
+                const diffMsg = heldBeats < target.beats
+                    ? (isEnglish()?
+                        `Released too early (about ${heldBeats.toFixed(1)} beats). Hold for ${rhythmBeatCount(target.beats)}.`:
+                        `زود رها کردی (حدود ${heldBeats.toFixed(1)} ضرب)! تا ${target.beats} ضرب نگه دار.`)
+                    : (isEnglish()?
+                        `Held too long (about ${heldBeats.toFixed(1)} beats). Release at ${rhythmBeatCount(target.beats)}.`:
+                        `بیشتر از ${target.beats} ضرب نگه داشتی! سر ضرب ${target.beats} رها کن.`);
                 document.getElementById('holdLiveCounterText').textContent = diffMsg;
                 setMascotBubble(isEnglish()?'Try again! ⏱️':'دوباره امتحان کن! ⏱️',isEnglish()?'Follow the steady beat, then release on the target beat.':diffMsg,'shake');
             }
@@ -2114,6 +2150,10 @@
 
         function switchGameMode(newMode) {
             if (typeof isModeUnlocked === 'function' && !isModeUnlocked(newMode)) { showUnlock(newMode); return; }
+            if (newMode!=='rhythm' && state.isHoldingPad) {
+                state.isHoldingPad=false;
+                stopHoldSoundAndTimer();
+            }
             if (state.exam && state.exam.active && state.mode !== newMode) { state.exam=null; }
             state.mode = newMode;
 
