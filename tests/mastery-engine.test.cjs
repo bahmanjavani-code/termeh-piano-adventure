@@ -26,6 +26,17 @@ for(const count of [1,5,10,20,29,30,40,80,99,149]){
   assert(result.score<100);
 }
 assert.equal(engine.evaluate(createHistory(20),expected).stage,1);
+
+assert.equal(engine.evaluate(createHistory(20),expected).trend,null,
+  'Need two fair 20-question windows before showing a trend');
+const improving=createHistory(60,expected,1600);
+for(let i=20;i<27;i++)improving[i].correct=false; // older comparison window
+for(let i=40;i<42;i++)improving[i].correct=false; // latest comparison window
+const trend=engine.evaluate(improving,expected).trend;
+assert.deepEqual([trend.earlierErrors,trend.latestErrors],[7,2],
+  'Parent should see falling first-try mistakes, not only a vague completion score');
+assert(Number.isFinite(trend.latestMedianMs));
+
 assert(engine.evaluate(createHistory(20,['G4']),expected).score>0,
   'Practice bar must advance for effort even before all notes are familiar');
 assert(engine.evaluate(createHistory(20,['G4']),expected).score<25,
@@ -104,6 +115,7 @@ assert(/if\(correct && !firstTry\) return/.test(html),'Late correction cannot co
 assert(/certifiedVersion=TermehMasteryEngine\.POLICY_VERSION/.test(html));
 assert(/fastCorrect>=15/.test(html),'Final exam must also test recognition speed');
 assert(/id="masteryDashboard"/.test(html),'Progress goals must be visible to kids and parents');
+assert(/id="masteryTrend"/.test(html),'Display objective progress in mistakes and response time');
 assert(/TermehMasteryEngine\.chooseNextNote\(/.test(html));
 assert(/TermehMasteryEngine\.buildBalancedExam\(/.test(html));
 assert(/state\.levelTreble \+= 1/.test(html)===false,'Every tap must not advance a fake level');
