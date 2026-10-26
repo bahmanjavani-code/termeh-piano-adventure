@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 27,
+  "latestVersionCode": 28,
   "storeUrl": "",
-  "notes": "1.3.22-beta controlled QA: prepare one-time Cafe Bazaar lifetime IAP with merchant RSA verification, official SKU price, guarded native confirmation, signed restore check, Android Keystore, encrypted full lesson pack staged only at signed build, and stepwise learning after purchase. Real charges are OFF by default until explicit owner-authorized store test and valid RSA/content configuration. Not store-ready: teacher/real device/refund/signing-backup QA."
+  "notes": "1.3.23-beta controlled Bazaar QA: truthful parent-facing payment/restore notices in Persian and English when a signed build is authorized to show real checkout; previous customers may restore even if new sales are paused. Refund/revocation now invalidates queued older offline lesson messages. Signed CI lists configured/missing merchant prerequisites without revealing keys and rejects chargeable builds without pinned ORIGINAL signing certificate. Store checkout remains OFF by default until owner authorizes a real test."
 }
