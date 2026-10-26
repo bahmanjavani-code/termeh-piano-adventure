@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 28,
+  "latestVersionCode": 29,
   "storeUrl": "",
-  "notes": "1.3.23-beta: prepare controlled genuine Cafe Bazaar lifetime payment review; automatically encrypt bundled premium course with ephemeral per-signed-build AES key (no extra owner secret needed), require separate native parent arithmetic challenge before any charge, improve bilingual purchase/restore disclosures and consent revision 5. Automatic tests do NOT prove merchant charge/refund flows; checkout stays disabled by default until merchant account product and explicit owner authorization."
+  "notes": "1.3.24-beta signed Bazaar QA: paid buyers can restore an existing lifetime course even when new sales/catalog SKUs are paused. Online confirmed refunds invalidate stale background offline paid-content delivery. Native purchase still requires a separate guardian arithmetic check and Bazaar's verified SKU/receipt, with explicit opt-in for chargeable tests. Signed CI shows merchant RSA/known original certificate readiness and automatically stages encrypted lessons with an ephemeral build key, no new key or icon required. Live payment still untested on real merchant account."
 }
