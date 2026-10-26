@@ -28,6 +28,8 @@ jobs:
         run: node tests/quality.test.cjs
       - name: Test long-term note mastery, adaptive drill and balanced final assessment
         run: node tests/mastery-engine.test.cjs
+      - name: Test stepwise note curriculum and retention of old notes
+        run: node tests/note-curriculum.test.cjs
       - name: Test cosmetic economy and avoid easy trophy farming
         run: node tests/rewards-economy.test.cjs
       - uses: actions/setup-node@v4
