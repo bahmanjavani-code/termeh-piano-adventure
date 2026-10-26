@@ -43,9 +43,13 @@ public class MainActivity extends ComponentActivity {
         settings.setSafeBrowsingEnabled(true);
         settings.setBlockNetworkLoads(true); // WebView never loads Internet resources.
 
-        // Packaged offline page only; read-only billing status, no checkout through JS.
-        billing = new BazaarBillingBridge(this, web);
-        web.addJavascriptInterface(billing, "TermehBazaar");
+        // Paid-download Bazaar model: no in-app checkout or ownership gate.
+        // Keep read-only legacy Poolakey test bridge strictly DEBUG-only for QA.
+        // Signed release NEVER exposes the bridge to WebView or contacts Bazaar.
+        if (BuildConfig.DEBUG) {
+            billing = new BazaarBillingBridge(this, web);
+            web.addJavascriptInterface(billing, "TermehBazaar");
+        }
 
         web.setWebViewClient(new WebViewClient() {
             private boolean handleLink(String link) {
@@ -122,7 +126,7 @@ public class MainActivity extends ComponentActivity {
         web.loadUrl(START_PAGE);
         support.enforceCachedPolicy();
         support.checkUpdates(false);
-        billing.start();
+        if (billing != null) billing.start();
     }
 
     @Override protected void onResume() {
