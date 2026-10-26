@@ -1790,6 +1790,9 @@
             const staffArea = document.getElementById('staffGameArea');
             const rhythmArea = document.getElementById('rhythmGameArea');
 
+            const dock=document.getElementById('masteryDock');
+            if(dock)dock.classList.toggle('hidden',newMode==='rhythm');
+            closeMasteryDetails();
             if (newMode === 'treble' || newMode === 'bass') {
                 staffArea.classList.remove('hidden');
                 rhythmArea.classList.add('hidden');
@@ -2443,7 +2446,7 @@ html[data-termeh-theme=dark] #appMenuToggle{background:#1e293b;color:#f5f3ff;bor
        <button type="button" data-termeh-theme-choice="auto" onclick="setTermehTheme('auto')">📱 <span class="only-fa">خودکار</span><span class="only-en">Auto</span></button>
     </div>
     <button id="parentLaunch" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">👨‍👩‍👧 <span class="only-fa">بخش والدین و مدیریت حساب</span><span class="only-en">Parent controls and account</span></button>
-    <button type="button" class="termehMenuAction" onclick="closeTermehMenu();document.getElementById('masteryProgressTrack').scrollIntoView({block:'center'})">📊 <span class="only-fa">نمایش پیشرفت آموزشی</span><span class="only-en">View learning progress</span></button>
+    <button type="button" class="termehMenuAction" onclick="closeTermehMenu();showMasteryFromMenu()">📊 <span class="only-fa">نمایش پیشرفت آموزشی</span><span class="only-en">View learning progress</span></button>
     <button id="menuFeedback" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">💬 <span class="only-fa">نظرات و پیشنهادها (فقط والدین)</span><span class="only-en">Suggestions and feedback (parents only)</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('science')">📚 <span class="only-fa">روش آموزشی و منابع معتبر</span><span class="only-en">Learning approach and sources</span></button>
     <button type="button" class="termehMenuAction" onclick="showTermehInfo('limits')">⚖️ <span class="only-fa">محدودیت آموزشی و شرایط استفاده</span><span class="only-en">Educational limitations and terms</span></button>
