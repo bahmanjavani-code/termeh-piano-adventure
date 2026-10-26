@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 17,
+  "latestVersionCode": 18,
   "storeUrl": "",
-  "notes": "1.3.12-beta QA: compact accessible settings, bilingual scientific/educational and legal transparency, theme preference, child-safe parent feedback and varied adult challenges. Progress preserved, starter lessons unchanged, paid checkout still disabled."
+  "notes": "1.3.13-beta QA: refreshed first-run parent notice with explicit read-and-understood checkbox, truthful supplementary-learning guidance, versioned local acknowledgment, access to privacy/terms and parent-only reread. Previous learning progress unchanged; no real payment."
 }
