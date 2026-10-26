@@ -4,6 +4,10 @@ on:
 jobs:
   signed-release:
     runs-on: ubuntu-latest
+    env:
+      # RSA verification key is public (not a merchant secret). Empty means billing disabled.
+      TERMEH_BAZAAR_RSA_PUBLIC_KEY: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
+      TERMEH_REQUIRE_BAZAAR_RSA_KEY: '1'
     permissions:
       contents: read
     steps:
@@ -28,14 +32,28 @@ jobs:
         run: node tests/note-curriculum.test.cjs
       - name: Test rhythmic meter arithmetic and compound 6/8
         run: node tests/meter-engine.test.cjs
+      - name: Test parent-consented daily notification scheduler and free lesson packaging
+        run: node tests/daily-reminder.test.cjs
       - name: Test cosmetic economy and avoid easy trophy farming
         run: node tests/rewards-economy.test.cjs
-      - name: Verify paid-download candidate includes all lessons and no extra purchase
-        run: node tests/paid-download-release.test.cjs
+      - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
+        run: node tests/secure-premium-pack.test.cjs
+      - name: Test safe offline premium entitlement core (mocks only, never charge)
+        run: node tests/secure-activation.test.cjs
+      - name: Guard serverless purchase flow until paid content and restore QA are ready
+        run: node tests/no-host-billing-guard.test.cjs
+      - name: Verify encrypted offline demo lesson fixture and AES-GCM tamper detection
+        run: node tests/encrypted-apk-demo.test.cjs
+      - name: Check isolated Android Keystore entitlement vault (no payment)
+        run: node tests/offline-keystore-vault.test.cjs
+      - name: Validate no-charge Bazaar restore path and fail-closed local license caching
+        run: node tests/bazaar-restore-guard.test.cjs
       - name: Run UI smoke tests
         run: |
           npm install --no-save --ignore-scripts playwright-core@1.56.1
           node tests/browser-smoke.cjs
+      - name: Check Bazaar public RSA format without revealing value
+        run: node tests/bazaar-public-key.test.cjs
       - name: Configure secret signing material
         shell: bash
         env:
@@ -89,12 +107,9 @@ jobs:
             echo "::error::Demo lesson plaintext leaked into APK pack"
             exit 1
           fi
-          unzip -p "$APK" assets/premium-preview.js | grep -q 'bazaar-paid-candidate'
-          unzip -p "$APK" assets/premium-preview.js | grep -q '"code": "G5"'
-          unzip -p "$APK" assets/premium-preview.js | grep -q '"code": "G2"'
-          unzip -p "$APK" assets/premium-preview.js | grep -q 'durations:'
-          if unzip -p "$APK" assets/premium-preview.js | grep -q 'debug-full-preview'; then
-            echo "::error::Debug variant marker present in paid release"
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'release-free'
+          if unzip -p "$APK" assets/premium-preview.js | grep -Eq '(debug-full-preview|trebleExtra|beatsLabel)'; then
+            echo "::error::Premium debug lesson content is bundled in release APK"
             exit 1
           fi
           AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
@@ -135,7 +150,7 @@ jobs:
         env:
           URL: ${{ steps.upload.outputs.artifact-url }}
         run: |
-          echo "### Signed QA candidate — DO NOT PUBLISH (store, teacher, key-backup, device QA unfinished)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Signed QA candidate — DO NOT PUBLISH (billing and restoration unfinished)" >> "$GITHUB_STEP_SUMMARY"
           echo "[Download signed candidate]($URL)" >> "$GITHUB_STEP_SUMMARY"
       - name: Remove temporary signing key
         if: always()

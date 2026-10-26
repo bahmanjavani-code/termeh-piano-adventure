@@ -2,6 +2,11 @@ package com.termeh.piano;
 
 import androidx.activity.ComponentActivity;
 import android.content.Intent;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.webkit.JavascriptInterface;
+import org.json.JSONObject;
 import android.content.ActivityNotFoundException;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,6 +24,7 @@ import android.net.Uri;
 
 public class MainActivity extends ComponentActivity {
     private static final String START_PAGE = "file:///android_asset/index.html";
+    private static final int PRACTICE_NOTIFICATION_REQUEST = 3141;
     private WebView web;
     private SupportTools support;
     private BazaarBillingBridge billing;
@@ -50,6 +56,10 @@ public class MainActivity extends ComponentActivity {
             billing = new BazaarBillingBridge(this, web);
             web.addJavascriptInterface(billing, "TermehBazaar");
         }
+
+        // Practice completion is tracked as today's date only, on this device.
+        // A reminder can be enabled/disabled only by an explicit parent action.
+        web.addJavascriptInterface(new PracticeBridge(), "TermehPractice");
 
         web.setWebViewClient(new WebViewClient() {
             private boolean handleLink(String link) {
@@ -126,7 +136,59 @@ public class MainActivity extends ComponentActivity {
         web.loadUrl(START_PAGE);
         support.enforceCachedPolicy();
         support.checkUpdates(false);
+        DailyPracticeReminder.ensureScheduled(this);
         if (billing != null) billing.start();
+    }
+
+    public final class PracticeBridge {
+        @JavascriptInterface public void recordExercise() {
+            DailyPracticeReminder.recordCompletedExercise(MainActivity.this);
+        }
+
+        @JavascriptInterface public String reminderStatus() {
+            return DailyPracticeReminder.status(MainActivity.this);
+        }
+
+        @JavascriptInterface public void enableReminder() {
+            runOnUiThread(() -> {
+                // The button lives behind the existing parent arithmetic gate;
+                // even parental opt-in never bypasses Android's system permission.
+                if (Build.VERSION.SDK_INT >= 33
+                        && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                            PRACTICE_NOTIFICATION_REQUEST);
+                } else {
+                    DailyPracticeReminder.enable(MainActivity.this);
+                    sendReminderStatus();
+                }
+            });
+        }
+
+        @JavascriptInterface public void disableReminder() {
+            runOnUiThread(() -> {
+                DailyPracticeReminder.disable(MainActivity.this);
+                sendReminderStatus();
+            });
+        }
+    }
+
+    private void sendReminderStatus() {
+        if (web == null) return;
+        String status = DailyPracticeReminder.status(this);
+        web.evaluateJavascript("window.termehReminderStatus && window.termehReminderStatus("
+                + JSONObject.quote(status) + ");", null);
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode,
+            String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != PRACTICE_NOTIFICATION_REQUEST) return;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            DailyPracticeReminder.enable(this);
+        }
+        // Denial is not re-prompted automatically; parent can retry in Settings.
+        sendReminderStatus();
     }
 
     @Override protected void onResume() {
