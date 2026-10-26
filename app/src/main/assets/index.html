@@ -747,8 +747,13 @@
                     const previousCertificate=state.mastery.treble.examPassed
                         &&state.mastery.treble.certifiedVersion===TermehMasteryEngine.POLICY_VERSION;
                     const tierMax=TermehNoteCurriculum.maxTier(TREBLE_NOTES);
-                    state.trebleNoteTier=previousCertificate?tierMax:
-                        Math.min(tierMax,Math.max(1,Number.isInteger(parsed.trebleNoteTier)?parsed.trebleNoteTier:1));
+                    // A full-preview QA build may have unlocked upper lessons on
+                    // this same phone. Do NOT erase that accomplishment merely
+                    // because the FREE release only contains five notes today.
+                    // Active note selection still clamps to the bundled pool,
+                    // so this does not grant missing commercial content.
+                    const rememberedTier=Math.min(3,Math.max(1,Number.isInteger(parsed.trebleNoteTier)?parsed.trebleNoteTier:1));
+                    state.trebleNoteTier=previousCertificate?Math.max(tierMax,rememberedTier):rememberedTier;
                     state.reviewedBassStage=Number.isInteger(parsed.reviewedBassStage)
                         &&parsed.reviewedBassStage>=1&&parsed.reviewedBassStage<=4?parsed.reviewedBassStage:1;
                     state.stars = parsed.stars || 0;
@@ -1285,8 +1290,9 @@
                 }
                 if(levelText){
                     const stage=getMastery('treble').stage,notes=getActiveTrebleNotes().length;
-                    levelText.textContent=isEnglish()?`Treble lesson ${state.trebleNoteTier}/${TermehNoteCurriculum.maxTier(TREBLE_NOTES)} · ${notes} notes`:
-                        `درس ${state.trebleNoteTier} از ${TermehNoteCurriculum.maxTier(TREBLE_NOTES)} · ${notes} نت`;
+                    const visibleTier=Math.min(state.trebleNoteTier,TermehNoteCurriculum.maxTier(TREBLE_NOTES));
+                    levelText.textContent=isEnglish()?`Treble lesson ${visibleTier}/${TermehNoteCurriculum.maxTier(TREBLE_NOTES)} · ${notes} notes`:
+                        `درس ${visibleTier} از ${TermehNoteCurriculum.maxTier(TREBLE_NOTES)} · ${notes} نت`;
                 }
             } else {
                 if (clefBadge) {
@@ -1979,8 +1985,9 @@
                 const noteCount=state.mode==='treble'?getActiveTrebleNotes().length:result.noteCount;
                 if(state.mode==='treble'){
                     const count=TermehNoteCurriculum.maxTier(TREBLE_NOTES);
-                    level.textContent=en?`Treble lesson ${state.trebleNoteTier}/${count} · ${noteCount} notes`:
-                        `درس ${state.trebleNoteTier} از ${count} · ${noteCount} نت`;
+                    const visibleTier=Math.min(state.trebleNoteTier,count);
+                    level.textContent=en?`Treble lesson ${visibleTier}/${count} · ${noteCount} notes`:
+                        `درس ${visibleTier} از ${count} · ${noteCount} نت`;
                 }else{
                     level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3 · ${noteCount} notes`:
                         `تمرین ${Math.min(3,result.stage)} از ۳ · ${noteCount} نت`;
