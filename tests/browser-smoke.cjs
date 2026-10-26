@@ -82,8 +82,8 @@ const { chromium }=require('playwright-core');
     assert(await page.locator('#welcomeContinue').isDisabled(),'Unticking should lock continue again');
     await page.locator('#welcomeAccepted').check();
     await page.locator('#welcomeContinue').click();
-    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v4')));
-    assert.equal(noticeRecord.revision,4);
+    const noticeRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v5')));
+    assert.equal(noticeRecord.revision,5);
     assert.equal(noticeRecord.acknowledged,true);
     assert.equal(noticeRecord.language,'en');
     assert(!Number.isNaN(Date.parse(noticeRecord.acknowledgedAt)),'Acknowledgment date missing');
@@ -428,7 +428,7 @@ const { chromium }=require('playwright-core');
     assert(await faPage.locator('#welcomeContinue').isDisabled());
     await faPage.locator('#welcomeAccepted').check();
     await faPage.locator('#welcomeContinue').click();
-    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v4')).language),'fa');
+    assert.equal(await faPage.evaluate(()=>JSON.parse(localStorage.getItem('termeh_parent_welcome_v5')).language),'fa');
     await faPage.close();
 
     // User-facing QA inspector: parents can look at later lessons now,
