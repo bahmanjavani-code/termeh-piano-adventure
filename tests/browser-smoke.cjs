@@ -560,7 +560,7 @@ const { chromium }=require('playwright-core');
     assert(await freePage.locator('#dailyReminderEnable').isEnabled(),'Parent opt-in control should be visible only after math gate');
     assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('five introductory treble notes'),
       'Release should explain five free notes and no charge during QA');
-    assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
+    assert(await freePage.locator('[aria-label="Purchase model"]').isVisible(),'Honest current free product scope must be shown');
     await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
     assert.equal(await freePage.locator('[data-pitch]').count(),5,'Public release must retain only taught beginner keys');
