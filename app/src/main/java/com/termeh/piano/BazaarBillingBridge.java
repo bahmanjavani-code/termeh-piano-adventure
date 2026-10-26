@@ -126,13 +126,23 @@ final class BazaarBillingBridge {
     }
 
     /**
+     * Read-only storefront diagnostics are deliberately independent of the
+     * permission to CHARGE. A parent may verify that Bazaar has configured
+     * the SKU and price from a safe signed QA APK with checkout disabled.
+     */
+    private boolean catalogLookupConfigured() {
+        return !destroyed && connected && payment != null
+                && VerifiedPremiumLessons.enabled();
+    }
+
+    /**
      * Browse one product's PUBLIC store price and confirm SKU provisioning.
      * Never initiate a payment just by opening the parent section.
      */
     @JavascriptInterface
     public void checkProductCatalog() {
         activity.runOnUiThread(() -> {
-            if (!checkoutConfigured()) {
+            if (!catalogLookupConfigured()) {
                 catalogReady = false;
                 publishOffer("offer_unavailable", "");
                 return;
@@ -153,7 +163,12 @@ final class BazaarBillingBridge {
                             }
                         }
                         catalogReady = found;
-                        publishOffer(found ? "offer_ready" : "offer_missing", found ? price : "");
+                        // A known price is not permission to open checkout.
+                        // 'offer_readonly' shows the genuine Bazaar catalog
+                        // with no buy button when this APK forbids charging.
+                        publishOffer(found
+                                ? (BuildConfig.BAZAAR_CHECKOUT_ENABLED ? "offer_ready" : "offer_readonly")
+                                : "offer_missing", found ? price : "");
                         return Unit.INSTANCE;
                     });
                     callback.getSkuDetailsFailed(error -> {
