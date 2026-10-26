@@ -109,7 +109,7 @@ jobs:
           TERMEH_KEY_PASSWORD: ${{ secrets.TERMEH_KEY_PASSWORD }}
           TERMEH_PREMIUM_CONTENT_KEY_HEX: ${{ secrets.TERMEH_PREMIUM_CONTENT_KEY_HEX }}
           TERMEH_ENABLE_LIVE_CHECKOUT: ${{ vars.TERMEH_ENABLE_LIVE_CHECKOUT }}
-          TERMEH_BAZAAR_QA_APPROVED: ${{ vars.TERMEH_BAZAAR_QA_APPROVED }}
+          TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED }}
         run: gradle --no-daemon :app:assembleRelease
       - name: Verify APK signature, Android target, and privacy
         shell: bash
