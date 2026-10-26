@@ -17,6 +17,7 @@ import ir.cafebazaar.poolakey.entity.PurchaseInfo;
 import ir.cafebazaar.poolakey.entity.PurchaseState;
 import kotlin.Unit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Native Bazaar lifetime-purchase bridge with explicit BUILD-TIME safeties.
@@ -41,6 +42,9 @@ final class BazaarBillingBridge {
     private final AtomicBoolean restoreInProgress = new AtomicBoolean(false);
     private final AtomicBoolean purchaseInProgress = new AtomicBoolean(false);
     private volatile boolean catalogReady;
+    // Invalidate any queued decrypted lesson delivery after an authenticated
+    // current-inventory query confirms the lifetime SKU is no longer owned.
+    private final AtomicLong entitlementEpoch = new AtomicLong();
 
     BazaarBillingBridge(ComponentActivity activity, WebView web) {
         this.activity = activity;
