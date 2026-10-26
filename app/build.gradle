@@ -52,7 +52,7 @@ android {
 dependencies {
     implementation 'androidx.activity:activity:1.9.3'
     // Offline, parent-consented daily reminder; no exact alarms or backend.
-    implementation 'androidx.work:work-runtime:2.11.2'
+    implementation 'androidx.work:work-runtime:2.10.5'
     implementation 'com.github.cafebazaar.Poolakey:poolakey:2.3.0'
 }
 
