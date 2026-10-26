@@ -58,6 +58,8 @@ public class MainActivity extends ComponentActivity {
                         support.composeEmail(uri.getQueryParameter("events"));
                     } else if ("updates".equals(uri.getHost())) {
                         support.checkUpdates(true);
+                    } else if ("feedback".equals(uri.getHost())) {
+                        support.composeFeedback();
                     }
                     return true;
                 }
