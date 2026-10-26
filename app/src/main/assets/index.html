@@ -1567,9 +1567,11 @@
                 }else{
                     const tr=result.trend;
                     const t=(ms)=>Number.isFinite(ms)?(ms/1000).toFixed(1)+(en?' s':' ثانیه'):(en?'not measured':'ثبت‌نشده');
+                    const improved=tr.latestErrors<tr.earlierErrors
+                        && tr.latestMedianMs<tr.earlierMedianMs;
                     trendBox.textContent=en?
-                        `📈 Mistakes (previous 20 → latest 20): ${tr.earlierErrors} → ${tr.latestErrors} · Typical correct time: ${t(tr.earlierMedianMs)} → ${t(tr.latestMedianMs)}`:
-                        `📈 خطاها (۲۰ سؤال قبلی ← ۲۰ سؤال آخر): ${tr.earlierErrors} ← ${tr.latestErrors} · زمان معمول پاسخ درست: ${t(tr.earlierMedianMs)} ← ${t(tr.latestMedianMs)}`;
+                        `📈 Mistakes: previous 20 = ${tr.earlierErrors}, latest 20 = ${tr.latestErrors}. Typical correct time: ${t(tr.earlierMedianMs)} then ${t(tr.latestMedianMs)}.${improved?' 🌟 Great improvement!':''}`:
+                        `📈 خطا در ۲۰ سؤال قبلی: ${tr.earlierErrors}؛ در ۲۰ سؤال آخر: ${tr.latestErrors}. زمان معمول پاسخ درست: قبلاً ${t(tr.earlierMedianMs)}، اکنون ${t(tr.latestMedianMs)}.${improved?' 🌟 چه پیشرفت قشنگی!':''}`;
                 }
             }
             if(goal) {
