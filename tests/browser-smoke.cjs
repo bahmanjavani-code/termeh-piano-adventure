@@ -322,6 +322,22 @@ const { chromium }=require('playwright-core');
     await freePage.locator("button[onclick=\"chooseLanguage('en')\"]").click();
     await freePage.locator('#welcomeAccepted').check();
     await freePage.locator('#welcomeContinue').click();
+    assert.equal(await freePage.evaluate(()=>document.documentElement.getAttribute('data-termeh-edition')),'store','Store-specific polish must be applied');
+    await freePage.locator('#appMenuToggle').click();
+    await freePage.locator('#parentLaunch').click();
+    const parentMath=await freePage.locator('#hubMath').innerText();
+    const m=parentMath.match(/^(\d+)\s*([×+−])\s*(\d+)\s*([+−])\s*(\d+)\s*=\s*\?$/);
+    assert(m,'Parent math challenge must still be required for store users');
+    const arithmetic=(x,op,y)=>op==='×'?x*y:op==='+'?x+y:x-y;
+    await freePage.locator('#hubAnswer').fill(String(arithmetic(arithmetic(+m[1],m[2],+m[3]),m[4],+m[5])));
+    await freePage.locator('button[onclick="verifyParentHub()"]').click();
+    assert(await freePage.locator('#parentHubOptions').isVisible(),'Release parent gate must open');
+    for(const id of ['checkBazaarBtn','checkEncryptedPackBtn','checkOfflineVaultBtn','restoreExistingBazaarBtn','buyPremiumBtn','restorePremiumBtn']){
+      assert(!(await freePage.locator('#'+id).isVisible()),'Do not show inaccessible QA/checkout button to release parents: '+id);
+    }
+    assert(await freePage.locator('#sendParentFeedback').isVisible(),'Parent feedback should remain accessible');
+    assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
+    await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
     assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
     assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
