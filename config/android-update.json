@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 22,
+  "latestVersionCode": 23,
   "storeUrl": "",
-  "notes": "1.3.17-beta QA: adds time-signature literacy and interactive 2/4, 3/4, 4/4, 6/8 measure builder, sixteenth and dotted quarter values, correct distinction between 6/8 subdivisions and two main beats. Existing lesson progression and purchases unchanged; Bazaar paid-release content and monetization still need final readiness QA."
+  "notes": "1.3.18-beta QA: prepare ONE upfront-paid Cafe Bazaar download containing all 12 treble notes, 10 bass notes, four note durations and time-signature measure builder, all still skill-unlocked. No in-app checkout or subscription. Parent notice revised for payment-before-download. Not store ready until teacher/real-device QA, final terms, backup of original signer."
 }
