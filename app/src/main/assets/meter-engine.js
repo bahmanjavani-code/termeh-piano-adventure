@@ -15,7 +15,7 @@
     half:         Object.freeze({units:8,symbol:'𝅗𝅥',fa:'سفید',en:'Half note'}),
     quarter:      Object.freeze({units:4,symbol:'♩',fa:'سیاه',en:'Quarter note'}),
     eighth:       Object.freeze({units:2,symbol:'♪',fa:'چنگ',en:'Eighth note'}),
-    sixteenth:    Object.freeze({units:1,symbol:'♬',fa:'دولاچنگ',en:'Sixteenth note'}),
+    sixteenth:    Object.freeze({units:1,symbol:'𝅘𝅥𝅯',fa:'دولاچنگ',en:'Sixteenth note'}),
     dottedQuarter:Object.freeze({units:6,symbol:'♩.',fa:'سیاه نقطه‌دار',en:'Dotted quarter'})
   });
   const METERS=Object.freeze({
