@@ -30,6 +30,8 @@ jobs:
         run: node tests/mastery-engine.test.cjs
       - name: Test stepwise note curriculum and retention of old notes
         run: node tests/note-curriculum.test.cjs
+      - name: Test rhythmic meter arithmetic and compound 6/8
+        run: node tests/meter-engine.test.cjs
       - name: Test cosmetic economy and avoid easy trophy farming
         run: node tests/rewards-economy.test.cjs
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
