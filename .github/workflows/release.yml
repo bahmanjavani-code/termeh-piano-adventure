@@ -102,7 +102,7 @@ jobs:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_RELEASE_CERT_SHA256: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
-          CONTROLLED_CHECKOUT_REQUESTED: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && '1' || '0' }}
+          CONTROLLED_CHECKOUT_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
         run: |
           set -euo pipefail
           if [ "$CONTROLLED_CHECKOUT_REQUESTED" = '1' ] && [ -z "$TERMEH_RELEASE_CERT_SHA256" ]; then
@@ -121,8 +121,8 @@ jobs:
         env:
           MERCHANT_PUBLIC_RSA: ${{ vars.TERMEH_BAZAAR_RSA_PUBLIC_KEY }}
           ORIGINAL_CERT_PIN: ${{ vars.TERMEH_RELEASE_CERT_SHA256 }}
-          CHECKOUT_FLAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && '1' || '0' }}
-          OWNER_AUTHORIZATION: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || '' }}
+          CHECKOUT_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
+          OWNER_AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || '' }}
         run: |
           set -euo pipefail
           echo "### Cafe Bazaar controlled payment readiness" >> "$GITHUB_STEP_SUMMARY"
@@ -173,13 +173,13 @@ jobs:
           TERMEH_KEYSTORE_PASSWORD: ${{ secrets.TERMEH_KEYSTORE_PASSWORD }}
           TERMEH_KEY_ALIAS: ${{ secrets.TERMEH_KEY_ALIAS }}
           TERMEH_KEY_PASSWORD: ${{ secrets.TERMEH_KEY_PASSWORD }}
-          TERMEH_ENABLE_LIVE_CHECKOUT: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && '1' || '0' }}
-          TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || '' }}
+          TERMEH_ENABLE_LIVE_CHECKOUT: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
+          TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || '' }}
         run: gradle --no-daemon :app:assembleRelease
       - name: Validate payment capability in built release without starting any payment
         shell: bash
         env:
-          EXPECTED_CHECKOUT: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && '1' || '0' }}
+          EXPECTED_CHECKOUT: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && '1' || '0' }}
         run: |
           set -euo pipefail
           BUILDCONFIG="app/build/generated/source/buildConfig/release/com/termeh/piano/BuildConfig.java"
@@ -249,7 +249,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == '9713768080ebd8dc5f0a431aa076c54d3c6e40ae' && startsWith(github.event.head_commit.message, 'owner-approved-1.0.1-payable-candidate')) && 'Termeh-Piano-CONTROLLED-REAL-PAYMENT-TEST-DO-NOT-PUBLISH' || 'Termeh-Piano-SIGNED-QA-CANDIDATE-DO-NOT-PUBLISH' }}
+          name: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && inputs.owner_payment_acknowledgement == 'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES' && 'Termeh-Piano-CONTROLLED-REAL-PAYMENT-TEST-DO-NOT-PUBLISH' || 'Termeh-Piano-SIGNED-QA-CANDIDATE-DO-NOT-PUBLISH' }}
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
