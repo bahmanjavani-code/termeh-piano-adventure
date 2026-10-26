@@ -20,6 +20,7 @@ const { chromium }=require('playwright-core');
     fs.copyFileSync('app/src/main/assets/index.html',path.join(dir,'index.html'));
     fs.copyFileSync('app/src/main/assets/offline.css',path.join(dir,'offline.css'));
     fs.copyFileSync('app/src/main/assets/mastery-engine.js',path.join(dir,'mastery-engine.js'));
+    fs.copyFileSync('app/src/main/assets/note-curriculum.js',path.join(dir,'note-curriculum.js'));
     fs.copyFileSync('app/src/main/assets/rewards-engine.js',path.join(dir,'rewards-engine.js'));
     fs.copyFileSync('app/src/'+variant+'/assets/premium-preview.js',path.join(dir,'premium-preview.js'));
     return 'file://'+path.join(dir,'index.html');
@@ -91,7 +92,8 @@ const { chromium }=require('playwright-core');
     await page.waitForTimeout(200);
     assert(!(await page.locator('#parentWelcome').isVisible()),'Parent notice must not reappear after acceptance');
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
-    assert.equal(await page.evaluate(()=>TREBLE_NOTES.length),11,'Debug preview should include advanced treble');
+    assert.equal(await page.evaluate(()=>TREBLE_NOTES.length),12,'Debug-only upper G5 practice expected');
+    assert.equal(await page.evaluate(()=>getActiveTrebleNotes().length),5,'First lesson should start with five beginner notes');
     assert.equal(await page.evaluate(()=>BASS_NOTES.length),10,'Debug preview should include bass');
     assert.equal(await page.evaluate(()=>NOTE_DURATIONS.length),4,'Debug preview should include rhythm');
     await assertEnglishScreen('initial staff');
@@ -222,12 +224,50 @@ const { chromium }=require('playwright-core');
     assert.equal(Number(await page.locator('#masteryProgressTrack').getAttribute('aria-valuenow')),await page.evaluate(()=>getMastery('treble').score));
     assert.equal(Number(await page.locator('#masteryAccuracyTrack').getAttribute('aria-valuenow')),await page.evaluate(()=>getMastery('treble').accuracy60));
     await page.locator('#masteryBarsButton').click();
-    // Even 80 flawless questions are NOT enough for the new 150-question fluency gate.
+    // An honest first tier requires varied mastery of ALL five starter notes.
+    // Pretend a previous child session has already trained all five: no progress reset.
     await page.evaluate(()=>{
-      state.mastery.treble.attempts=Array.from({length:80},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:1200,at:Date.now()}));
+      state.mastery.treble.attempts=Array.from({length:80},(_,i)=>({correct:true,note:TREBLE_NOTES[i%5].code,ms:1200,at:Date.now()}));
+      state.staffQuestionSolved=true;
       updateExamButton();
+      goToNextStaffQuestion();
     });
-    assert(await page.locator('#examStartBtn').isDisabled(),'80 easy answers must NOT complete the new curriculum');
+    assert(await page.locator('#learningMilestone').isVisible(),'End of starter lesson should explain newly unlocked notes');
+    assert((await page.locator('#learningMilestoneDescription').innerText()).includes('A4'),'Unlock announcement must list genuinely new notes');
+    assert.equal(await page.evaluate(()=>state.trebleNoteTier),2,'Starter mastery must unlock exactly one tier');
+    assert.deepEqual(await page.evaluate(()=>getActiveTrebleNotes().map(n=>n.code)),['C4','D4','E4','F4','G4','A4','B4','C5'],'Earlier notes must never be removed');
+    await assertEnglishScreen('first treble lesson completion');
+    await page.locator('#learningMilestoneContinue').click();
+    assert(!(await page.locator('#learningMilestone').isVisible()),'Lesson recap should close to reveal practice');
+    assert(await page.locator('#examStartBtn').isDisabled(),'Middle lesson is not the final exam');
+    await page.reload();
+    assert.equal(await page.evaluate(()=>state.trebleNoteTier),2,'Unlocked notes must survive app restart');
+    await page.evaluate(()=>{
+      state.mastery.treble.attempts=Array.from({length:110},(_,i)=>({
+        correct:i===99||i===107?false:true,
+        note:TREBLE_NOTES[i%8].code,ms:TREBLE_NOTES[i%8].code==='A4'?6500:1600,at:Date.now()+i*1000
+      }));
+      state.staffQuestionSolved=true;
+      goToNextStaffQuestion();
+    });
+    assert(await page.locator('#learningMilestone').isVisible(),'Middle lesson should show review of difficult notes');
+    assert((await page.locator('#learningMilestoneDescription').innerText()).includes('D5'),'Final tier must introduce truly higher notes');
+    assert((await page.locator('#learningMilestoneStaff ellipse').count())>0,'Hard notes must be drawn on the musical staff');
+    assert((await page.locator('#learningMilestoneNoteNames').innerText()).includes('Mistakes and slow answers'));
+    assert.equal(await page.evaluate(()=>state.trebleNoteTier),3);
+    assert.deepEqual(await page.evaluate(()=>getActiveTrebleNotes().map(n=>n.code)),['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5']);
+    await assertEnglishScreen('upper treble lesson completion');
+    await page.locator('#learningMilestoneContinue').click();
+    await page.reload();
+    assert.equal(await page.evaluate(()=>state.trebleNoteTier),3,'Full preview tier must persist across reload');
+    // Manual review from the menu should not jump questions or reveal an exam answer.
+    const earlierNote=await page.evaluate(()=>state.currentStaffNote.code);
+    await page.locator('#appMenuToggle').click();
+    await page.locator("button[onclick=\"closeTermehMenu();showWeakNoteReview()\"]").click();
+    assert(await page.locator('#learningMilestone').isVisible(),'Parent/child can revisit hard-note report');
+    await page.locator('#learningMilestoneContinue').click();
+    assert.equal(await page.evaluate(()=>state.currentStaffNote.code),earlierNote,'Opening review must not skip unsolved question');
+    assert(await page.locator('#examStartBtn').isDisabled(),'110 practice questions cannot finish the 150-question requirement');
     // Simulate sustained balanced practice (not a purchase or an entitlement).
     await page.evaluate(()=>{
       state.mastery.treble.attempts=Array.from({length:150},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:1600,at:Date.now()}));
@@ -283,6 +323,7 @@ const { chromium }=require('playwright-core');
     await freePage.locator('#welcomeAccepted').check();
     await freePage.locator('#welcomeContinue').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
+    assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
     assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
     assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
     await freePage.evaluate(()=>{
