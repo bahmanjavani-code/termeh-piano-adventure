@@ -672,10 +672,10 @@
     <!-- ======================================================== -->
     <!-- JAVASCRIPT: AUDIO SYNTHESIZER, MUSIC ENGINE & GAME LOGIC -->
     <!-- ======================================================== -->
-    <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
+    <!-- Variant-specific: debug has practice previews; free release has NO paid lessons. -->
     <script src="premium-preview.js"></script>
     <script>
-      // Production Bazaar candidates must not show diagnostic/test-only controls.
+      // Free Bazaar candidates must never show unfinished QA-only checkout.
       document.documentElement.setAttribute('data-termeh-edition',
         window.TERMEH_CONTENT_VARIANT === 'debug-full-preview' ? 'qa' : 'store');
     </script>
@@ -775,6 +775,9 @@
         // Coins are slower to earn and are never sold for real money.
         // One coin every four completed exercises, regardless of mistakes or speed.
         function rewardCompletedExercise() {
+            // Tell native Android only that an exercise was completed today.
+            // Do not share child's answers, scores or identity with the scheduler.
+            try { if(window.TermehPractice)window.TermehPractice.recordExercise(); } catch(ignored){}
             const result=TermehRewards.finishQuestion(state.rewardPendingQuestions);
             state.rewardPendingQuestions=result.pending;
             state.coins+=result.coins;
@@ -2422,7 +2425,7 @@
 </section>
 <section class="notice">
   <strong>🎼 <span class="only-fa">مراحل، پیشرفت و نت‌های جدید</span><span class="only-en">Progression and new notes</span></strong>
-  <p><span class="only-fa">درس‌های کلید سل، کلید فا و ریتم در برنامه قرار دارند اما برای حفظ ترتیب یادگیری به‌تدریج و بر اساس تمرین و آزمون باز می‌شوند. نت‌های قبلی هم در تمرین‌های جدید باقی می‌مانند. دیده نشدن نت‌های بالا در ابتدای بازی اشکال برنامه نیست.</span><span class="only-en">Treble, bass and rhythm lessons are included, but they unlock gradually through practice and assessments. Older notes remain in later practice too. Higher notes not appearing at the start is an intentional learning feature, not an error.</span></p>
+  <p><span class="only-fa">نت‌های بالاتر در طول مسیر آموزشی و پس از تمرین باز می‌شوند و نت‌های قبلی حذف نمی‌شوند. این نسخهٔ مقدماتی پنج نت کلید سل را در اختیار می‌گذارد؛ درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم هنوز در نسخهٔ عمومی قابل خرید یا اجرا نیستند.</span><span class="only-en">Higher notes unlock gradually with practice, and earlier notes stay in rotation. This introductory edition contains five beginner treble notes; advanced treble, bass and rhythm lessons are not yet available for purchase or play in the public build.</span></p>
 </section>
 <section class="notice">
   <strong>👨‍👩‍👧 <span class="only-fa">نظارت والدین و زمان تمرین</span><span class="only-en">Parental supervision and practice time</span></strong>
@@ -2434,7 +2437,11 @@
 </section>
 <section class="notice">
   <strong>🛍️ <span class="only-fa">خرید برنامه و دسترسی به درس‌ها</span><span class="only-en">Buying the app and accessing lessons</span></strong>
-  <p><span class="only-fa">مدل درنظرگرفته‌شده <b>پرداخت یک‌باره پیش از دانلود از کافه‌بازار</b> است؛ <b>خرید درون‌برنامه‌ای و اشتراک نداریم</b>. بعد از نصب، درس‌ها بر اساس پیشرفت و آزمون‌های آموزشی باز می‌شوند، نه با پرداخت مجدد. فایل آزمایشی مستقیم هنوز به‌معنی فروش رسمی نیست؛ قیمت و شرایط نهایی را صفحهٔ فروشگاه تعیین می‌کند.</span><span class="only-en">The planned model is a <b>one-time paid download on Cafe Bazaar</b>, with <b>no in-app purchases or subscription</b>. Lessons unlock with practice and assessments after installation, not another payment. A directly installed QA APK is not a store purchase; final price and terms appear in the store listing.</span></p>
+  <p><span class="only-fa">بخش مقدماتی رایگان است. برای درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم، <b>خرید یک‌باره و دائمی داخل برنامه از طریق کافه‌بازار</b> برنامه‌ریزی شده است؛ اشتراک ماهانه نداریم. <b>در این نسخهٔ آزمایشی خرید یا فعال‌سازی درس پولی انجام نمی‌شود و هیچ هزینه‌ای دریافت نمی‌کنیم.</b> قفل خرید با قفل پیشرفت آموزشی فرق دارد.</span><span class="only-en">Starter practice is free. A <b>single lifetime in-app purchase through Cafe Bazaar</b> is planned for advanced treble, bass, and rhythm lessons; no subscription. <b>Checkout and premium unlock are disabled in this QA build. No payment is taken.</b> Educational progress gates remain separate from paid ownership.</span></p>
+</section>
+<section class="notice">
+  <strong>🔔 <span class="only-fa">یادآور تمرین روزانه؛ کاملاً اختیاری</span><span class="only-en">Optional daily practice reminders</span></strong>
+  <p><span class="only-fa">اگر والدین از بخش والدین یادآور را روشن کنند و اجازهٔ اعلان اندروید را بدهند، گوشی حوالی ساعت ۱۸ به وقت محلی یادآوری کوتاهی می‌فرستد. اگر کودک همان روز تمرین کرده باشد، اعلان ارسال نمی‌شود. زمان ممکن است با محدودیت باتری گوشی جابه‌جا شود؛ در هر زمان می‌توان آن را خاموش کرد. نیازی به اینترنت یا حساب کودک نیست.</span><span class="only-en">If a parent opts in and grants Android notification permission, the phone may show a short reminder around 6 PM local time. No alert is sent if a practice exercise was completed that day. Battery settings can delay reminders. Parents can disable them anytime; no child account or internet is needed.</span></p>
 </section>
 <p class="legalLinks">📄 <span class="only-fa">متن کامل اسناد:</span><span class="only-en">Full documents:</span>
   <a id="welcomePrivacy" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html"><span class="only-fa">حریم خصوصی</span><span class="only-en">Privacy policy</span></a> ·
@@ -2452,7 +2459,7 @@
   'use strict';
   // Revision-specific key: a material change reopens the briefing on existing phones.
   // Keep this separate from game progress, so a notice update never resets learning.
-  const KEY='termeh_parent_welcome_v3',REVISION=3;
+  const KEY='termeh_parent_welcome_v4',REVISION=4;
   let acceptedThisSession=false;
   function previouslyAccepted(){
     if(acceptedThisSession)return true;
@@ -2597,8 +2604,8 @@ window.showUnlock=function(mode){
   const source=mode==='bass'?'treble':'bass';
   const result=getMastery(source);
   text.textContent=en?
-    `Practice stage ${Math.min(3,result.stage)}/3. Completed ${result.total}/150 first-answer questions, with ${result.accuracy60}% first-try accuracy over the latest 60. Progress requires fast, accurate recognition across all notes, three strong practice rounds, and the 20-question final assessment. Buying the app never bypasses learning stages.`:
-    `تمرین ${Math.min(3,result.stage)} از ۳. تا الان ${result.total} از ۱۵۰ سؤال تمرینی؛ دقت تلاش اول در ۶۰ سؤال اخیر: ${result.accuracy60}٪. برای رفتن به درس بعد، سرعت و دقت تشخیص همه نت‌ها، سه دور تمرین موفق و قبولی در آزمون ۲۰ سؤالی لازم است. خرید برنامه مرحله‌های آموزشی را دور نمی‌زند.`;
+    `Practice stage ${Math.min(3,result.stage)}/3. Completed ${result.total}/150 first-answer questions, with ${result.accuracy60}% first-try accuracy over the latest 60. Progress requires fast, accurate recognition across all notes, three strong practice rounds, and the 20-question final assessment. When the premium pack becomes available, purchase and educational progress are separate.`:
+    `تمرین ${Math.min(3,result.stage)} از ۳. تا الان ${result.total} از ۱۵۰ سؤال تمرینی؛ دقت تلاش اول در ۶۰ سؤال اخیر: ${result.accuracy60}٪. برای رفتن به درس بعد، سرعت و دقت تشخیص همه نت‌ها، سه دور تمرین موفق و قبولی در آزمون ۲۰ سؤالی لازم است. پس از عرضهٔ نسخهٔ ویژه، خرید جای تمرین و پیشرفت آموزشی را نمی‌گیرد.`;
 };
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');document.getElementById('parentChallenge').style.display='none';pendingMode=null};
 document.getElementById('unlockOverlay').addEventListener('click',function(e){if(e.target===this)closeUnlock()});
@@ -2632,9 +2639,9 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 <button class="action termehQaOnly" disabled>🔄 <span class="only-fa">بازیابی پیشرفت — به‌زودی</span><span class="only-en">Restore — Coming soon</span></button>
 <button class="action termehQaOnly" disabled>🚪 <span class="only-fa">خروج از حساب — وارد نشده‌اید</span><span class="only-en">Sign out — Not signed in</span></button>
 
-<section id="premiumOffer" class="termehQaOnly" aria-label="Premium plan" style="padding:14px 12px;margin:20px 0;border:2px solid #c4b5fd;border-radius:18px;background:#f5f3ff;text-align:center">
+<section id="premiumOffer" aria-label="Premium plan" style="padding:14px 12px;margin:20px 0;border:2px solid #c4b5fd;border-radius:18px;background:#f5f3ff;text-align:center">
   <h3 style="font-size:20px;font-weight:900;margin:0 0 10px">🌟 <span class="only-fa">نسخه کامل Termeh Piano</span><span class="only-en">Full Termeh Piano</span></h3>
-  <p style="font-size:15px;margin:6px 0"><span class="only-fa">🎹 درس‌های اولیه رایگان؛ ارتقا به نسخه کامل با خرید یک‌باره و دائمی، بدون اشتراک ماهانه</span><span class="only-en">🎹 Start learning for free; unlock premium lessons with a one-time purchase, no subscription.</span></p>
+  <p style="font-size:15px;margin:6px 0"><span class="only-fa">🎹 پنج نت مقدماتی رایگان‌اند؛ درس‌های پیشرفته با خرید یک‌باره درون برنامه‌ای بازار (پس از تکمیل و آزمایش) ارائه می‌شوند.</span><span class="only-en">🎹 Five starter notes are free. Advanced lessons are planned for a one-time Cafe Bazaar in-app purchase after proper testing.</span></p>
   <p class="termehQaOnly" style="font-size:22px;font-weight:900;color:#5b21b6;margin:8px 0"><span class="only-fa">۹۹٬۰۰۰ تومان</span><span class="only-en">99,000 toman</span></p>
   <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">این قیمت برنامه‌ریزی‌شده است؛ قیمت نهایی باید در کافه‌بازار ثبت و تأیید شود.</span><span class="only-en">Planned price only. Final price must be configured and confirmed in Cafe Bazaar.</span></p>
   <button id="buyPremiumBtn" class="action termehQaOnly" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
@@ -2646,11 +2653,11 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">این بررسی فقط خریدهای قبلی را جست‌وجو می‌کند و پولی دریافت نمی‌کند؛ بازکردن نسخه کامل هنوز پیاده‌سازی نشده است.</span><span class="only-en">This check only restores previous purchases and never charges; the full version is not unlocked yet.</span></p>
   <p id="bazaarBillingStatus" class="termehQaOnly" role="status" style="font-size:13px;color:#475569"></p>
   <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
-  <p class="termehQaOnly" style="font-size:14px;color:#334155"><span class="only-fa">ابزار آزمایش پرداخت درون‌برنامه‌ای برای توسعه‌دهنده است و در نسخهٔ پولی بازار استفاده نمی‌شود.</span><span class="only-en">Developer-only in-app payment QA tools; not used in the paid download.</span></p>
+  <p class="termehQaOnly" style="font-size:14px;color:#334155"><span class="only-fa">ابزارهای بررسی خرید فقط برای توسعه‌دهنده هستند و هنوز درس پولی باز نمی‌کنند.</span><span class="only-en">Developer purchase-test tools cannot unlock premium lessons yet.</span></p>
 </section>
 <section class="termehStoreOnly" aria-label="Purchase model" style="padding:14px 12px;margin:14px 0;border:2px solid #a7f3d0;border-radius:16px;background:#ecfdf5">
-  <h3 style="font-size:17px;font-weight:900;color:#065f46">✅ <span class="only-fa">یک خرید برای کل برنامه؛ بدون پرداخت داخلی</span><span class="only-en">One purchase, no in-app payment</span></h3>
-  <p><span class="only-fa">این برنامه برای فروش پولی قبل از دانلود در کافه‌بازار آماده می‌شود. تمام درس‌های کلید سل، کلید فا و ریتم در خود برنامه قرار دارند و با پیشرفت آموزشی به‌ترتیب باز می‌شوند. هیچ خرید، اشتراک یا پرداخت اضافه‌ای داخل برنامه انجام نمی‌شود. قیمت نهایی را صفحهٔ کافه‌بازار نشان خواهد داد.</span><span class="only-en">This app is being prepared as a paid download on Cafe Bazaar. Treble, bass and rhythm lessons are included in the app and unlock step by step through learning progress. There are no further in-app payments or subscriptions. The store listing will display the price.</span></p>
+  <h3 style="font-size:17px;font-weight:900;color:#065f46">🎹 <span class="only-fa">تمرین مقدماتی رایگان؛ درس‌های ویژه در آینده</span><span class="only-en">Free starter lessons; premium is coming later</span></h3>
+  <p><span class="only-fa">این نسخهٔ رایگان فعلاً پنج نت آغازین کلید سل را دارد. خرید یک‌بارهٔ درس‌های پیشرفته هنوز فعال نیست. تا قبل از ارائهٔ واقعی محتوای خریداری‌شده و تست امنِ پرداخت و بازیابی، هیچ وجهی دریافت نخواهد شد.</span><span class="only-en">This free edition currently contains five introductory treble notes. The one-time premium upgrade is not yet available. No payment will be collected until the actual lessons, checkout and restore are tested.</span></p>
 </section>
 
 <div role="group" aria-label="Support and app updates" style="margin-top:14px;border-top:2px solid #ddd;padding-top:12px">
