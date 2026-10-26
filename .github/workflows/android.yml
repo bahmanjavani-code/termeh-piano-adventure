@@ -28,6 +28,8 @@ jobs:
         run: node tests/quality.test.cjs
       - name: Validate signed release workflow is safe and syntactically sound
         run: node tests/signed-workflow-guard.test.cjs
+      - name: Guard previously owned Bazaar restore, refund ordering and real test certificate
+        run: node tests/merchant-restore-readiness.test.cjs
       - name: Test long-term note mastery, adaptive drill and balanced final assessment
         run: node tests/mastery-engine.test.cjs
       - name: Test stepwise note curriculum and retention of old notes
