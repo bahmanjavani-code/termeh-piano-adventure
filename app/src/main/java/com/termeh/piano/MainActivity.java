@@ -141,6 +141,11 @@ public class MainActivity extends ComponentActivity {
     }
 
     public final class PracticeBridge {
+        @JavascriptInterface public void setLanguage(String language) {
+            // Only a two-letter UI preference is stored on-device; no identity.
+            DailyPracticeReminder.setLanguage(MainActivity.this, language);
+        }
+
         @JavascriptInterface public void recordExercise() {
             DailyPracticeReminder.recordCompletedExercise(MainActivity.this);
         }
