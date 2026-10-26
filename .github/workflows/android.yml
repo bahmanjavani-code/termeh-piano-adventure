@@ -86,6 +86,7 @@ jobs:
           cleanup() {
             rm -f "$TEST_KEY"
             rm -f app/build/outputs/apk/release/app-release.apk
+            rm -f app/build/outputs/apk/family/app-family.apk
           }
           trap cleanup EXIT
           keytool -genkeypair -noprompt -storetype PKCS12 \
@@ -109,7 +110,20 @@ jobs:
             exit 1
           fi
           "$AAPT" dump badging "$APK" | grep -q "package: name='com.termeh.piano'"
-          echo "PASS: production variant builds/signs with disposable CI-only QA key."
+          # Same application ID + permanent-key-compatible build type for the
+          # family's device only. CI uses a disposable signature and deletes it.
+          TERMEH_KEYSTORE_FILE="$TEST_KEY" \
+          TERMEH_KEYSTORE_PASSWORD=test-qa-only-password-123456 \
+          TERMEH_KEY_ALIAS=termeh_ci_disposable \
+          TERMEH_KEY_PASSWORD=test-qa-only-password-123456 \
+            gradle --no-daemon :app:assembleFamily
+          FAMILY="app/build/outputs/apk/family/app-family.apk"
+          test -s "$FAMILY"
+          "$APKSIGNER" verify "$FAMILY"
+          unzip -p "$FAMILY" assets/premium-preview.js | grep -q 'debug-full-preview'
+          unzip -p "$FAMILY" assets/premium-preview.js | grep -q '"code": "G5"'
+          "$AAPT" dump badging "$FAMILY" | grep -q "package: name='com.termeh.piano'"
+          echo "PASS: store and family build variants stay segregated and signed."
           echo "IMPORTANT: this disposable key and QA release APK are deleted, never uploaded."
       - name: Verify final APK has no camera, microphone or location permissions
         shell: bash
