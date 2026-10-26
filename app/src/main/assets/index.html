@@ -1550,11 +1550,13 @@
             const track=document.getElementById('masteryProgressTrack');
             const speed=result.medianMs===null?(en?'not yet measured':'هنوز ثبت نشده'):
                 (result.medianMs/1000).toFixed(1)+(en?' seconds':' ثانیه');
+            const noteTarget=result.stage===1?2:result.stage===2?5:9;
+            const confidentNow=Object.values(result.correctByNote).filter(n=>n>=noteTarget).length;
             if(title)title.textContent=(result.passed?'🏆 ':'🎯 ')+(result.passed?
                 (en?'Final assessment passed!':'آزمون پایانی قبول شد!'):titles[result.stage]);
             if(stats)stats.textContent=en?
-                `Practice: ${result.total} questions · First-try accuracy (last 60): ${result.accuracy60}% · Typical correct speed: ${speed} · Confident notes: ${result.masteredNotes}/${result.noteCount}`:
-                `تمرین: ${result.total} سؤال · دقت بار اول (۶۰ سؤال اخیر): ${result.accuracy60}٪ · سرعت معمول پاسخ درست: ${speed} · نت‌های تثبیت‌شده: ${result.masteredNotes} از ${result.noteCount}`;
+                `Practice: ${result.total} questions · First-try accuracy (last 60): ${result.accuracy60}% · Typical correct speed: ${speed} · Notes learned in this stage: ${confidentNow}/${result.noteCount}`:
+                `تمرین: ${result.total} سؤال · دقت بار اول (۶۰ سؤال اخیر): ${result.accuracy60}٪ · سرعت معمول پاسخ درست: ${speed} · نت‌های یادگرفته‌شده در این مرحله: ${confidentNow} از ${result.noteCount}`;
             if(goal) {
                 if(result.passed)goal.textContent=en?'Great job! You can always return for more practice.':'آفرین! برای قوی‌تر شدن همیشه می‌توانی دوباره تمرین کنی.';
                 else if(result.stage===1)goal.textContent=en?
