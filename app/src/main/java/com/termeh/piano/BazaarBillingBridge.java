@@ -20,6 +20,7 @@ import ir.cafebazaar.poolakey.entity.PurchaseInfo;
 import ir.cafebazaar.poolakey.entity.PurchaseState;
 import kotlin.Unit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Native Bazaar lifetime-purchase bridge with explicit BUILD-TIME safeties.
@@ -44,6 +45,7 @@ final class BazaarBillingBridge {
     private final AtomicBoolean restoreInProgress = new AtomicBoolean(false);
     private final AtomicBoolean purchaseInProgress = new AtomicBoolean(false);
     private volatile boolean catalogReady;
+    private final AtomicLong entitlementEpoch = new AtomicLong();
 
     BazaarBillingBridge(ComponentActivity activity, WebView web) {
         this.activity = activity;
@@ -86,6 +88,13 @@ final class BazaarBillingBridge {
             connected = false;
             publishStatus("unavailable");
         }
+    }
+
+    @JavascriptInterface
+    public boolean canRestoreOwnedLessons() {
+        // Previous customers keep their paid access even if NEW sales pause.
+        // This only describes native pack readiness, never a purchase receipt.
+        return VerifiedPremiumLessons.enabled();
     }
 
     @JavascriptInterface
