@@ -43,7 +43,7 @@ function midi(code){return 12*(Number(code.slice(1))+1)+semitones[code[0]]}
 function referenceFrequency(code){return 440*Math.pow(2,(midi(code)-69)/12)}
 for(const [clef,notes] of [['treble',treble],['bass',bass]]){
   for(const note of notes){
-    assert.equal(note.keyId,note.code[0],clef+': wrong key for '+note.code);
+    assert.equal(note.keyId,note.code,clef+': keyboard must distinguish octave for '+note.code);
     assert(Math.abs(note.freq-referenceFrequency(note.code))<0.015,clef+': wrong tuning for '+note.code);
     const y=clef==='treble'?160-10*(trebleExpected.indexOf(note.code)):note.code==='C4'?40:140-10*(bassExpected.indexOf(note.code));
     assert.equal(note.svgY,y,clef+': wrong staff position for '+note.code);
@@ -52,6 +52,16 @@ for(const [clef,notes] of [['treble',treble],['bass',bass]]){
   }
 }
 assert.equal(treble.find(n=>n.code==='A4').freq,440);
+assert.notEqual(treble.find(n=>n.code==='C4').keyId,
+                treble.find(n=>n.code==='C5').keyId,
+                'Middle C and high C cannot share a piano button');
+assert.notEqual(bass.find(n=>n.code==='C3').keyId,
+                bass.find(n=>n.code==='C4').keyId,
+                'Bass C3 and C4 need separate keyboard notes');
+assert(html.includes("data-pitch=\"${code}\""),'Rendered piano must label octave-specific pitches');
+assert(html.includes("const pool=state.mode==='bass'?BASS_NOTES:getActiveTrebleNotes()"),
+       'Keyboard must show only notes in active staged curriculum');
+
 assert.deepEqual(Object.fromEntries(Array.from(durations,d=>[d.id,d.beats])),{whole:4,half:2,quarter:1,eighth:0.5});
 for(const permission of ['RECORD_AUDIO','CAMERA','ACCESS_FINE_LOCATION','ACCESS_COARSE_LOCATION','ACCESS_BACKGROUND_LOCATION','ACCESS_MEDIA_LOCATION'])
   assert(!manifest.includes(permission),'Forbidden permission: '+permission);
