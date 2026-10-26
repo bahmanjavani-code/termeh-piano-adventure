@@ -411,7 +411,7 @@ const { chromium }=require('playwright-core');
       'Preserved progress must never grant absent premium notes in free release');
     assert.equal(await freePage.evaluate(()=>state.mastery.treble.attempts.length),60);
     assert.equal(await freePage.evaluate(()=>state.stars),37);
-    assert((await freePage.locator('#staffLevelText').innerText()).includes('1/1'),
+    assert((await freePage.locator('#levelProgressText').innerText()).includes('1/1'),
       'Visible level should not advertise a third tier that is absent from free release');
     await freePage.locator('#modeTab-rhythm').click();
     assert(await freePage.locator('#unlockOverlay').evaluate(el=>el.classList.contains('open')),
