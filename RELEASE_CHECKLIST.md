@@ -1,13 +1,12 @@
 # Termeh Piano — release readiness
 
-## کانالِ خانوادگی با محتوای آزمایشی — مطلقاً برای بازار نیست
+## مسیر فعال پروژه: فقط کافه‌بازار
 
-- [ ] فقط بستهٔ با نام **FAMILY-FULL-TRAINING-SIGNED-QA-NEVER-PUBLISH** روی گوشی خانوادگی نصب شود و اثر آن بر داده‌های قبلی بررسی شود. فایل آزمایشی امضای متفاوت (debug/CI disposable) جایگزین قابل‌نصب نیست.
-- [ ] امضای APK خانوادگی با امضای اصلی و package name `com.termeh.piano` تطبیق داده شود؛ نصب **روی برنامهٔ موجود** بدون پاک‌کردن داده‌ها.
-- [ ] APK `release` با فایل `premium-preview.js` خالیِ `release-free` باقی بماند؛ محتوای `debug-full-preview` و G5 صرفاً در `debug` و `family` QA باشند. هرگز `app-family.apk` در بازار بارگذاری نشود.
-- [ ] برای انتشار تجاری، تمام درس‌های پیشرفته واقعی با مجوز مناسب و منطق خرید/بازیابی مطمئن جایگزین پیش‌نمایش غیرتجاری شوند. پیشرفت درونی و مالکیت محتوا مستقل باشند.
-- [ ] آستانه‌های ۳۰ و ۱۱۰ تمرین، پخش نت‌های قدیمی/جدید و جدول نت‌های کند/اشتباه‌دار توسط مدرس و با تست دستگاه واقعی بازبینی شوند. عددهای انتخاب‌شده ادعای اثربخشی علمی ندارند.
-- [ ] برای نسخهٔ نهایی، تمایز «درس‌های جدید براساس پیشرفت باز می‌شوند» با «محتوای ویژه پس از خرید» برای والدین شفاف باشد.
+- [x] توسعهٔ خروجی جداگانه Family متوقف شد؛ ساخت و انتشار فایل Family از GitHub Actions حذف شد.
+- [x] ابزارهای آزمایشیِ خرید، قفل نمونه و حساب‌های غیرفعال از رابط **Release** پنهان شده‌اند؛ در debug برای بررسی توسعه باقی می‌مانند.
+- [x] متن و چک‌لیست عملی بازار در [BAZAAR_LAUNCH_PACKET_FA.md](BAZAAR_LAUNCH_PACKET_FA.md) آماده شد.
+- [ ] **تصمیم پرداخت نهایی:** همان خرید یک‌بارهٔ درون‌برنامه‌ایِ از قبل انتخاب‌شده یا (فقط با تصمیم صاحب محصول) برنامهٔ کاملاً پولی قبل از دانلود.
+- [ ] مهم: فایل Release فعلی تنها پنج نت رایگان دارد و **هنوز نسخهٔ قابل فروش نیست**. فعال‌سازی واقعی خرید، دروس پیشرفته و تست برگشت وجه مانده‌اند.
 
 ## قبل از انتشار رسمی: ممیزی متن‌های آزمایشی داخل اپ (الزامی)
 
@@ -27,7 +26,7 @@
 
 ## Changes already in the application
 - Offline practice, optional parent hub, parent verification UI (math challenge).
-- Independent 20-question final assessments, 18/20 required, in addition to 80 practice attempts and mastery thresholds.
+- Independent 20-question final assessments, 18/20 required, in addition to 150 practice attempts and mastery thresholds.
 - No microphone, camera, or location permissions. WebView denies permission prompts.
 - Bilingual work underway; music databases and note frequencies are checked by automatic tests.
 - Debug APK generated automatically by `.github/workflows/android.yml`.
