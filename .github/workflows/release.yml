@@ -41,6 +41,8 @@ jobs:
           node-version: '22'
       - name: Run music theory and privacy checks
         run: node tests/quality.test.cjs
+      - name: Verify public 1.0.0 final version, progress-safe updates and Bazaar controls
+        run: node tests/final-release-guard.test.cjs
       - name: Validate signed release workflow is safe and syntactically sound
         run: node tests/signed-workflow-guard.test.cjs
       - name: Guard previously owned Bazaar restore, refund ordering and real test certificate

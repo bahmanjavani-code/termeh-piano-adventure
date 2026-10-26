@@ -37,8 +37,8 @@ android {
         manifestPlaceholders = [termehAppLabel: 'Termeh Piano']
         minSdk 26
         targetSdk 35
-        versionCode 32
-        versionName '1.3.27-beta'
+        versionCode 33
+        versionName '1.0.0'
     }
 
     signingConfigs {
@@ -74,9 +74,10 @@ android {
     }
 }
 
-// This stage wires the official billing SDK for read-only ownership checks.
-// Owner selected NO-HOST activation with limited reverse-engineering resistance.
-// Real checkout and paid-content unlock remain DISABLED pending lesson and restore QA.
+// Official Bazaar lifetime billing: read-only checks remain available in no-charge
+// builds, while signed controlled purchase builds require explicit merchant-owner
+// consent, a genuine Bazaar catalog price and native parent confirmation.
+// New sales are never enabled automatically by the final version number.
 dependencies {
     implementation 'androidx.activity:activity:1.9.3'
     // Offline, parent-consented daily reminder; no exact alarms or backend.

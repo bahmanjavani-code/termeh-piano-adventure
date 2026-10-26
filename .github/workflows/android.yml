@@ -26,6 +26,8 @@ jobs:
           gradle-version: '8.7'
       - name: Validate music theory, privacy, and JavaScript syntax
         run: node tests/quality.test.cjs
+      - name: Verify public 1.0.0 final version, progress-safe updates and Bazaar controls
+        run: node tests/final-release-guard.test.cjs
       - name: Validate signed release workflow is safe and syntactically sound
         run: node tests/signed-workflow-guard.test.cjs
       - name: Guard previously owned Bazaar restore, refund ordering and real test certificate
