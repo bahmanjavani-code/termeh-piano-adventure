@@ -34,6 +34,10 @@
     const events=window.termehDiagnosticSummary().slice(0,1100);
     window.location.href='termeh-support://report?events='+encodeURIComponent(events);
   };
+  window.termehSendFeedback=function(){
+    // Exposed only via the parental gate; native code composes a blank suggestion email.
+    window.location.href="termeh-support://feedback";
+  };
   window.termehCheckUpdates=function(){
     window.location.href='termeh-support://updates';
   };
@@ -2065,6 +2069,16 @@ document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getIt
 #unlockOverlay button{border-radius:14px;padding:12px 18px;background:#7c3aed;color:#fff;font-weight:800;margin:8px}
 #unlockOverlay button.secondary{background:#64748b}#unlockOverlay input{width:100%;border:2px solid #a78bfa;border-radius:12px;padding:12px;text-align:center;font-size:20px}
 </style>
+<script>
+/* A varied parent challenge is a light interaction barrier, NOT identity verification. */
+window.termehMakeParentChallenge=function(){
+  const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const variant=rand(0,2),a=rand(12,29),b=rand(7,15),c=rand(2,25);
+  if(variant===0)return {text:a+' × '+b+' + '+c+' = ?',answer:a*b+c};
+  if(variant===1)return {text:a+' × '+b+' − '+c+' = ?',answer:a*b-c};
+  return {text:a+' + '+(b*3)+' − '+c+' = ?',answer:a+b*3-c};
+};
+</script>
 <div id="unlockOverlay" role="dialog" aria-modal="true"><div class="box"><button type="button" aria-label="Close / بستن" onclick="closeUnlock()" style="position:sticky;top:0;float:right;background:#ef4444;color:white;border:0;border-radius:50%;width:46px;height:46px;padding:0;font-size:29px;line-height:1;z-index:2">×</button><div style="font-size:46px">🔐🎹</div><h2 id="unlockTitle">مرحله بعدی هنوز قفل است</h2><p id="unlockText"></p><button onclick="showParentGate()">👨‍👩‍👧 <span class="only-fa">بخش والدین</span><span class="only-en">Parents</span></button><button class="secondary" onclick="closeUnlock()"><span class="only-fa">ادامه تمرین</span><span class="only-en">Keep practicing</span></button><div id="parentChallenge" style="display:none"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="parentMath"></p><input id="parentAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer"><button onclick="checkParentGate()"><span class="only-fa">تأیید</span><span class="only-en">Continue</span></button><p id="parentMessage" aria-live="polite"></p></div></div></div>
 <script>
 (function(){
@@ -2094,7 +2108,7 @@ window.showUnlock=function(mode){
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');document.getElementById('parentChallenge').style.display='none';pendingMode=null};
 document.getElementById('unlockOverlay').addEventListener('click',function(e){if(e.target===this)closeUnlock()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeUnlock()});
-window.showParentGate=function(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;document.getElementById('parentMath').textContent=a+' × '+b+' + 13 = ?';document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
+window.showParentGate=function(){const question=window.termehMakeParentChallenge();answer=question.answer;document.getElementById('parentMath').textContent=question.text;document.getElementById('parentChallenge').style.display='block';document.getElementById('parentAnswer').value='';document.getElementById('parentMessage').textContent='';};
 window.checkParentGate=function(){const msg=document.getElementById('parentMessage');if(Date.now()<blockedUntil){msg.textContent=localStorage.getItem('termeh_language')==='en'?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const raw=document.getElementById('parentAnswer').value.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));if(raw!=='' && Number(raw)===answer){attempts=0;msg.textContent=localStorage.getItem('termeh_language')==='en'?'✅ Verified. Parent accounts and purchases are not available yet.':'✅ تأیید شد. بخش حساب والدین و خرید هنوز فعال نشده است.';document.getElementById('parentAnswer').value='';return;}attempts++;msg.textContent=localStorage.getItem('termeh_language')==='en'?'❌ Incorrect answer':'❌ پاسخ نادرست است';if(attempts>=3){blockedUntil=Date.now()+60000;attempts=0;msg.textContent=localStorage.getItem('termeh_language')==='en'?'Too many attempts. Wait one minute.':'تلاش‌های زیاد؛ یک دقیقه صبر کنید';}};
 })();
 </script><style>
@@ -2141,11 +2155,13 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 <div role="group" aria-label="Support and app updates" style="margin-top:14px;border-top:2px solid #ddd;padding-top:12px">
 <h3><span class="only-fa">🛠️ پشتیبانی و به‌روزرسانی</span><span class="only-en">🛠️ Support & updates</span></h3>
 <p id="parentReportCount" style="font-size:13px"></p>
+<button id="sendParentFeedback" class="action" type="button" onclick="termehSendFeedback()">💬 <span class="only-fa">ارسال پیشنهاد با ایمیل (فقط والدین)</span><span class="only-en">Send suggestion by email (parents only)</span></button>
 <button class="action" type="button" onclick="termehReportErrors()">✉️ <span class="only-fa">گزارش خطا با ایمیل</span><span class="only-en">Email error report</span></button>
 <p class="notice"><span class="only-fa">ابتدا متن گزارش را در برنامه ایمیل بررسی کنید. هیچ اطلاعاتی بدون ارسال شما فرستاده نمی‌شود. آدرس گیرنده را بعداً وارد کنید.</span><span class="only-en">Review the report in your email app before sending. Nothing is sent automatically. Enter your support email address as the recipient.</span></p>
 <button class="action" type="button" onclick="termehCheckUpdates()">🔄 <span class="only-fa">بررسی نسخه جدید</span><span class="only-en">Check for updates</span></button>
 <p class="notice"><span class="only-fa">بررسی آپدیت به اینترنت نیاز دارد. بازی و پیشرفت آفلاین کار می‌کنند. تا انتشار در فروشگاه، آپدیت اجباری فعال نیست.</span><span class="only-en">Update checks require an internet connection. Lessons work offline. Forced updates are disabled until the app is live in the store.</span></p>
 </div>
+<p class="notice">📄 <a id="parentPrivacyPolicy" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html"><span class="only-fa">سیاست کامل حریم خصوصی</span><span class="only-en">Full privacy policy</span></a> · <a id="parentTerms" href="https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html"><span class="only-fa">شرایط کامل استفاده</span><span class="only-en">Full terms of use</span></a></p>
 <p class="notice"><span class="only-fa">حساب آنلاین و خرید هنوز راه‌اندازی نشده‌اند. هیچ رمز عبور یا اطلاعات کودک در این صفحه دریافت نمی‌شود.</span><span class="only-en">Online accounts and purchases are not available yet. No passwords or child data are collected here.</span></p>
 </div></div></div>
 <script>
@@ -2153,8 +2169,8 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 let answer=0,failures=0,lockUntil=0;
 const el=id=>document.getElementById(id);
 const normalize=s=>s.trim().replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));
-function question(){const a=12+Math.floor(Math.random()*18),b=7+Math.floor(Math.random()*9);answer=a*b+13;el('hubMath').textContent=a+' × '+b+' + 13 = ?';el('hubAnswer').value='';}
-window.openParentHub=function(){closeUnlock();el('parentHub').classList.add('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubGateMessage').textContent='';question();};
+function question(){const challenge=window.termehMakeParentChallenge();answer=challenge.answer;el('hubMath').textContent=challenge.text;el('hubAnswer').value='';}
+window.openParentHub=function(){closeUnlock();const en=localStorage.getItem('termeh_language')==='en';el('parentPrivacyPolicy').href='https://bahmanjavani-code.github.io/termeh-piano-adventure/'+(en?'en/privacy.html':'privacy.html');el('parentTerms').href='https://bahmanjavani-code.github.io/termeh-piano-adventure/'+(en?'en/terms.html':'terms.html');el('parentHub').classList.add('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubGateMessage').textContent='';question();};
 window.closeParentHub=function(){el('parentHub').classList.remove('open');el('parentHubGate').hidden=false;el('parentHubOptions').hidden=true;el('hubAnswer').value='';};
 // Parent-only diagnostic of SDK connection and locally checked purchases.
 // No payment UI, no purchase-token transfer to JavaScript, and no premium unlock.
