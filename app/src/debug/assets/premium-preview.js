@@ -61,6 +61,16 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
     "ledgerY": null,
     "posText": "روی خط پنجم (خط آخر)",
     "hintText": "بالاترین خط (خط پنجم) در کلید سل مربوط به نت «فا» (سبز) است!"
+  },
+  {
+    "code": "G5",
+    "keyId": "G",
+    "faName": "سل (بالا)",
+    "freq": 783.99,
+    "svgY": 50,
+    "ledgerY": null,
+    "posText": "بالای خط پنجم",
+    "hintText": "یک پله بالاتر از خط پنجم در کلید سل، نت «سل بالایی» قرار داره!"
   }
 ],
   bass: [
