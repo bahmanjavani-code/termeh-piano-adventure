@@ -82,6 +82,21 @@ assert(support.includes('installNativeCrashRecorder'),'Native crash summaries mu
 assert(html.includes('termehReportErrors'),'Parent-only email report control missing');
 assert(html.includes('termehCheckUpdates'),'Parent-only update check control missing');
 assert(html.includes('No locally recorded JavaScript errors.'),'Minimal JS diagnostics missing');
+assert(html.includes('id="appMenuToggle"') && html.includes('id="appInfoDialog"'),'Accessible menu and info panels required');
+assert(html.includes('data-termeh-theme-choice="auto"'),'System theme option missing');
+assert(html.includes('termeh_theme_v1'),'Theme preference must persist without affecting progress');
+assert(html.includes('not been established by an independent study'),'Scientific non-endorsement notice missing');
+assert(html.includes('supplementary educational game'),'Learning aid disclaimer missing');
+assert(html.includes('Bahman Javani'),'Creator attribution missing');
+assert(html.includes('termeh-support://feedback') && html.includes('id="sendParentFeedback"'),'Parent-only suggestion route missing');
+assert(activity.includes('"feedback".equals(uri.getHost())'),'Feedback route must be handled by Android');
+assert(support.includes('void composeFeedback()'),'Native parent feedback email required');
+assert(!html.includes('answer=a*b+13'),'Parent math must not have fixed +13');
+assert(html.includes('termehMakeParentChallenge'),'Parent math challenges must be varied');
+const scientific=fs.readFileSync('SCIENTIFIC_EDUCATIONAL_FOUNDATION_FA.md','utf8');
+assert(scientific.includes('https://ies.ed.gov/ncee/wwc/PracticeGuide/1'),'Evidence link missing');
+assert(scientific.includes('National Core Arts Standards'),'Music standards link missing');
+
 // Phase-one Bazaar billing is read-only, parent gated and deliberately fail-closed.
 const billing=fs.readFileSync('app/src/main/java/com/termeh/piano/BazaarBillingBridge.java','utf8');
 const settings=fs.readFileSync('settings.gradle','utf8');
