@@ -1537,18 +1537,60 @@
 
         // Mastery is an educational local metric, NOT a secure paid entitlement.
 
+        function updateMasteryDashboard(mode,result) {
+            if(!result||!['treble','bass'].includes(mode))return;
+            const en=isEnglish();
+            const titles=en?
+                ['','Stage 1 of 3: Learn every note','Stage 2 of 3: Reduce mistakes','Stage 3 of 3: Quick and steady reading','Ready for the final assessment!']:
+                ['','مرحله ۱ از ۳: شناخت همه نت‌ها','مرحله ۲ از ۳: کم کردن خطاها','مرحله ۳ از ۳: سرعت و دقت پایدار','برای آزمون پایانی آماده‌ای!'];
+            const title=document.getElementById('masteryStageTitle');
+            const stats=document.getElementById('masteryStats');
+            const goal=document.getElementById('masteryNextGoal');
+            const fill=document.getElementById('masteryProgressFill');
+            const track=document.getElementById('masteryProgressTrack');
+            const speed=result.medianMs===null?(en?'not yet measured':'هنوز ثبت نشده'):
+                (result.medianMs/1000).toFixed(1)+(en?' seconds':' ثانیه');
+            if(title)title.textContent=(result.passed?'🏆 ':'🎯 ')+(result.passed?
+                (en?'Final assessment passed!':'آزمون پایانی قبول شد!'):titles[result.stage]);
+            if(stats)stats.textContent=en?
+                `Practice: ${result.total} questions · First-try accuracy (last 60): ${result.accuracy60}% · Typical correct speed: ${speed} · Confident notes: ${result.masteredNotes}/${result.noteCount}`:
+                `تمرین: ${result.total} سؤال · دقت بار اول (۶۰ سؤال اخیر): ${result.accuracy60}٪ · سرعت معمول پاسخ درست: ${speed} · نت‌های تثبیت‌شده: ${result.masteredNotes} از ${result.noteCount}`;
+            if(goal) {
+                if(result.passed)goal.textContent=en?'Great job! You can always return for more practice.':'آفرین! برای قوی‌تر شدن همیشه می‌توانی دوباره تمرین کنی.';
+                else if(result.stage===1)goal.textContent=en?
+                    `Goal: at least 30 questions and 2 correct FIRST tries for EACH note. Current: ${result.done}/30.`:
+                    `هدف: دست‌کم ۳۰ سؤال و برای هر نت ۲ پاسخ درست در تلاش اول. فعلاً: ${result.done} از ۳۰.`;
+                else if(result.stage===2)goal.textContent=en?
+                    `Goal: 80 questions, 85% first-try accuracy over the last 40, and 5 first-try correct answers per note. Current: ${result.done}/80, accuracy ${result.accuracy40}%.`:
+                    `هدف: ۸۰ سؤال، دقت حداقل ۸۵٪ در ۴۰ سؤال اخیر و برای هر نت ۵ پاسخ درستِ بار اول. فعلاً: ${result.done} از ۸۰، دقت ${result.accuracy40}٪.`;
+                else if(result.stage===3)goal.textContent=en?
+                    `Goal: 150 questions; 90% accuracy in last 60; median speed ≤4.2 s; three 20-question rounds with at least 17 right; practice every note. Strong rounds: ${result.roundsPassed}/3.`:
+                    `هدف: ۱۵۰ سؤال، دقت ۹۰٪ در ۶۰ سؤال اخیر، سرعت معمول حداکثر ۴٫۲ ثانیه، سه دور ۲۰سؤالی (هر دور حداقل ۱۷ درست)، تمرین همه نت‌ها. دورهای موفق: ${result.roundsPassed} از ۳.`;
+                else goal.textContent=en?
+                    'Three stages complete! Final test: 20 balanced questions; at least 18 right and 15 correct answers within 5 seconds.':
+                    'سه مرحله تمام شد! آزمون: ۲۰ سؤال متنوع؛ حداقل ۱۸ پاسخ درست و ۱۵ پاسخ درست در کمتر از ۵ ثانیه.';
+            }
+            if(fill)fill.style.width=result.score+'%';
+            if(track)track.setAttribute('aria-valuenow',String(result.score));
+            const level=document.getElementById('levelProgressText');
+            if(level && !(state.exam&&state.exam.active)){
+                level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3`:
+                    `تمرین ${Math.min(3,result.stage)} از ۳`;
+            }
+        }
         function updateExamButton() {
             const btn=document.getElementById('examStartBtn');
-            if(!btn) return;
-            const en=localStorage.getItem('termeh_language')==='en';
+            if(!btn)return;
+            const en=isEnglish();
             const result=getMastery(state.mode);
-            if(state.exam && state.exam.active) {
+            updateMasteryDashboard(state.mode,result);
+            if(state.exam && state.exam.active){
                 btn.textContent=en?'Assessment: '+(state.exam.index+1)+'/20 — Cancel':'آزمون: '+(state.exam.index+1)+' از ۲۰ — انصراف';
                 btn.disabled=false;
             } else {
-                btn.textContent=(en?'🎓 Final assessment':'🎓 آزمون پایانی')+' ('+result.score+'%)';
-                btn.disabled=result.attempts<80 || result.score<(state.mode==='treble'?85:90) || result.examPassed;
-                if(result.examPassed) {btn.textContent=en?'✅ Assessment passed':'✅ آزمون قبول شد';}
+                btn.textContent=(en?'🎓 Final assessment':'🎓 آزمون پایانی')+' — '+result.score+'%';
+                btn.disabled=!result.ready||result.passed;
+                if(result.passed)btn.textContent=en?'✅ Assessment passed':'✅ آزمون قبول شد';
             }
         }
         function shuffled(source) {
@@ -1560,10 +1602,9 @@
             if(!['treble','bass'].includes(state.mode))return;
             if(state.exam && state.exam.active){state.exam=null;loadNewStaffQuestion();updateExamButton();return;}
             const score=getMastery(state.mode);
-            if(score.attempts<80 || score.score<(state.mode==='treble'?85:90) || score.examPassed)return;
+            if(!score.ready || score.passed)return;
             const pool=state.mode==='treble'?TREBLE_NOTES:BASS_NOTES;
-            const list=[];while(list.length<20)list.push(...shuffled(pool));
-            state.exam={active:true,mode:state.mode,questions:shuffled(list.slice(0,20)),index:0,correct:0,busy:false,answers:[]};
+            state.exam={active:true,mode:state.mode,questions:TermehMasteryEngine.buildBalancedExam(pool,20),index:0,correct:0,busy:false,answers:[]};
             loadNewStaffQuestion();updateExamButton();
         }
         function submitExamAnswer(keyId) {
@@ -1576,10 +1617,11 @@
             e.answers.push({note:note.code,correct:right,ms:Math.round(performance.now()-state.staffStartedAt)});
             e.index++;
             if(e.index>=20){
-                const passed=e.correct>=18;
-                if(passed){state.mastery[e.mode].examPassed=true;saveState();}
+                const fastCorrect=e.answers.filter(x=>x.correct&&x.ms<=5000).length;
+                const passed=e.correct>=18&&fastCorrect>=15;
+                if(passed){state.mastery[e.mode].examPassed=true;state.mastery[e.mode].certifiedVersion=TermehMasteryEngine.POLICY_VERSION;saveState();}
                 const en=localStorage.getItem('termeh_language')==='en';
-                const message=en?'Assessment: '+e.correct+'/20 correct. '+(passed?'Passed!':'Practice and try again.'):'آزمون: '+e.correct+' پاسخ درست از ۲۰. '+(passed?'قبول شدی!':'بیشتر تمرین کن و دوباره امتحان بده.');
+                const message=en?`Assessment: ${e.correct}/20 correct; ${fastCorrect}/20 correct within 5 s. ${passed?'Passed!':'Keep practicing, then try again.'}`:`آزمون: ${e.correct} درست از ۲۰؛ ${fastCorrect} پاسخ درست زیر ۵ ثانیه. ${passed?'قبول شدی!':'بیشتر تمرین کن و دوباره امتحان بده.'}`;
                 state.exam=null;
                 updateExamButton();
                 loadNewStaffQuestion();
@@ -2009,7 +2051,7 @@ document.addEventListener('DOMContentLoaded',()=>{const saved=localStorage.getIt
 (function(){
 const thresholds={bass:85,rhythm:90};let pendingMode=null,answer=null,attempts=0,blockedUntil=0;
 window.isModeUnlocked=function(mode){if(mode==='treble')return true; if(!window.TERMEH_DEBUG_PREMIUM)return false; return mode==='bass'?getMastery('treble').passed:getMastery('bass').passed};
-window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';if(!window.TERMEH_DEBUG_PREMIUM){document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒';document.getElementById('unlockText').textContent=localStorage.getItem('termeh_language')==='en'?'These lessons are not included in the free release. Purchases are disabled until secure payment, download and restore are ready. Starter lessons remain free.':'درس‌های ویژه داخل نسخه رایگان نیستند. تا آماده‌شدن پرداخت امن، دانلود و بازیابی خرید، فروش غیرفعال است. درس‌های مقدماتی رایگان می‌مانند.';return;}document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const result=getMastery(source);const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Mastery '+result.score+'% / '+goal+'%. Accuracy, response speed and note variety count. Complete at least 80 first attempts and pass the final 20-question assessment with 90% accuracy. Premium purchase is not available yet.':'تسلط: '+result.score+'٪ از '+goal+'٪. دقت، سرعت و تنوع نت‌ها محاسبه می‌شود. دست‌کم ۸۰ تلاش اول و قبولی در آزمون ۲۰ پرسشی پایانی با دقت ۹۰٪ لازم است. خرید نسخه ویژه هنوز فعال نیست.'};
+window.showUnlock=function(mode){pendingMode=mode;document.getElementById('unlockOverlay').classList.add('open');document.getElementById('parentChallenge').style.display='none';if(!window.TERMEH_DEBUG_PREMIUM){document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒';document.getElementById('unlockText').textContent=localStorage.getItem('termeh_language')==='en'?'These lessons are not included in the free release. Purchases are disabled until secure payment, download and restore are ready. Starter lessons remain free.':'درس‌های ویژه داخل نسخه رایگان نیستند. تا آماده‌شدن پرداخت امن، دانلود و بازیابی خرید، فروش غیرفعال است. درس‌های مقدماتی رایگان می‌مانند.';return;}document.getElementById('unlockTitle').textContent=localStorage.getItem('termeh_language')==='en'?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';const en=localStorage.getItem('termeh_language')==='en';const source=mode==='bass'?'treble':'bass';const result=getMastery(source);const goal=thresholds[mode];document.getElementById('unlockText').textContent=en?'Mastery '+result.score+'% / '+goal+'%. Accuracy, response speed and note variety count. Complete at least 150 varied practice questions, strong first-try accuracy and faster recognition, then pass the final test. Premium purchase is not available yet.':'تسلط: '+result.score+'٪ از '+goal+'٪. دقت، سرعت و تنوع نت‌ها محاسبه می‌شود. دست‌کم ۱۵۰ سؤال تمرینی متنوع، دقت بالای پاسخ اول و تشخیص سریع‌تر نت‌ها، سپس قبولی در آزمون پایانی لازم است. خرید نسخه ویژه هنوز فعال نیست.'};
 window.closeUnlock=function(){document.getElementById('unlockOverlay').classList.remove('open');document.getElementById('parentChallenge').style.display='none';pendingMode=null};
 document.getElementById('unlockOverlay').addEventListener('click',function(e){if(e.target===this)closeUnlock()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeUnlock()});
