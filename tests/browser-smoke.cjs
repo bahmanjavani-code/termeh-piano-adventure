@@ -391,6 +391,28 @@ const { chromium }=require('playwright-core');
     assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
     assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
     assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
+    // Regression: child played all upper treble lessons in an earlier signed
+    // full QA build. Installing the free app must not destroy that history,
+    // despite absent premium note definitions in the public APK.
+    await freePage.evaluate(()=>{
+      const prev=JSON.parse(localStorage.getItem('notAmoozKidsState_v1')||'{}');
+      prev.trebleNoteTier=3;
+      prev.stars=37;
+      prev.mastery=prev.mastery||state.mastery;
+      prev.mastery.treble.attempts=Array.from({length:60},(_,i)=>({
+        note:['C4','G4','A4','C5','G5'][i%5],correct:true,ms:900,at:Date.now()+i
+      }));
+      localStorage.setItem('notAmoozKidsState_v1',JSON.stringify(prev));
+    });
+    await freePage.reload();
+    assert.equal(await freePage.evaluate(()=>state.trebleNoteTier),3,
+      'An APK with only beginner lessons must not erase earlier advanced lesson progress');
+    assert.equal(await freePage.evaluate(()=>getActiveTrebleNotes().length),5,
+      'Preserved progress must never grant absent premium notes in free release');
+    assert.equal(await freePage.evaluate(()=>state.mastery.treble.attempts.length),60);
+    assert.equal(await freePage.evaluate(()=>state.stars),37);
+    assert((await freePage.locator('#staffLevelText').innerText()).includes('1/1'),
+      'Visible level should not advertise a third tier that is absent from free release');
     await freePage.locator('#modeTab-rhythm').click();
     assert(await freePage.locator('#unlockOverlay').evaluate(el=>el.classList.contains('open')),
       'Free release must not make paid rhythm activities navigable');
