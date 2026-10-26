@@ -2752,6 +2752,14 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
   <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">این قیمت برنامه‌ریزی‌شده است؛ قیمت نهایی باید در کافه‌بازار ثبت و تأیید شود.</span><span class="only-en">Planned price only. Final price must be configured and confirmed in Cafe Bazaar.</span></p>
   <button id="buyPremiumBtn" class="action termehQaOnly" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
   <button id="restorePremiumBtn" class="action termehQaOnly" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
+  <section id="realBazaarOffer" class="termehStoreOnly" hidden aria-label="Official Bazaar lifetime purchase"
+     style="padding:12px;margin:12px 0;border:2px solid #a7f3d0;border-radius:14px;background:#ecfdf5">
+    <strong>🔐 <span class="only-fa">ارتقای دائمی از کافه‌بازار</span><span class="only-en">Official lifetime upgrade from Cafe Bazaar</span></strong>
+    <p id="realBazaarPrice" style="font-size:16px;font-weight:800" aria-live="polite"></p>
+    <button id="realBazaarBuyBtn" type="button" class="action" onclick="termehBuyFromBazaar()" disabled>🛍️ <span class="only-fa">خرید یک‌باره در بازار</span><span class="only-en">One-time purchase in Bazaar</span></button>
+    <button id="realBazaarRestoreBtn" type="button" class="action" onclick="termehRestoreFromBazaar()">🔄 <span class="only-fa">بازیابی خرید قبلی</span><span class="only-en">Restore previous purchase</span></button>
+    <p id="realBazaarStatus" role="status" aria-live="polite" style="font-size:13px;color:#065f46"></p>
+  </section>
   <button id="checkBazaarBtn" class="action termehQaOnly" type="button" onclick="checkBazaarOwnership()">🔎 <span class="only-fa">بررسی آزمایشی حساب بازار (بدون خرید)</span><span class="only-en">Check Bazaar connection (no payment)</span></button>
   <button id="checkEncryptedPackBtn" class="action termehQaOnly" type="button" onclick="checkEncryptedDemoPack()">🔐 <span class="only-fa">آزمایش قفل رمزگذاری درس نمونه (بدون خرید)</span><span class="only-en">Test encrypted sample lesson lock (no payment)</span></button>
   <button id="checkOfflineVaultBtn" class="action termehQaOnly" type="button" onclick="checkOfflineVaultDemo()">🗝️ <span class="only-fa">آزمایش نگهداری امن مجوز آفلاین (بدون خرید)</span><span class="only-en">Test protected offline license storage (no payment)</span></button>
@@ -2814,12 +2822,45 @@ window.termehBazaarStatus=function(code){
     restore_busy:['بررسی قبلی هنوز در حال انجام است.','Previous ownership check is still running.'],
     restore_checking:['در حال بررسی خریدهای قبلی بازار و مجوز امن گوشی…','Checking previously owned Bazaar purchases and device entitlement…'],
     restore_cached_no_unlock:['✅ خرید قبلی توسط بازار تأیید و مجوز آفلاین در گوشی ذخیره شد؛ درس‌های پولی هنوز فعال نیستند.','✅ Prior purchase verified and cached on device; paid lessons remain disabled.'],
+    restore_active:['✅ مالکیت خرید تأیید شد و درس‌های خریداری‌شده آفلاین باز شدند.','✅ Verified purchase: owned lessons are now available offline.'],
+    purchase_started:['در حال ورود به صفحهٔ رسمی پرداخت بازار…','Opening official Bazaar checkout…'],
+    purchase_unavailable:['خرید واقعی این نسخه هنوز آماده نیست؛ پولی دریافت نشد.','Checkout is not available in this build; no payment was taken.'],
+    purchase_busy:['یک درخواست خرید دیگر در حال انجام است.','A purchase request is already running.'],
+    purchase_verifying:['در حال بررسی مجدد مالکیت امضاشده در بازار…','Rechecking signed ownership in your Bazaar account…'],
+    purchase_failed:['خرید انجام نشد یا مالکیت معتبر نبود؛ درسی باز نشد.','Checkout failed or ownership was not verified; no lessons were unlocked.'],
+    purchase_cancelled:['خرید لغو شد؛ همچنان می‌توانید رایگان تمرین کنید.','Purchase canceled; free practice remains available.'],
     restore_no_purchase:['خرید قبلی برای نسخه کامل پیدا نشد؛ هیچ مجوز پولی فعال نشد.','No prior lifetime purchase found; no paid access was activated.'],
     restore_failed:['بررسی بازیابی انجام نشد؛ در صورت وجود مجوز قبلی، به‌دلیل خطای ارتباط حذف نشد.','Restore check failed; an existing cached entitlement was not deleted due to network failure.'],
     query_failed:['بررسی خرید انجام نشد؛ بعداً دوباره امتحان کنید.','Purchase lookup failed; try again later.']
   };
   const pair=messages[code]||messages.unavailable;
   el('bazaarBillingStatus').textContent=pair[en?1:0];
+  const real=el('realBazaarStatus');if(real)real.textContent=pair[en?1:0];
+};
+// Live SKU price is taken from Bazaar. Merely opening this screen
+// never starts checkout. The native bridge requires official store setup.
+window.termehBazaarOffer=function(code,publicPrice){
+  const offer=el('realBazaarOffer'),price=el('realBazaarPrice'),buy=el('realBazaarBuyBtn');
+  if(!offer||!price||!buy)return;
+  const en=localStorage.getItem('termeh_language')==='en';
+  const ready=code==='offer_ready' && typeof publicPrice==='string' && !!publicPrice;
+  offer.hidden=!ready;
+  buy.disabled=!ready;
+  price.textContent=ready?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice:'';
+};
+window.termehBuyFromBazaar=function(){
+  if(el('parentHubOptions').hidden||!el('parentHub').classList.contains('open'))return;
+  const api=window.TermehBazaar;
+  if(!api){window.termehBazaarStatus('purchase_unavailable');return;}
+  try{api.beginLifetimePurchase(localStorage.getItem('termeh_language')==='en'?'en':'fa');}
+  catch(e){window.termehBazaarStatus('purchase_failed');}
+};
+window.termehRestoreFromBazaar=function(){
+  if(el('parentHubOptions').hidden||!el('parentHub').classList.contains('open'))return;
+  const api=window.TermehBazaar;
+  if(!api){window.termehBazaarStatus('restore_unavailable');return;}
+  try{api.restoreVerifiedPurchase();}
+  catch(e){window.termehBazaarStatus('restore_failed');}
 };
 // Checks only PREVIOUS Bazaar purchases and caches valid status natively.
 // Never requests a charge, unlocks a lesson or sends a receipt to JavaScript.
