@@ -23,8 +23,10 @@ assert.match(java,/if \(!checkoutConfigured\(\) \|\| !catalogReady\)/,
 assert.match(java,/new AlertDialog\.Builder\(activity\)/,
   'Require a native parent purchase confirmation before opening Bazaar');
 assert.match(java,/new SecureRandom\(\)/,'No fixed parent challenge for monetary actions');
-assert.match(java,/if \(!expected\.equals\(answer\.getText\(\)\.toString\(\)\.trim\(\)\)\)/,
+assert.match(java,/if \(!expected\.equals\(normalizeParentAnswer\(answer\.getText\(\)\)\)\)/,
   'Wrong native math answer blocks charging regardless of JS WebView state');
+assert.match(java,/Character\.digit\(candidate\.charAt\(i\), 10\)/,
+  'Persian and Arabic digit keypads must be supported in native guardian confirmation');
 assert.match(java,/purchaseInProgress\.set\(false\);\s*publishStatus\("parent_verification_required"\)/,
   'Native guard must reset state without charging on a failed parental check');
 assert.match(java,/restoreVerifiedPurchase\(\);/,
