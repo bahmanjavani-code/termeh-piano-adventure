@@ -93,7 +93,11 @@ final class BazaarBillingBridge {
 
 
     private boolean checkoutConfigured() {
+        // A valid previously purchased course can be RESTORED even when this
+        // signed build deliberately disables any new monetary transaction.
+        // Only this gate authorizes opening a new Bazaar checkout.
         return !destroyed && connected && payment != null
+                && BuildConfig.BAZAAR_CHECKOUT_ENABLED
                 && VerifiedPremiumLessons.enabled();
     }
 
