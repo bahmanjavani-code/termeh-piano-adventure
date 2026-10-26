@@ -1,6 +1,6 @@
 'use strict';
 // Guardrails for the owner-selected serverless billing architecture.
-// This is NOT a payment test; checkout must remain disabled until full QA.
+// This is NOT a payment test; real checkout remains compile-time OFF without merchant QA.
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const path=require('node:path');
@@ -16,7 +16,19 @@ assert.match(java,/getPurchaseState\(\)\s*==\s*PurchaseState\.PURCHASED/);
 assert.match(java,/PACKAGE_ID\.equals\(purchase\.getPackageName\(\)\)/);
 assert.match(java,/LIFETIME_SKU\.equals\(purchase\.getProductId\(\)\)/);
 assert.doesNotMatch(java,/\.consumeProduct\s*\(/,'Lifetime purchase must never be consumed');
-assert.doesNotMatch(java,/\.purchaseProduct\s*\(/,'Checkout must stay off until tests and content are ready');
+assert.match(java,/\.purchaseProduct\s*\(/,'Poolakey product flow should now be implemented behind a compile-time gate');
+assert.match(java,/VerifiedPremiumLessons\.enabled\(\)/,'Native paid pack and verified entitlement are required');
+assert.match(java,/if \(!checkoutConfigured\(\) \|\| !catalogReady\)/,
+  'Checkout must be impossible without active merchant SKU price');
+assert.match(java,/new AlertDialog\.Builder\(activity\)/,
+  'Require a native parent purchase confirmation before opening Bazaar');
+assert.match(java,/restoreVerifiedPurchase\(\);/,
+  'Purchase callback must re-query signed Bazaar inventory');
+assert.match(gradle,/System\.getenv\('TERMEH_ENABLE_LIVE_CHECKOUT'\) == '1'/,
+  'Real paid flow is OFF by default and requires a separate signed opt-in');
+assert.match(gradle,/if \(liveRequested && !paidReady\)/,
+  'No real payments without RSA, AES data and valid owner delivery');
+assert.match(java,/BuildConfig\.BAZAAR_RSA_PUBLIC_KEY/);
 assert.match(ui,/<button id="buyPremiumBtn"[^>]*\bdisabled\b/);
 assert.match(ui,/<button id="restorePremiumBtn"[^>]*\bdisabled\b/);
 assert.match(ui,/window\.checkBazaarOwnership=function/);
