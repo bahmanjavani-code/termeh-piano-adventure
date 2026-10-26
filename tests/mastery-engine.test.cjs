@@ -8,7 +8,7 @@ const vm=require('node:vm');
 const engine=require('../app/src/main/assets/mastery-engine.js');
 const html=fs.readFileSync('app/src/main/assets/index.html','utf8');
 const expected=['C4','D4','E4','F4','G4'];
-const debugNotes=['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'];
+const debugNotes=['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5'];
 const createHistory=(n,codes=expected,ms=1700)=>Array.from({length:n},(_,i)=>({
   correct:true,note:codes[i%codes.length],ms,at:Date.now()-n*2000+i*2000
 }));
