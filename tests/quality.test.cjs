@@ -93,6 +93,16 @@ assert(activity.includes('"feedback".equals(uri.getHost())'),'Feedback route mus
 assert(support.includes('void composeFeedback()'),'Native parent feedback email required');
 assert(!html.includes('answer=a*b+13'),'Parent math must not have fixed +13');
 assert(html.includes('termehMakeParentChallenge'),'Parent math challenges must be varied');
+assert(html.includes("data-termeh-edition"),'Build-specific release QA hiding required');
+assert(html.includes('termehQaOnly')&&html.includes('termehStoreOnly'),'Store parent screen must distinguish internal diagnostics from honest customer copy');
+assert(html.includes('id="sendParentFeedback"'),'Parents still need a genuine support channel');
+const qaWorkflow=fs.readFileSync('.github/workflows/android.yml','utf8');
+const signedWorkflow=fs.readFileSync('.github/workflows/release.yml','utf8');
+assert(!gradle.includes('family {'),'Deprecated family build type must be removed');
+assert(!qaWorkflow.includes(':app:assembleFamily'),'CI must stop preparing abandoned family APK');
+assert(!signedWorkflow.includes('FAMILY-FULL-TRAINING'),'Signed output must not include family artifact');
+assert(fs.existsSync('BAZAAR_LAUNCH_PACKET_FA.md'),'Concise Bazaar launch packet is required');
+
 assert(html.includes('id="masteryDock"') && html.includes('id="masteryBarsButton"'),'Progress should be three small bars near the bottom');
 assert(html.includes('note-curriculum.js'),'Audited offline lesson sequence must be present');
 assert(html.includes('id="learningMilestone"')&&html.includes('id="learningMilestoneStaff"'),'Review difficult notes on the staff after curriculum progression');
