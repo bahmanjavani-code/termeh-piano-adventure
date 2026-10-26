@@ -161,8 +161,10 @@ assert(billing.includes('new AlertDialog.Builder(activity)'),
   'A purchase requires a parent confirmation in Android native UI');
 assert(billing.includes('new SecureRandom()')&&billing.includes('new EditText(activity)'),
   'A purchase should have a second, native parent arithmetic challenge independent of WebView');
-assert(billing.includes('if (!expected.equals(answer.getText().toString().trim()))'),
+assert(billing.includes('if (!expected.equals(normalizeParentAnswer(answer.getText())))'),
   'Wrong native arithmetic answer must prevent starting a real Bazaar transaction');
+assert(billing.includes('Character.digit(candidate.charAt(i), 10)'),
+  'Parent check must work with Persian/Arabic and Latin numeral keyboards');
 assert(billing.includes('publishStatus("parent_verification_required")'),
   'Wrong-answer status must be clear and never take money');
 assert(html.includes('parent_verification_required:'),
