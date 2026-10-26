@@ -60,6 +60,15 @@
       for(let i=0;i<FLUENCY_WINDOW;i+=20)rounds.push(last60.slice(i,i+20).filter(x=>x.correct).length);
     }
     const roundsPassed=rounds.filter(n=>n>=GOOD_ROUND_CORRECT).length;
+    // Parents can see objective improvement between two recent groups of
+    // 20 questions without judging the child by one lucky streak.
+    const newer=h.slice(-20),older=h.slice(-40,-20);
+    const trend=h.length>=40?{
+      earlierErrors:older.filter(x=>!x.correct).length,
+      latestErrors:newer.filter(x=>!x.correct).length,
+      earlierMedianMs:median(older.filter(x=>x.correct).map(x=>x.ms)),
+      latestMedianMs:median(newer.filter(x=>x.correct).map(x=>x.ms))
+    }:null;
     const intro=h.length>=INTRO_ATTEMPTS&&minCorrect>=2;
     const accurate=intro&&h.length>=ACCURACY_ATTEMPTS&&last40.length===ACCURACY_WINDOW
       &&accuracy40>=.85&&minCorrect>=5;
@@ -105,7 +114,7 @@
       accuracy60:percent(last60.filter(x=>x.correct).length,last60.length),
       medianMs:Number.isFinite(medianMs)?Math.round(medianMs):null,
       masteredNotes:codes.filter(c=>correctByNote[c]>=9).length,noteCount:codes.length,
-      minCorrect,weakNote:weakest,roundsPassed,hasEveryRecentNote,goal,done,
+      minCorrect,weakNote:weakest,roundsPassed,hasEveryRecentNote,goal,done,trend,
       correctByNote,policyVersion:POLICY_VERSION
     };
   }
