@@ -246,11 +246,11 @@
             </div>
         </header>
 
-        <!-- Language and parental access live in the page flow, never over piano keys. -->
-        <div id="utilityBar" class="flex items-center justify-end gap-2" role="group" aria-label="Language and parent controls">
-            <button id="parentLaunch" type="button" onclick="openParentHub()">👨‍👩‍👧 <span class="only-fa">والدین</span><span class="only-en">Parents</span></button>
-            <button id="langSwitcher" onclick="resetLanguage()">🌐 FA / EN</button>
+        <!-- One unobtrusive menu; adult-only actions still require the parent gate. -->
+        <div id="utilityBar" class="flex items-center justify-end gap-2" role="group" aria-label="Game settings">
+            <button id="appMenuToggle" type="button" onclick="openTermehMenu()" aria-haspopup="dialog" aria-controls="appMenu" aria-expanded="false">☰ <span class="only-fa">منو</span><span class="only-en">Menu</span></button>
         </div>
+        <p id="termehCopyright" class="text-center text-white text-xs font-bold" style="text-shadow:0 1px 3px #312e81">© 2026 Termeh Piano Adventure · <span class="only-fa">تمامی حقوق محفوظ است</span><span class="only-en">All rights reserved</span></p>
 
         <!-- MODE SELECTOR TABS (3 Modes) -->
         <nav class="grid grid-cols-3 gap-2">
@@ -2215,5 +2215,116 @@ window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localS
 el('parentHub').addEventListener('click',e=>{if(e.target===el('parentHub'))closeParentHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeParentHub()});
 })();
-</script></body>
+</script>
+
+<!-- Offline settings and transparent educational/legal information. No purchases or accounts here. -->
+<style>
+#appMenuToggle{min-width:96px;min-height:48px;border:2px solid #c4b5fd;border-radius:15px;background:#fff;color:#5b21b6;font-size:17px;font-weight:900;padding:8px 12px}
+#appMenu,#appInfoDialog{position:fixed;inset:0;background:#141339df;z-index:86;display:none;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+#appMenu.open,#appInfoDialog.open{display:flex}
+#appInfoDialog{z-index:90}
+.termehSettingsPanel{background:#fff;color:#1e293b;border:4px solid #fbbf24;border-radius:25px;box-shadow:0 18px 45px #0006;max-height:92dvh;overflow-y:auto;width:100%;max-width:480px;padding:18px;line-height:1.75;text-align:start}
+.termehSettingsPanel h2{font-size:21px;font-weight:900;color:#5b21b6;margin:0 0 12px}
+.termehSettingsPanel h3{font-size:17px;font-weight:900;color:#5b21b6;margin:14px 0 5px}
+.termehSettingsPanel p{font-size:14px;margin:8px 0}
+.termehSettingsPanel button{border:0;min-height:45px;border-radius:13px;padding:10px 12px;font-weight:800}
+.termehMenuAction{display:block;width:100%;background:#ede9fe;color:#3b0764;text-align:start;margin:8px 0}
+.termehMenuClose{float:inline-end;background:#dc2626!important;color:#fff!important;min-width:47px;font-size:22px}
+.termehThemeRow{display:flex;gap:5px;flex-wrap:wrap;justify-content:space-between;margin:10px 0}
+.termehThemeRow button{flex:1;min-width:75px;background:#e0e7ff;color:#312e81;font-size:13px}
+.termehThemeRow button[aria-pressed=true]{outline:3px solid #7c3aed;background:#ddd6fe}
+#appInfoDialog .termehInfoSection[hidden]{display:none!important}
+#appInfoDialog a{color:#1d4ed8;text-decoration:underline}
+html[data-termeh-theme=dark] body{background:linear-gradient(180deg,#0f172a,#1e1b4b 55%,#312e81)}
+html[data-termeh-theme=dark] header{background:#1e293b!important;border-color:#818cf8!important}
+html[data-termeh-theme=dark] header h1{color:#f5d0fe!important}
+html[data-termeh-theme=dark] #staffGameArea,html[data-termeh-theme=dark] #rhythmGameArea{background:#f8fafc!important}
+html[data-termeh-theme=dark] .speech-bubble{background:#f8fafc}
+html[data-termeh-theme=dark] #appMenuToggle{background:#1e293b;color:#f5f3ff;border-color:#a78bfa}
+@media (prefers-reduced-motion:reduce){.termehSettingsPanel *{animation:none!important}}
+</style>
+<div id="appMenu" role="dialog" aria-modal="true" aria-labelledby="termehMenuTitle">
+  <div class="termehSettingsPanel">
+    <button type="button" class="termehMenuClose" onclick="closeTermehMenu()" aria-label="Close / بستن">×</button>
+    <h2 id="termehMenuTitle">☰ <span class="only-fa">منوی پیانوی ترمه</span><span class="only-en">Termeh Piano Menu</span></h2>
+    <button type="button" class="termehMenuAction" onclick="closeTermehMenu()">🎹 <span class="only-fa">ادامهٔ بازی</span><span class="only-en">Continue playing</span></button>
+    <button id="langSwitcher" type="button" class="termehMenuAction" onclick="closeTermehMenu();resetLanguage()">🌐 <span class="only-fa">تغییر زبان (فارسی / انگلیسی)</span><span class="only-en">Change language (English / Persian)</span></button>
+    <h3>☀️🌙 <span class="only-fa">ظاهر برنامه</span><span class="only-en">Display theme</span></h3>
+    <div class="termehThemeRow" role="group" aria-label="Display theme">
+       <button type="button" data-termeh-theme-choice="light" onclick="setTermehTheme('light')">☀️ <span class="only-fa">روز</span><span class="only-en">Day</span></button>
+       <button type="button" data-termeh-theme-choice="dark" onclick="setTermehTheme('dark')">🌙 <span class="only-fa">شب</span><span class="only-en">Night</span></button>
+       <button type="button" data-termeh-theme-choice="auto" onclick="setTermehTheme('auto')">📱 <span class="only-fa">خودکار</span><span class="only-en">Auto</span></button>
+    </div>
+    <button id="parentLaunch" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">👨‍👩‍👧 <span class="only-fa">بخش والدین و مدیریت حساب</span><span class="only-en">Parent controls and account</span></button>
+    <button type="button" class="termehMenuAction" onclick="closeTermehMenu();document.getElementById('masteryProgressTrack').scrollIntoView({block:'center'})">📊 <span class="only-fa">نمایش پیشرفت آموزشی</span><span class="only-en">View learning progress</span></button>
+    <button id="menuFeedback" type="button" class="termehMenuAction" onclick="closeTermehMenu();openParentHub()">💬 <span class="only-fa">نظرات و پیشنهادها (فقط والدین)</span><span class="only-en">Suggestions and feedback (parents only)</span></button>
+    <button type="button" class="termehMenuAction" onclick="showTermehInfo('science')">📚 <span class="only-fa">روش آموزشی و منابع معتبر</span><span class="only-en">Learning approach and sources</span></button>
+    <button type="button" class="termehMenuAction" onclick="showTermehInfo('limits')">⚖️ <span class="only-fa">محدودیت آموزشی و شرایط استفاده</span><span class="only-en">Educational limitations and terms</span></button>
+    <button type="button" class="termehMenuAction" onclick="showTermehInfo('privacy')">🛡️ <span class="only-fa">خلاصهٔ حریم خصوصی</span><span class="only-en">Privacy summary</span></button>
+    <button type="button" class="termehMenuAction" onclick="showTermehInfo('about')">ℹ️ <span class="only-fa">دربارهٔ برنامه و کپی‌رایت</span><span class="only-en">About and copyright</span></button>
+  </div>
+</div>
+<div id="appInfoDialog" role="dialog" aria-modal="true" aria-labelledby="termehInfoHeading">
+  <div class="termehSettingsPanel">
+    <button type="button" class="termehMenuClose" onclick="closeTermehInfo()" aria-label="Close / بستن">×</button>
+    <h2 id="termehInfoHeading"></h2>
+    <section class="termehInfoSection" data-termeh-info="science" hidden>
+      <p><span class="only-fa">پیانوی ترمه برای تمرین مقدماتی نت‌خوانی طراحی شده است. نت‌های جدید باید به‌تدریج و با توجه به عملکرد کودک آموزش داده شوند؛ نت‌های قبلی نیز برای مرور تکرار می‌شوند.</span><span class="only-en">Termeh Piano practices introductory music-note reading. The educational plan introduces notes gradually based on performance, and revisits earlier notes for review.</span></p>
+      <p><span class="only-fa">مبنای طراحی و بازبینی علمی: تمرین بازیابی، مرور با فاصله، بازخورد مشخص و کمک به بررسی پیشرفت. اجرای کامل همهٔ این اصول و آستانه‌های پیشرفت هنوز نیازمند ارزیابی مستقل است.</span><span class="only-en">Our evidence-informed design review draws on retrieval practice, spaced review, actionable feedback, and progress monitoring. Full implementation and progression thresholds still need independent evaluation.</span></p>
+      <p><strong><span class="only-fa">منابع برای مطالعه:</span><span class="only-en">References:</span></strong><br>IES / What Works Clearinghouse (2007), Organizing Instruction and Study to Improve Student Learning.<br>Education Endowment Foundation (2025), Feedback; Metacognition and Self-Regulation.<br>National Core Arts Standards (2014), Music standards.</p>
+      <p><strong><span class="only-fa">توجه:</span><span class="only-en">Important:</span></strong> <span class="only-fa">استفاده از این منابع به معنی تأیید رسمی برنامه توسط این نهادها نیست. اثربخشی خود پیانوی ترمه هنوز در مطالعهٔ مستقل اثبات نشده است.</span><span class="only-en">Citing these sources does not mean these organizations endorse or certify this app. The app's own effectiveness has not been established by an independent study.</span></p>
+    </section>
+    <section class="termehInfoSection" data-termeh-info="limits" hidden>
+      <p><span class="only-fa">پیانوی ترمه یک <strong>بازی کمک‌آموزشی</strong> برای آشنایی با نت‌خوانی و مفاهیم مقدماتی موسیقی است؛ منبع اصلی یا جایگزین آموزش مربی واجد صلاحیت و تمرین عملی با ساز نیست.</span><span class="only-en">Termeh Piano is a <strong>supplementary educational game</strong> for basic note reading and music concepts; it is not the primary source of music instruction or a replacement for a qualified teacher and practice on a real instrument.</span></p>
+      <p><span class="only-fa">یادگیری به سن، تجربه، روش و تداوم تمرین بستگی دارد. برنامه نتیجهٔ مشخص یا مهارت نوازندگی را تضمین نمی‌کند. اعداد دقت و سرعت، فقط شاخص عملکرد داخل بازی‌اند.</span><span class="only-en">Learning varies with age, experience and practice. No particular outcome or piano-playing skill is guaranteed. Accuracy and speed are in-game performance measures only.</span></p>
+      <p><span class="only-fa">این متن حقوق قانونی کاربران را محدود نمی‌کند. شرایط کامل و سیاست حریم خصوصی برای مطالعه در اعلان آغازین و بخش والدین ارائه شده‌اند؛ مفاد نهایی فروش باید پیش از انتشار بررسی شوند.</span><span class="only-en">This statement does not restrict statutory consumer rights. Full terms and privacy information are available through the parent notice and controls; commercial terms require review before release.</span></p>
+    </section>
+    <section class="termehInfoSection" data-termeh-info="privacy" hidden>
+      <p><span class="only-fa">بازی بدون حساب کاربری اجرا می‌شود. پیشرفت فعلاً روی همین گوشی ذخیره می‌شود و با حذف برنامه یا پاک کردن داده‌ها ممکن است از بین برود.</span><span class="only-en">Play requires no online account. Progress is currently stored on this device and may be lost if the app or its data are removed.</span></p>
+      <p><span class="only-fa">درس‌ها آفلاین‌اند. بررسی به‌روزرسانی از اینترنت استفاده می‌کند. گزارش خطا و پیشنهاد فقط با اقدام و تأیید والدین از برنامهٔ ایمیل گوشی ارسال می‌شوند؛ خودکار ارسال نمی‌شوند.</span><span class="only-en">Lessons work offline. Update checks use the internet. Error reports and suggestions are sent only when a parent chooses to send them in the device's email app; no automatic submission occurs.</span></p>
+      <p><span class="only-fa">در گزارش‌ها نام، تصویر، شمارهٔ تماس یا اطلاعات شخصی کودک را وارد نکنید. نسخهٔ کامل سیاست حریم خصوصی در بخش والدین قابل مشاهده است.</span><span class="only-en">Do not include a child's name, photo, contact details, or other personal data in reports. The full privacy policy is linked in parent controls.</span></p>
+    </section>
+    <section class="termehInfoSection" data-termeh-info="about" hidden>
+      <p>🎹 Termeh Piano Adventure — <span class="only-fa">پیانوی ترمه</span><span class="only-en">Termeh Piano</span></p>
+      <p><span class="only-fa">طراح، توسعه‌دهنده و صاحب امتیاز محتوای اختصاصی: بهمن جوانی</span><span class="only-en">Creator, developer and rights holder for original content: Bahman Javani</span></p>
+      <p>© 2026 Bahman Javani · Termeh Piano Adventure — <span class="only-fa">تمامی حقوق محتوای اختصاصی محفوظ است.</span><span class="only-en">All rights in original content reserved.</span></p>
+      <p><span class="only-fa">مجوز کتابخانه‌ها، فونت‌ها و اجزای متعلق به اشخاص ثالث تابع شرایط صاحبان آن‌هاست و باید پیش از انتشار تجاری بررسی شود.</span><span class="only-en">Third-party libraries, fonts and assets retain their own licensing terms, which must be reviewed before commercial release.</span></p>
+      <p>Beta QA · <span class="only-fa">خرید و حساب آنلاین هنوز فعال نیست.</span><span class="only-en">Payments and online accounts are not enabled yet.</span></p>
+    </section>
+    <button type="button" class="termehMenuAction" onclick="closeTermehInfo()">🎹 <span class="only-fa">بازگشت به بازی</span><span class="only-en">Return to game</span></button>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  const menu=document.getElementById('appMenu'),info=document.getElementById('appInfoDialog'),toggle=document.getElementById('appMenuToggle');
+  const labels={science:['روش آموزشی و منابع','Learning approach and references'],limits:['محدودیت‌ها و شرایط استفاده','Educational limitations and terms'],privacy:['حریم خصوصی','Privacy summary'],about:['دربارهٔ برنامه','About Termeh Piano']};
+  window.openTermehMenu=function(){menu.classList.add('open');toggle.setAttribute('aria-expanded','true');menu.querySelector('.termehMenuClose').focus()};
+  window.closeTermehMenu=function(){menu.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.focus()};
+  window.showTermehInfo=function(which){
+    if(!labels[which])return;
+    menu.classList.remove('open');toggle.setAttribute('aria-expanded','false');
+    const en=document.documentElement.lang==='en';
+    document.getElementById('termehInfoHeading').textContent=labels[which][en?1:0];
+    info.querySelectorAll('[data-termeh-info]').forEach(s=>{s.hidden=s.getAttribute('data-termeh-info')!==which});
+    info.classList.add('open');info.querySelector('.termehMenuClose').focus();
+  };
+  window.closeTermehInfo=function(){info.classList.remove('open');toggle.focus()};
+  const key='termeh_theme_v1';
+  const media=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+  function applyTheme(){
+    let value='auto';try{value=localStorage.getItem(key)||'auto'}catch(e){}
+    if(!['light','dark','auto'].includes(value))value='auto';
+    document.documentElement.setAttribute('data-termeh-theme',value==='auto'&&media&&media.matches?'dark':value==='auto'?'light':value);
+    document.querySelectorAll('[data-termeh-theme-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute('data-termeh-theme-choice')===value)));
+  }
+  window.setTermehTheme=function(value){if(!['light','dark','auto'].includes(value))return;try{localStorage.setItem(key,value)}catch(e){}applyTheme()};
+  if(media){if(media.addEventListener)media.addEventListener('change',applyTheme);else if(media.addListener)media.addListener(applyTheme)}
+  applyTheme();
+  [menu,info].forEach(box=>box.addEventListener('click',e=>{if(e.target===box){if(box===menu)closeTermehMenu();else closeTermehInfo()}}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(info.classList.contains('open'))closeTermehInfo();else if(menu.classList.contains('open'))closeTermehMenu()}});
+})();
+</script>
+
+</body>
 </html>
