@@ -29,8 +29,13 @@ for(const name of steps){
 }
 assert(text.includes('allow_controlled_real_checkout:'),'Explicit per-run controlled charge confirmation missing');
 assert(text.includes('default: false'),'Real charging MUST be OFF by default');
-assert(text.includes("inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0'"),
-  'Even an accidentally enabled repository variable must NOT start real charge without per-run approval');
+assert(text.includes('  push:') && text.includes('    branches: [main]'),
+  'Latest main must automatically generate a signed nonchargeable APK candidate');
+const onlyExplicit="github.event_name == 'workflow_dispatch' && inputs.allow_controlled_real_checkout && vars.TERMEH_ENABLE_LIVE_CHECKOUT || '0'";
+assert.equal(text.split(onlyExplicit).length-1,3,
+  'All billing gate paths (certificate, summary and APK build) must require EXPLICIT manual dispatch');
+assert(!text.includes('TERMEH_ENABLE_LIVE_CHECKOUT: ' + '${{ inputs.allow_controlled_real_checkout'),
+  'A push must never allow live checkout even if stale repository variables are enabled');
 assert(text.includes("TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED:"),
   'Real controlled checkout must ALSO require the merchant owner approval variable');
 assert(text.includes('TERMEH_KEYSTORE_BASE64'),'Never publish using an ephemeral QA keystore');
