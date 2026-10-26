@@ -14,7 +14,7 @@ function once(value,label){
 const steps=[
   'Configure secret signing material',
   'Verify original release key and certificate identity',
-  'Package authenticated paid lessons if owner provisioned an AES build key',
+  'Stage AES-GCM paid curriculum using private or ephemeral build key',
   'Build release APK using signed keystore',
   'Verify APK signature, Android target, and privacy',
   'Upload signed APK for controlled review',
