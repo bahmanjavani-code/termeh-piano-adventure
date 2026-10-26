@@ -26,7 +26,23 @@ assert(java.includes('now.isBefore(LocalTime.of(16, 0))')
   && java.includes('!now.isBefore(LocalTime.of(21, 0))'),
   'Do not notify outside afternoon/evening when background tasks drift');
 assert(java.includes('ExistingPeriodicWorkPolicy.REPLACE')&&java.includes('cancelUniqueWork'),
-  'Only one schedule may exist and opting out must stop it');
+  'Parent re-enabling must align schedule and opt-out must stop work');
+assert(java.includes('ExistingPeriodicWorkPolicy.KEEP'),
+  'Reopening the app must not postpone already scheduled 6 PM reminders');
+assert(java.includes('schedule(context, ExistingPeriodicWorkPolicy.KEEP);'),
+  'Keep existing reminder schedule across app restarts');
+assert(java.includes('schedule(context, ExistingPeriodicWorkPolicy.REPLACE);'),
+  'Only explicit parent opt-in can re-align a reminder to the next evening');
+assert(java.includes('private static final String KEY_LANGUAGE = "ui_language"'),
+  'The native notification language preference must stay local on device');
+assert(java.includes('english ? "🎹 Time for a little piano?"'),
+  'English reminder notifications must not contain Persian');
+assert(java.includes('"🎹 وقت یک تمرین کوتاه پیانوست!"'),
+  'Persian reminder notifications must not contain English');
+assert(activity.includes('DailyPracticeReminder.setLanguage(MainActivity.this, language);'),
+  'Language selection must update native notification messages');
+assert(html.includes('window.TermehPractice.setLanguage(l);'),
+  'WebView language must be passed to the native local reminder bridge');
 assert(java.includes('if (!optedIn(context) || !permissionGranted(context))'),
   'Fail closed when parent opted out or system blocked notifications');
 assert(java.includes('NotificationManager.IMPORTANCE_DEFAULT'));

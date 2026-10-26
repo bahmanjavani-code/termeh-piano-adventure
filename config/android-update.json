@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 25,
+  "latestVersionCode": 26,
   "storeUrl": "",
-  "notes": "1.3.20-beta QA: inspect every lesson without long mastery drills using a NEW side-by-side com.termeh.piano.qa debug preview APK with an explicit parent-gated, session-only all-lesson inspection switch. Public release com.termeh.piano stays free with only 5 starter notes and no QA bypass. Preserves saved progress. Bazaar checkout still inactive until genuine lesson delivery and restore validation."
+  "notes": "1.3.21-beta QA: remove Persian text from English rhythm success and failure screens, fix singular 1-beat grammar and half-beat playback, enforce elapsed duration for hold challenges (a quick tap cannot pass), isolate C4/C5 and bass C3/C4 on octave-labeled piano keys, keep local notification schedule across launches, use chosen language in notifications. Automated UI regressions cover all flows; Bazaar payments still disabled pending merchant RSA, actual checkout/content/restore and teacher/device review."
 }

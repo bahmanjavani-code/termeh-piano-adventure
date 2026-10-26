@@ -33,6 +33,7 @@ final class DailyPracticeReminder {
     private static final String KEY_ENABLED = "enabled";
     private static final String KEY_LAST_PRACTICE_DAY = "last_practice_day";
     private static final String KEY_LAST_REMINDER_DAY = "last_reminder_day";
+    private static final String KEY_LANGUAGE = "ui_language";
     private static final String UNIQUE_WORK = "termeh_daily_practice_reminder_v1";
     private static final String CHANNEL_ID = "termeh_daily_practice";
     private static final int NOTICE_ID = 3107;
@@ -62,6 +63,11 @@ final class DailyPracticeReminder {
         return permissionGranted(context) ? "on" : "blocked";
     }
 
+    static void setLanguage(Context context, String language) {
+        if (!"fa".equals(language) && !"en".equals(language)) return;
+        prefs(context).edit().putString(KEY_LANGUAGE, language).apply();
+    }
+
     static void recordCompletedExercise(Context context) {
         // The native side receives no notes, answers, age, name, contact or logs.
         prefs(context).edit().putString(KEY_LAST_PRACTICE_DAY, LocalDate.now().toString()).apply();
@@ -70,7 +76,7 @@ final class DailyPracticeReminder {
     static void enable(Context context) {
         if (!permissionGranted(context)) return; // Never opt in after a denial.
         prefs(context).edit().putBoolean(KEY_ENABLED, true).apply();
-        schedule(context);
+        schedule(context, ExistingPeriodicWorkPolicy.REPLACE);
     }
 
     static void disable(Context context) {
@@ -84,10 +90,14 @@ final class DailyPracticeReminder {
     static void ensureScheduled(Context context) {
         // Do not request permission or silently enable; WorkManager persists work
         // through normal app restarts, upgrades and device reboot.
-        if (optedIn(context) && permissionGranted(context)) schedule(context);
+        // KEEP is crucial: replacing work on every app launch would postpone
+        // tonight's reminder again and again for an active child.
+        if (optedIn(context) && permissionGranted(context)) {
+            schedule(context, ExistingPeriodicWorkPolicy.KEEP);
+        }
     }
 
-    private static void schedule(Context context) {
+    private static void schedule(Context context, ExistingPeriodicWorkPolicy policy) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime next = now.toLocalDate().atTime(SUGGESTED_HOUR, 0);
         if (!next.isAfter(now)) next = next.plusDays(1);
@@ -97,7 +107,7 @@ final class DailyPracticeReminder {
                 .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
                 .build();
         WorkManager.getInstance(context.getApplicationContext()).enqueueUniquePeriodicWork(
-                UNIQUE_WORK, ExistingPeriodicWorkPolicy.REPLACE, request);
+                UNIQUE_WORK, policy, request);
     }
 
     public static final class ReminderWorker extends Worker {
@@ -123,8 +133,10 @@ final class DailyPracticeReminder {
             NotificationManager manager = (NotificationManager)
                     context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager == null) return Result.success();
+            boolean english = "en".equals(settings.getString(KEY_LANGUAGE, "fa"));
             manager.createNotificationChannel(new NotificationChannel(
-                    CHANNEL_ID, "تمرین روزانهٔ پیانوی ترمه / Daily piano practice",
+                    CHANNEL_ID,
+                    english ? "Termeh Piano: daily practice" : "پیانوی ترمه: تمرین روزانه",
                     NotificationManager.IMPORTANCE_DEFAULT));
 
             Intent launch = new Intent(context, MainActivity.class);
@@ -133,8 +145,9 @@ final class DailyPracticeReminder {
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             Notification notification = new Notification.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_termeh)
-                    .setContentTitle("🎹 تمرین کوتاه پیانو / Piano time")
-                    .setContentText("۵ دقیقه با پیانوی ترمه؟ / A little music practice?")
+                    .setContentTitle(english ? "🎹 Time for a little piano?" : "🎹 وقت یک تمرین کوتاه پیانوست!")
+                    .setContentText(english ? "How about five fun minutes of music?"
+                            : "پنج دقیقه با پیانوی ترمه تمرین کنیم؟")
                     .setAutoCancel(true)
                     .setContentIntent(tap)
                     .setCategory(Notification.CATEGORY_REMINDER)

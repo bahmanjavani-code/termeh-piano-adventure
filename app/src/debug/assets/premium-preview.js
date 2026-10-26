@@ -4,7 +4,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   trebleExtra: [
   {
     "code": "A4",
-    "keyId": "A",
+    "keyId": "A4",
     "faName": "لا",
     "freq": 440,
     "svgY": 110,
@@ -14,7 +14,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "B4",
-    "keyId": "B",
+    "keyId": "B4",
     "faName": "سی",
     "freq": 493.88,
     "svgY": 100,
@@ -24,7 +24,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "C5",
-    "keyId": "C",
+    "keyId": "C5",
     "faName": "دو (بالا)",
     "freq": 523.25,
     "svgY": 90,
@@ -34,7 +34,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "D5",
-    "keyId": "D",
+    "keyId": "D5",
     "faName": "ر (بالا)",
     "freq": 587.33,
     "svgY": 80,
@@ -44,7 +44,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "E5",
-    "keyId": "E",
+    "keyId": "E5",
     "faName": "می (بالا)",
     "freq": 659.25,
     "svgY": 70,
@@ -54,7 +54,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "F5",
-    "keyId": "F",
+    "keyId": "F5",
     "faName": "فا (بالا)",
     "freq": 698.46,
     "svgY": 60,
@@ -64,7 +64,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "G5",
-    "keyId": "G",
+    "keyId": "G5",
     "faName": "سل (بالا)",
     "freq": 783.99,
     "svgY": 50,
@@ -76,7 +76,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   bass: [
   {
     "code": "G2",
-    "keyId": "G",
+    "keyId": "G2",
     "faName": "سل",
     "freq": 98,
     "svgY": 140,
@@ -86,7 +86,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "A2",
-    "keyId": "A",
+    "keyId": "A2",
     "faName": "لا",
     "freq": 110,
     "svgY": 130,
@@ -96,7 +96,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "B2",
-    "keyId": "B",
+    "keyId": "B2",
     "faName": "سی",
     "freq": 123.47,
     "svgY": 120,
@@ -106,7 +106,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "C3",
-    "keyId": "C",
+    "keyId": "C3",
     "faName": "دو",
     "freq": 130.81,
     "svgY": 110,
@@ -116,7 +116,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "D3",
-    "keyId": "D",
+    "keyId": "D3",
     "faName": "ر",
     "freq": 146.83,
     "svgY": 100,
@@ -126,7 +126,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "E3",
-    "keyId": "E",
+    "keyId": "E3",
     "faName": "می",
     "freq": 164.81,
     "svgY": 90,
@@ -136,7 +136,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "F3",
-    "keyId": "F",
+    "keyId": "F3",
     "faName": "فا (خط کلید فا)",
     "freq": 174.61,
     "svgY": 80,
@@ -146,7 +146,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "G3",
-    "keyId": "G",
+    "keyId": "G3",
     "faName": "سل (بالا)",
     "freq": 196,
     "svgY": 70,
@@ -156,7 +156,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "A3",
-    "keyId": "A",
+    "keyId": "A3",
     "faName": "لا (بالا)",
     "freq": 220,
     "svgY": 60,
@@ -166,7 +166,7 @@ window.TERMEH_DEBUG_PREMIUM = Object.freeze({
   },
   {
     "code": "C4",
-    "keyId": "C",
+    "keyId": "C4",
     "faName": "دو میانی",
     "freq": 261.63,
     "svgY": 40,

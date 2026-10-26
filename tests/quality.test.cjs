@@ -43,7 +43,7 @@ function midi(code){return 12*(Number(code.slice(1))+1)+semitones[code[0]]}
 function referenceFrequency(code){return 440*Math.pow(2,(midi(code)-69)/12)}
 for(const [clef,notes] of [['treble',treble],['bass',bass]]){
   for(const note of notes){
-    assert.equal(note.keyId,note.code[0],clef+': wrong key for '+note.code);
+    assert.equal(note.keyId,note.code,clef+': keyboard must distinguish octave for '+note.code);
     assert(Math.abs(note.freq-referenceFrequency(note.code))<0.015,clef+': wrong tuning for '+note.code);
     const y=clef==='treble'?160-10*(trebleExpected.indexOf(note.code)):note.code==='C4'?40:140-10*(bassExpected.indexOf(note.code));
     assert.equal(note.svgY,y,clef+': wrong staff position for '+note.code);
@@ -52,6 +52,16 @@ for(const [clef,notes] of [['treble',treble],['bass',bass]]){
   }
 }
 assert.equal(treble.find(n=>n.code==='A4').freq,440);
+assert.notEqual(treble.find(n=>n.code==='C4').keyId,
+                treble.find(n=>n.code==='C5').keyId,
+                'Middle C and high C cannot share a piano button');
+assert.notEqual(bass.find(n=>n.code==='C3').keyId,
+                bass.find(n=>n.code==='C4').keyId,
+                'Bass C3 and C4 need separate keyboard notes');
+assert(html.includes("data-pitch=\"${code}\""),'Rendered piano must label octave-specific pitches');
+assert(html.includes("const pool=state.mode==='bass'?BASS_NOTES:getActiveTrebleNotes()"),
+       'Keyboard must show only notes in active staged curriculum');
+
 assert.deepEqual(Object.fromEntries(Array.from(durations,d=>[d.id,d.beats])),{whole:4,half:2,quarter:1,eighth:0.5});
 for(const permission of ['RECORD_AUDIO','CAMERA','ACCESS_FINE_LOCATION','ACCESS_COARSE_LOCATION','ACCESS_BACKGROUND_LOCATION','ACCESS_MEDIA_LOCATION'])
   assert(!manifest.includes(permission),'Forbidden permission: '+permission);
@@ -171,5 +181,22 @@ assert(manifest.includes('android.permission.POST_NOTIFICATIONS'),'Optional noti
 assert(html.includes('id="dailyReminderPanel"'),'Reminders must be controlled within parent hub');
 assert(html.includes('window.termehRefreshPracticeReminder'),'Parent should see genuine Android reminder status');
 assert(html.includes('window.TermehPractice.recordExercise()'),'Only completed exercises should suppress reminders');
+assert(html.includes("function rhythmBeatCount(n)"),'English one-beat vs plural labeling needs one shared formatter');
+assert(html.includes("target.beats===1?'beat':'beats'") ||
+       html.includes("n===1?'beat':'beats'"),
+       'Singular beat grammar must be handled explicitly');
+assert(html.includes("const HOLD_BEAT_MS=650"),'Hold progress must use elapsed clock time');
+assert(html.includes("performance.now()-holdStartedAt"),'A quick tap cannot count as one whole beat');
+assert(html.includes('HOLD_TOLERANCE_BEATS'),'Timing window should be child-friendly but finite');
+assert(html.includes('if (state.isHoldingPad || state.holdChallengeSolved) return'),
+       'A solved rhythm challenge must not award more stars from repeated presses');
+assert(html.includes("nextBtn.innerHTML = isEnglish()?") &&
+       html.includes('Great! Next rhythm challenge'),
+       'Screenshot regression: completed hold next action must stay English');
+assert(html.includes('Released too early') && html.includes('Held too long'),
+       'Both early and late rhythm feedback branches must remain localized');
+assert(html.includes("isEnglish()?'Half a beat!'"),
+       'Dynamic rhythm card demo must stay localized');
+
 assert(html.includes('ترمه')&&html.includes('یک‌باره'),'Store must describe opt-in practice and lifetime offer');
 console.log('PASS: JS syntax, 22 clef-note definitions, pitch frequency, staff positions, rhythm values, permissions, answer leakage and independent exam.');

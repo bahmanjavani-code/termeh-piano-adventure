@@ -96,6 +96,9 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.evaluate(()=>TREBLE_NOTES.length),12,'Debug-only upper G5 practice expected');
     assert.equal(await page.evaluate(()=>getActiveTrebleNotes().length),5,'First lesson should start with five beginner notes');
     assert.equal(await page.evaluate(()=>BASS_NOTES.length),10,'Debug preview should include bass');
+    assert.equal(await page.locator('[data-pitch]').count(),5,'Starter keyboard must display only five taught pitches');
+    assert(await page.locator('#pianoKey-C4').count()===1,'Starting keyboard must label middle C with octave 4');
+    assert(!(await page.locator('#pianoKey-C5').count()),'Untaught upper C must not be shown in stage one');
     assert.equal(await page.evaluate(()=>NOTE_DURATIONS.length),4,'Debug preview should include rhythm');
     await assertEnglishScreen('initial staff');
     assert(await page.locator('#masteryDock').isVisible(),'Compact progress strip must be visible under the music game');
@@ -146,7 +149,7 @@ const { chromium }=require('playwright-core');
       assert(!/[\u0600-\u06ff]/.test(txt),'Persian leaked in English '+id+': '+txt);
     }
     await page.locator('#nextQuestionBtn').click();
-    const wrong=await page.evaluate(()=>['A','B','C','D','E','F','G'].find(x=>x!==state.currentStaffNote.keyId));
+    const wrong=await page.evaluate(()=>getActiveTrebleNotes().find(x=>x.keyId!==state.currentStaffNote.keyId).keyId);
     await page.locator('#pianoKey-'+wrong).click();
     const wrongText=await page.locator('#mascotSpeech').innerText();
     assert(!/[\u0600-\u06ff]/.test(wrongText),'Wrong-answer guidance not translated: '+wrongText);
@@ -261,6 +264,13 @@ const { chromium }=require('playwright-core');
     await page.locator('#learningMilestoneContinue').click();
     await page.reload();
     assert.equal(await page.evaluate(()=>state.trebleNoteTier),3,'Full preview tier must persist across reload');
+    assert.equal(await page.locator('[data-pitch]').count(),12,'High-note stage requires 12 separate octave-specific piano keys');
+    assert(await page.locator('#pianoKey-C4').count()===1);
+    assert(await page.locator('#pianoKey-C5').count()===1);
+    assert.notEqual(await page.locator('#pianoKey-C4').getAttribute('aria-label'),
+                    await page.locator('#pianoKey-C5').getAttribute('aria-label'),
+      'Piano labels must tell C4 apart from C5');
+
     // Manual review from the menu should not jump questions or reveal an exam answer.
     const earlierNote=await page.evaluate(()=>state.currentStaffNote.code);
     await page.locator('#appMenuToggle').click();
@@ -282,6 +292,9 @@ const { chromium }=require('playwright-core');
     await page.locator('#modeTab-bass').click();
     assert.equal(await page.evaluate(()=>state.mode),'bass','Bass did not unlock after assessment');
     await assertEnglishScreen('bass clef');
+    assert.equal(await page.locator('[data-pitch]').count(),10,'Bass should have ten octave-specific pitch keys');
+    assert(await page.locator('#pianoKey-C3').count()===1 && await page.locator('#pianoKey-C4').count()===1,
+      'Bass must not collapse C3 and C4 into the same piano key');
     await page.evaluate(()=>{
       state.mastery.bass.attempts=Array.from({length:150},(_,i)=>({correct:true,note:BASS_NOTES[i%BASS_NOTES.length].code,ms:1200,at:Date.now()}));
       updateExamButton();
@@ -299,6 +312,64 @@ const { chromium }=require('playwright-core');
     await assertEnglishScreen('rhythm lesson');
     await page.evaluate(()=>switchRhythmSubMode('hold'));
     await assertEnglishScreen('rhythm hold');
+    // Regression for the screenshot: no Persian "بریم" after English success,
+    // no "1 beats", and a quick tap must not complete a full quarter-note.
+    assert((await page.locator('#holdTargetTitle').innerText()).includes('1 quarter-note beat'),
+      'English singular quarter-note beat must read naturally');
+    assert((await page.locator('#holdTargetDesc').innerText()).includes('for 1 beat,'),
+      'English target must say "1 beat", not "1 beats"');
+    assert((await page.locator('#holdTargetBeatBadge').innerText()).includes('1 beat'));
+    const holdStarsBefore=await page.evaluate(()=>state.stars);
+    await page.evaluate(()=>{startRhythmHold();endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isDisabled(),'Instant touch must not count as 650ms of practice');
+    assert((await page.locator('#holdLiveCounterText').innerText()).includes('Released too early'));
+    await assertEnglishScreen('hold released too early');
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS*1.9;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isDisabled(),'Holding too long must require a retry');
+    assert((await page.locator('#holdLiveCounterText').innerText()).includes('Held too long'));
+    await assertEnglishScreen('hold released too late');
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isEnabled(),'Proper one-beat duration must unlock the next lesson');
+    assert((await page.locator('#nextHoldGameBtn').innerText()).includes('Next rhythm challenge'),
+      'Screenshot regression: English button must contain no Persian after success');
+    assert((await page.locator('#holdLiveCounterText').innerText()).includes('1 beat!'));
+    assert.equal(await page.evaluate(()=>state.stars),holdStarsBefore+1,
+      'Correct hold grants exactly one practice star');
+    await page.evaluate(()=>{startRhythmHold();endRhythmHold()});
+    assert.equal(await page.evaluate(()=>state.stars),holdStarsBefore+1,
+      'Repeated touching a solved hold must never farm stars');
+    await assertEnglishScreen('hold succeeded for 1 beat');
+    await page.locator('#nextHoldGameBtn').click();
+    assert((await page.locator('#holdTargetDesc').innerText()).includes('for 2 beats,'));
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS*2;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isEnabled(),'Two-beat hold must work');
+    await assertEnglishScreen('hold succeeded for 2 beats');
+    await page.locator('#nextHoldGameBtn').click();
+    assert((await page.locator('#holdTargetDesc').innerText()).includes('for 4 beats,'));
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS*4;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isEnabled(),'Four-beat hold must work');
+    await assertEnglishScreen('hold succeeded for 4 beats');
+    // Test the live countdown and its cleanup on mode changes.
+    await page.locator('#nextHoldGameBtn').click();
+    await page.evaluate(()=>startRhythmHold());
+    assert.equal(await page.evaluate(()=>state.isHoldingPad),true);
+    await page.locator('#rhythmSub-learn').click();
+    assert.equal(await page.evaluate(()=>state.isHoldingPad),false,
+      'Leaving the hold challenge must stop its timer and tone');
+    assert.equal(await page.evaluate(()=>state.holdIntervalId),null);
+    await page.evaluate(()=>playDurationCardDemo('eighth'));
+    await page.waitForTimeout(100);
+    assert((await page.locator('#demoBeat-1').innerText()).includes('Half a beat'),
+      'The half-beat lesson must not switch back to Persian while English is selected');
+    await assertEnglishScreen('English learn-card playback after half a beat');
+    await page.evaluate(()=>switchRhythmSubMode('hold'));
+    await page.evaluate(()=>switchRhythmSubMode('quiz'));
+    await page.evaluate(()=>{
+      const wrong=NOTE_DURATIONS.find(d=>d.id!==state.currentRhythmQuiz.id);
+      handleRhythmQuizAnswer(wrong.id);
+    });
+    await assertEnglishScreen('rhythm quiz incorrect feedback');
+
     // A child can combine different durations; both accurate 6/8 compound
     // groups and total sixteenth-note subdivisions must be taught honestly.
     await page.locator('#rhythmSub-meter').click();
@@ -393,9 +464,40 @@ const { chromium }=require('playwright-core');
       'QA navigation must not pretend child earned higher-level certification');
     assert.equal(await qaPage.evaluate(()=>state.mastery.treble.attempts.length),0,
       'Opening QA preview must never fabricate mastery attempts');
+    // Crucial pedagogy regression: the old seven-name keyboard would accept
+    // lower C for high C. Exact pitch C4/C5 must now require different keys.
+    await qaPage.evaluate(()=>{
+      state.mode='treble';state.exam=null;
+      state.currentStaffNote=TREBLE_NOTES.find(n=>n.code==='C5');
+      state.wrongKeysPressed=new Set();state.staffQuestionSolved=false;
+      state.staffStartedAt=performance.now();
+      renderPianoKeyboard();
+    });
+    assert(await qaPage.locator('#pianoKey-C4').count()===1);
+    assert(await qaPage.locator('#pianoKey-C5').count()===1);
+    await qaPage.locator('#pianoKey-C4').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),false,
+      'C4 must NOT be accepted as high C5');
+    await qaPage.locator('#pianoKey-C5').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),true,
+      'C5 must be accepted on its own button');
+
     await qaPage.locator('#modeTab-bass').click();
     assert.equal(await qaPage.evaluate(()=>state.mode),'bass','Parent should inspect bass staff immediately');
     assert.equal(await qaPage.evaluate(()=>BASS_NOTES.length),10,'Bass notes remain in debug QA assets');
+    await qaPage.evaluate(()=>{
+      state.currentStaffNote=BASS_NOTES.find(n=>n.code==='C3');
+      state.wrongKeysPressed=new Set();state.staffQuestionSolved=false;
+      state.staffStartedAt=performance.now();
+      renderPianoKeyboard();
+    });
+    await qaPage.locator('#pianoKey-C4').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),false,
+      'C4 must NOT solve bass C3');
+    await qaPage.locator('#pianoKey-C3').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),true,
+      'Correct bass octave must solve the note');
+
     await qaPage.locator('#modeTab-rhythm').click();
     assert.equal(await qaPage.evaluate(()=>state.mode),'rhythm','Parent should inspect rhythm immediately');
     await qaPage.locator('#rhythmSub-meter').click();
@@ -442,6 +544,9 @@ const { chromium }=require('playwright-core');
     assert(await freePage.locator('.termehStoreOnly').first().isVisible(),'Honest current product scope must be shown');
     await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
+    assert.equal(await freePage.locator('[data-pitch]').count(),5,'Public release must retain only taught beginner keys');
+    assert.equal(await freePage.locator('#pianoKey-C5').count(),0,
+      'A missing paid high note must not leak into the free keyboard');
     assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
     assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
     assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
