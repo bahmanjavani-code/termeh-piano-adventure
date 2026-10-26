@@ -8,6 +8,7 @@ const html=read('app/src/main/assets/index.html');
 const workflow=read('.github/workflows/release.yml');
 const keys=read('tools/check-release-key.sh');
 const manifest=read('app/src/main/AndroidManifest.xml');
+const activity=read('app/src/main/java/com/termeh/piano/MainActivity.java');
 assert(bridge.includes('public boolean canRestoreOwnedLessons()'));
 assert(bridge.includes('return VerifiedPremiumLessons.enabled();'),
   'New-sales permission must not be needed just to restore a previous purchase');
@@ -19,6 +20,16 @@ assert(bridge.includes('entitlementEpoch.incrementAndGet()')&&
        bridge.includes('entitlementEpoch.get() != version'),
   'A stale background read must not unlock lessons after an online ownership denial');
 assert(!bridge.includes('payment.consumeProduct('),'Lifetime purchases must never be consumed');
+assert(activity.includes('if (billing != null) billing.recheckOwnershipOnResume();'),
+  'Returning from Bazaar must recheck ownership without a full app restart');
+const resumeCheck=bridge.match(/void recheckOwnershipOnResume\(\) \{([\s\S]*?)\n    \}/);
+assert(resumeCheck && resumeCheck[1].includes('restoreVerifiedPurchase();'),
+  'Recheck must query already-owned products, not launch a new purchase');
+assert(resumeCheck[1].includes('purchaseInProgress.get()'),
+  'Foreground ownership query must not race an in-progress checkout');
+assert(!resumeCheck[1].includes('beginLifetimePurchase('),
+  'Foregrounding the app must NEVER initiate checkout');
+
 assert(html.includes('window.termehRefreshRestoreAvailability=function()'));
 assert(html.includes('api') || html.includes('sdk.canRestoreOwnedLessons()'));
 assert(html.includes('offer.hidden=!(ready||window.termehPriorOwnerRestoreSupported)'),
@@ -40,4 +51,4 @@ assert(keys.includes('Release signing certificate changed: STOP!'),
 const icon=read('app/src/main/res/drawable/ic_termeh.xml');
 assert(icon.includes('viewportWidth="108"')&&manifest.includes('@drawable/ic_termeh'),
   'Keep the previously approved piano icon consistent on the phone');
-console.log('PASS: bought lessons can restore despite paused sales; no accidental checkout, refund race, misplaced hidden button or signing key change.');
+console.log('PASS: prior ownership rechecked on resume; restore while sales paused; no accidental checkout, refund race, misplaced hidden button or signing key change.');
