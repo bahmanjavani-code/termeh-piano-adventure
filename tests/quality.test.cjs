@@ -32,9 +32,9 @@ assert(!releaseAsset.includes('code') && !releaseAsset.includes('beatsLabel'),'R
 const treble=Array.from(freeTreble).concat(Array.from(preview.trebleExtra));
 const bass=Array.from(preview.bass);
 const durations=Array.from(preview.durations);
-assert.equal(treble.length,11);
+assert.equal(treble.length,12);
 assert.equal(bass.length,10);
-const trebleExpected=['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5'];
+const trebleExpected=['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5'];
 const bassExpected=['G2','A2','B2','C3','D3','E3','F3','G3','A3','C4'];
 assert.deepEqual(Array.from(treble,n=>n.code),trebleExpected);
 assert.deepEqual(Array.from(bass,n=>n.code),bassExpected);
@@ -94,6 +94,12 @@ assert(support.includes('void composeFeedback()'),'Native parent feedback email 
 assert(!html.includes('answer=a*b+13'),'Parent math must not have fixed +13');
 assert(html.includes('termehMakeParentChallenge'),'Parent math challenges must be varied');
 assert(html.includes('id="masteryDock"') && html.includes('id="masteryBarsButton"'),'Progress should be three small bars near the bottom');
+assert(html.includes('note-curriculum.js'),'Audited offline lesson sequence must be present');
+assert(html.includes('id="learningMilestone"')&&html.includes('id="learningMilestoneStaff"'),'Review difficult notes on the staff after curriculum progression');
+assert(html.includes('trebleNoteTier: state.trebleNoteTier'),'Treble tier must persist with previous progress');
+assert(html.includes('const pool = state.mode === \'treble\' ? getActiveTrebleNotes() : BASS_NOTES;'),'Questions must use progressively unlocked pool');
+assert(html.includes('The production free lesson')===false,'Technical commentary must not appear as child-visible copy');
+
 assert(html.includes('id="masteryAccuracyTrack"') && html.includes('id="masterySpeedTrack"'),'Three distinct progress metrics required');
 assert(html.includes('id="masteryDashboard" role="region" aria-label="Learning progress explanation" hidden'),'Explanations must not be visible by default');
 assert(html.includes('setTimeout(closeMasteryDetails,7000)'),'Explanations must collapse after a few seconds');
@@ -134,4 +140,4 @@ assert(html.includes('id="buyPremiumBtn"') && html.includes('id="restorePremiumB
 assert(/id="buyPremiumBtn"[^>]*disabled/.test(html),'Unverified purchase flow must be disabled');
 assert(/id="restorePremiumBtn"[^>]*disabled/.test(html),'Unverified restore must be disabled');
 assert(html.includes('window.checkBazaarOwnership'),'Parent read-only query UI missing');
-console.log('PASS: JS syntax, 21 clef-note definitions, pitch frequency, staff positions, rhythm values, permissions, answer leakage and independent exam.');
+console.log('PASS: JS syntax, 22 clef-note definitions, pitch frequency, staff positions, rhythm values, permissions, answer leakage and independent exam.');
