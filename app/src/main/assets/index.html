@@ -1434,6 +1434,134 @@
             }
         }
 
+        // Guided metre builder: uses exact integer sixteenth-note subdivisions,
+        // so 6/8 is never mislabelled as six quarter-note pulses.
+        function meterCurrentScenario(){
+            return TermehMeterEngine.scenarioAt(state.meterBarsCompleted);
+        }
+        function meterSvgNote(durationId,x,y){
+            const value=TermehMeterEngine.VALUES[durationId];
+            if(!value)return '';
+            const filled=durationId!=='whole'&&durationId!=='half';
+            const whole=durationId==='whole';
+            const color='#4338ca';
+            const head=whole?
+                `<ellipse cx="${x}" cy="${y}" rx="11" ry="7" fill="white" stroke="${color}" stroke-width="3.5" transform="rotate(-16 ${x} ${y})"/>`:
+                `<ellipse cx="${x}" cy="${y}" rx="9.5" ry="6.5" fill="${filled?color:'white'}" stroke="${color}" stroke-width="3" transform="rotate(-16 ${x} ${y})"/>`;
+            if(whole)return head;
+            const stem=`<path d="M ${x+8} ${y-1} V ${y-44}" fill="none" stroke="${color}" stroke-width="3"/>`;
+            let flags='';
+            if(durationId==='eighth'||durationId==='sixteenth'){
+                flags=`<path d="M ${x+8} ${y-44} C ${x+34} ${y-36} ${x+12} ${y-16} ${x+17} ${y-17}" fill="none" stroke="${color}" stroke-width="3.5"/>`;
+                if(durationId==='sixteenth')flags+=`<path d="M ${x+8} ${y-33} C ${x+30} ${y-25} ${x+15} ${y-8} ${x+17} ${y-8}" fill="none" stroke="${color}" stroke-width="3.5"/>`;
+            }
+            const dot=durationId==='dottedQuarter'?
+                `<circle cx="${x+17}" cy="${y-7}" r="3" fill="${color}"/>`:'';
+            return head+stem+flags+dot;
+        }
+        function renderMeterStaff(){
+            const svg=document.getElementById('meterStaffSvg');
+            if(!svg)return;
+            const scenario=meterCurrentScenario();
+            const meter=TermehMeterEngine.METERS[scenario.meter];
+            const all=[...scenario.prefix,...state.meterBuiltNotes];
+            const staffYs=[58,74,90,106,122];
+            const lines=staffYs.map(y=>`<line x1="12" y1="${y}" x2="488" y2="${y}" stroke="#64748b" stroke-width="2"/>`).join('');
+            const startX=165,space=Math.min(54,314/Math.max(1,all.length));
+            const symbols=all.map((id,i)=>meterSvgNote(id,startX+i*space,90)).join('');
+            // A pair of stacked numbers, not "six quarter beats" in 6/8.
+            const fraction=scenario.meter.split('/');
+            const signature=`<text x="103" y="88" font-size="32" font-weight="900" fill="#312e81" text-anchor="middle">${fraction[0]}</text><text x="103" y="117" font-size="32" font-weight="900" fill="#312e81" text-anchor="middle">${fraction[1]}</text>`;
+            const barline='<line x1="485" y1="58" x2="485" y2="122" stroke="#0f172a" stroke-width="4"/>';
+            svg.innerHTML=lines+'<text x="26" y="137" font-family="serif" font-size="88" fill="#6d28d9">𝄞</text>'+signature+symbols+barline;
+            const remaining=TermehMeterEngine.remaining(scenario.meter,all);
+            const progress=document.getElementById('meterRemaining');
+            if(progress){
+                progress.textContent=isEnglish()?
+                    `Measure: ${meter.capacity-remaining}/${meter.capacity} sixteenth-note units · ${remaining} left`:
+                    `میزان: ${meter.capacity-remaining} از ${meter.capacity} واحد دولاچنگ پُر شده · ${remaining} واحد باقی مانده`;
+            }
+            const undo=document.getElementById('meterUndoButton');
+            const next=document.getElementById('meterNextButton');
+            if(undo)undo.disabled=state.meterBarSolved||state.meterBuiltNotes.length===0;
+            if(next)next.disabled=!state.meterBarSolved;
+            const buttons=document.getElementById('meterValueButtons');
+            if(buttons){
+                buttons.innerHTML=Object.entries(TermehMeterEngine.VALUES).map(([id,value])=>{
+                    const label=isEnglish()?value.en:value.fa;
+                    // A choice that would overflow is disabled, NOT counted as a mistake.
+                    const enabled=!state.meterBarSolved&&TermehMeterEngine.canAdd(scenario.meter,all,id);
+                    return `<button type="button" data-meter-note="${id}" onclick="addMeterNote('${id}')" ${enabled?'':'disabled'}
+                        class="min-h-[56px] flex items-center gap-2 justify-center rounded-xl border-2 px-2 py-2 font-black text-xs sm:text-sm
+                        ${enabled?'bg-violet-100 border-violet-500 text-violet-950':'bg-slate-100 border-slate-300 text-slate-500 opacity-60'}">
+                        <span class="text-2xl" aria-hidden="true">${value.symbol}</span><span>${label}</span>
+                        <span class="sr-only">${value.units} sixteenths</span></button>`;
+                }).join('');
+            }
+        }
+        function loadMeterScenario(){
+            const scenario=meterCurrentScenario();
+            const meter=TermehMeterEngine.METERS[scenario.meter];
+            state.meterBuiltNotes=[];
+            state.meterBarSolved=false;
+            const en=isEnglish();
+            document.getElementById('meterLessonNumber').textContent=en?
+                `Measure challenge ${state.meterBarsCompleted+1}`:`چالش میزان ${state.meterBarsCompleted+1}`;
+            document.getElementById('meterSignatureDisplay').textContent=scenario.meter;
+            document.getElementById('meterBeatExplainer').textContent=scenario.meter==='6/8'?
+                (en?'Six eighth-note subdivisions, grouped as TWO dotted-quarter beats. Each sixteenth fills 1 of 12 equal slots.':
+                    '۶ قسمت چنگ داریم که به شکل ۲ ضربِ سیاه نقطه‌دار گروه‌بندی می‌شن؛ هر دولاچنگ ۱ خانه از ۱۲ خانه است.'):
+                (en?`In ${scenario.meter}, each quarter note is one beat. The bar contains ${meter.beats} such beats.`:
+                    `در ${scenario.meter} هر نت سیاه یک ضرب است و میزان ${meter.beats} ضرب سیاه جا دارد.`);
+            document.getElementById('meterFeedback').textContent=en?
+                'Finish the bar with note values. You can undo and try different combinations!':
+                'میزان را با نت‌ها پُر کن! می‌تونی آخرین نت رو برگردونی و جور دیگری بسازی.';
+            renderMeterStaff();
+        }
+        function addMeterNote(id){
+            if(state.mode!=='rhythm'||state.rhythmSubMode!=='meter'||state.meterBarSolved)return;
+            const scenario=meterCurrentScenario();
+            const notes=[...scenario.prefix,...state.meterBuiltNotes];
+            if(!TermehMeterEngine.canAdd(scenario.meter,notes,id)){
+                document.getElementById('meterFeedback').textContent=isEnglish()?
+                    'That note is too long for the remaining space. Try a shorter one.':
+                    'این نت از فضای باقی‌مانده بلندتره. نت کوتاه‌تری انتخاب کن.';
+                return;
+            }
+            state.meterBuiltNotes.push(id);
+            const updated=[...scenario.prefix,...state.meterBuiltNotes];
+            if(TermehMeterEngine.completed(scenario.meter,updated)){
+                state.meterBarSolved=true;
+                state.meterBarsCompleted+=1;
+                state.stars+=1;
+                rewardCompletedExercise();
+                saveState();
+                updateHeaderUI();
+                playSuccessSound();
+                document.getElementById('meterFeedback').textContent=isEnglish()?
+                    '🎉 Perfect! Your bar is complete. Every note duration fits the time signature.':
+                    '🎉 آفرین! میزانت کامل شد و مجموع کشش‌ها دقیقاً درست است!';
+            }else{
+                const rest=TermehMeterEngine.remaining(scenario.meter,updated);
+                document.getElementById('meterFeedback').textContent=isEnglish()?
+                    `Great! You still have ${rest} sixteenth-note slots to fill.`:
+                    `عالیه! هنوز ${rest} خانهٔ دولاچنگ باقی مونده.`;
+            }
+            renderMeterStaff();
+        }
+        function undoMeterNote(){
+            if(state.meterBarSolved||state.meterBuiltNotes.length===0)return;
+            state.meterBuiltNotes.pop();
+            renderMeterStaff();
+            document.getElementById('meterFeedback').textContent=isEnglish()?
+                'Last note removed. Choose another combination.':
+                'آخرین نت برگشت؛ حالا یک ترکیب تازه انتخاب کن.';
+        }
+        function nextMeterScenario(){
+            if(!state.meterBarSolved)return;
+            loadMeterScenario();
+        }
+
         function switchRhythmSubMode(subMode) {
             state.rhythmSubMode = subMode;
             const subIds = ['learn', 'quiz', 'hold','meter'];
