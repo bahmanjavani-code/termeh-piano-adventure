@@ -558,8 +558,8 @@ const { chromium }=require('playwright-core');
     assert((await freePage.locator('#dailyReminderStatus').innerText()).includes('installed Android app'),
       'Browser preview must never pretend reminders are scheduled');
     assert(await freePage.locator('#dailyReminderEnable').isEnabled(),'Parent opt-in control should be visible only after math gate');
-    assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('five introductory treble notes'),
-      'Release should explain five free notes and no charge during QA');
+    assert((await freePage.locator('[aria-label="Purchase model"]').innerText()).includes('The first five treble notes are always free'),
+      'Release must clearly identify its free five-note trial and the conditional official one-time upgrade');
     assert(await freePage.locator('[aria-label="Purchase model"]').isVisible(),'Honest current free product scope must be shown');
     await freePage.locator('#parentHub .close').click();
     assert.equal(await freePage.evaluate(()=>TREBLE_NOTES.length),5,'Free release must have five starter notes only');
