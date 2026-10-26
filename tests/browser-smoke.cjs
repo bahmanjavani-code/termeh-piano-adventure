@@ -378,7 +378,7 @@ const { chromium }=require('playwright-core');
     await qaPage.locator('#parentLaunch').click();
     assert(!(await qaPage.locator('#qaPreviewPanel').isVisible()),'QA preview must be parent-gated');
     const mathChallenge=await qaPage.locator('#hubMath').innerText();
-    const mathMatch=mathChallenge.match(/^(\\d+)\\s*([×+−])\\s*(\\d+)\\s*([+−])\\s*(\\d+)\\s*=\\s*\\?$/);
+    const mathMatch=mathChallenge.match(/^(\d+)\s*([×+−])\s*(\d+)\s*([+−])\s*(\d+)\s*=\s*\?$/);
     assert(mathMatch,'QA inspector must retain varied parent arithmetic');
     const qaMathCalc=(x,op,y)=>op==='×'?x*y:op==='+'?x+y:x-y;
     const qaMathAnswer=qaMathCalc(qaMathCalc(+mathMatch[1],mathMatch[2],+mathMatch[3]),mathMatch[4],+mathMatch[5]);
