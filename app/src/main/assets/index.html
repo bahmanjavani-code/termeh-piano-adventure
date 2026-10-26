@@ -208,6 +208,10 @@
     #learningMilestone button{display:block;width:100%;min-height:48px;background:#7c3aed;color:white;border:0;border-radius:15px;font-weight:900;margin-top:10px;padding:10px 14px}
     #learningMilestone .soft{background:#e0e7ff;color:#312e81}
     </style>
+    <style>
+    html[data-termeh-edition="store"] .termehQaOnly{display:none!important}
+    html[data-termeh-edition="qa"] .termehStoreOnly{display:none!important}
+    </style>
 </head>
 <body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
 
@@ -639,6 +643,11 @@
     <!-- ======================================================== -->
     <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
     <script src="premium-preview.js"></script>
+    <script>
+      // Production Bazaar candidates must not show diagnostic/test-only controls.
+      document.documentElement.setAttribute('data-termeh-edition',
+        window.TERMEH_CONTENT_VARIANT === 'debug-full-preview' ? 'qa' : 'store');
+    </script>
     <script src="mastery-engine.js"></script>
     <script src="note-curriculum.js"></script>
     <script src="rewards-engine.js"></script>
@@ -2439,31 +2448,32 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
 </style>
 
 <div id="parentHub" role="dialog" aria-modal="true" aria-label="Parent account"><div class="panel"><button class="close" type="button" aria-label="بستن / Close" onclick="closeParentHub()">×</button>
-<h2>👨‍👩‍👧 <span class="only-fa">حساب والدین</span><span class="only-en">Parent Account</span></h2>
+<h2>👨‍👩‍👧 <span class="only-fa">بخش والدین</span><span class="only-en">Parent Hub</span></h2>
 <p class="notice">🎹 <span class="only-fa">تمرین بدون ثبت‌نام امکان‌پذیر است. پیشرفت فعلاً فقط روی همین دستگاه ذخیره می‌شود.</span><span class="only-en">Play without an account. Progress is currently saved on this device only.</span></p>
 <div id="parentHubGate"><p><span class="only-fa">لطفاً گوشی را به والدین بدهید.</span><span class="only-en">Please hand the phone to a parent.</span></p><p id="hubMath" style="font-size:22px;font-weight:bold" dir="ltr"></p><input id="hubAnswer" type="text" inputmode="numeric" autocomplete="off" aria-label="Parent challenge answer" style="width:90%;padding:12px;font-size:20px;border:2px solid #a78bfa;border-radius:12px;text-align:center"><button class="action" type="button" onclick="verifyParentHub()"><span class="only-fa">تأیید والدین</span><span class="only-en">Verify parent</span></button><p id="hubGateMessage" role="status"></p></div>
-<div id="parentHubOptions" hidden><p>🔒 <b><span class="only-fa">وضعیت حساب: مهمان</span><span class="only-en">Account status: Guest</span></b></p>
+<div id="parentHubOptions" hidden><p class="termehQaOnly">🔒 <b><span class="only-fa">وضعیت حساب: مهمان</span><span class="only-en">Account status: Guest</span></b></p>
 <button id="parentReviewNotice" class="action" type="button" onclick="reviewParentWelcome()">📜 <span class="only-fa">مرور دوبارهٔ سخنی با والدین</span><span class="only-en">Reread the parent introduction</span></button>
-<button class="action" disabled>🔑 <span class="only-fa">ورود — به‌زودی</span><span class="only-en">Sign in — Coming soon</span></button>
-<button class="action" disabled>📝 <span class="only-fa">ثبت‌نام — به‌زودی</span><span class="only-en">Register — Coming soon</span></button>
-<button class="action" disabled>☁️ <span class="only-fa">پشتیبان‌گیری — به‌زودی</span><span class="only-en">Backup — Coming soon</span></button>
-<button class="action" disabled>🔄 <span class="only-fa">بازیابی پیشرفت — به‌زودی</span><span class="only-en">Restore — Coming soon</span></button>
-<button class="action" disabled>🚪 <span class="only-fa">خروج از حساب — وارد نشده‌اید</span><span class="only-en">Sign out — Not signed in</span></button>
+<button class="action termehQaOnly" disabled>🔑 <span class="only-fa">ورود — به‌زودی</span><span class="only-en">Sign in — Coming soon</span></button>
+<button class="action termehQaOnly" disabled>📝 <span class="only-fa">ثبت‌نام — به‌زودی</span><span class="only-en">Register — Coming soon</span></button>
+<button class="action termehQaOnly" disabled>☁️ <span class="only-fa">پشتیبان‌گیری — به‌زودی</span><span class="only-en">Backup — Coming soon</span></button>
+<button class="action termehQaOnly" disabled>🔄 <span class="only-fa">بازیابی پیشرفت — به‌زودی</span><span class="only-en">Restore — Coming soon</span></button>
+<button class="action termehQaOnly" disabled>🚪 <span class="only-fa">خروج از حساب — وارد نشده‌اید</span><span class="only-en">Sign out — Not signed in</span></button>
 
 <section id="premiumOffer" aria-label="Premium plan" style="padding:14px 12px;margin:20px 0;border:2px solid #c4b5fd;border-radius:18px;background:#f5f3ff;text-align:center">
   <h3 style="font-size:20px;font-weight:900;margin:0 0 10px">🌟 <span class="only-fa">نسخه کامل Termeh Piano</span><span class="only-en">Full Termeh Piano</span></h3>
   <p style="font-size:15px;margin:6px 0"><span class="only-fa">🎹 درس‌های اولیه رایگان؛ ارتقا به نسخه کامل با خرید یک‌باره و دائمی، بدون اشتراک ماهانه</span><span class="only-en">🎹 Start learning for free; unlock premium lessons with a one-time purchase, no subscription.</span></p>
-  <p style="font-size:22px;font-weight:900;color:#5b21b6;margin:8px 0"><span class="only-fa">۹۹٬۰۰۰ تومان</span><span class="only-en">99,000 toman</span></p>
-  <p style="font-size:12px;color:#6b7280"><span class="only-fa">این قیمت برنامه‌ریزی‌شده است؛ قیمت نهایی باید در کافه‌بازار ثبت و تأیید شود.</span><span class="only-en">Planned price only. Final price must be configured and confirmed in Cafe Bazaar.</span></p>
-  <button id="buyPremiumBtn" class="action" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
-  <button id="restorePremiumBtn" class="action" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
-  <button id="checkBazaarBtn" class="action" type="button" onclick="checkBazaarOwnership()">🔎 <span class="only-fa">بررسی آزمایشی حساب بازار (بدون خرید)</span><span class="only-en">Check Bazaar connection (no payment)</span></button>
-  <button id="checkEncryptedPackBtn" class="action" type="button" onclick="checkEncryptedDemoPack()">🔐 <span class="only-fa">آزمایش قفل رمزگذاری درس نمونه (بدون خرید)</span><span class="only-en">Test encrypted sample lesson lock (no payment)</span></button>
-  <button id="checkOfflineVaultBtn" class="action" type="button" onclick="checkOfflineVaultDemo()">🗝️ <span class="only-fa">آزمایش نگهداری امن مجوز آفلاین (بدون خرید)</span><span class="only-en">Test protected offline license storage (no payment)</span></button>
-  <button id="restoreExistingBazaarBtn" class="action" type="button" onclick="restoreExistingBazaarPurchase()">🔄 <span class="only-fa">بررسی بازیابی خرید قبلی بازار (بدون پرداخت)</span><span class="only-en">Check and cache a previous Bazaar purchase (no charge)</span></button>
-  <p style="font-size:12px;color:#6b7280"><span class="only-fa">این بررسی فقط خریدهای قبلی را جست‌وجو می‌کند و پولی دریافت نمی‌کند؛ بازکردن نسخه کامل هنوز پیاده‌سازی نشده است.</span><span class="only-en">This check only restores previous purchases and never charges; the full version is not unlocked yet.</span></p>
-  <p id="bazaarBillingStatus" role="status" style="font-size:13px;color:#475569"></p>
-  <p style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
+  <p class="termehQaOnly" style="font-size:22px;font-weight:900;color:#5b21b6;margin:8px 0"><span class="only-fa">۹۹٬۰۰۰ تومان</span><span class="only-en">99,000 toman</span></p>
+  <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">این قیمت برنامه‌ریزی‌شده است؛ قیمت نهایی باید در کافه‌بازار ثبت و تأیید شود.</span><span class="only-en">Planned price only. Final price must be configured and confirmed in Cafe Bazaar.</span></p>
+  <button id="buyPremiumBtn" class="action termehQaOnly" type="button" disabled aria-disabled="true">🔒 <span class="only-fa">خرید نسخه کامل — هنوز فعال نیست</span><span class="only-en">Buy full version — Not available yet</span></button>
+  <button id="restorePremiumBtn" class="action termehQaOnly" type="button" disabled aria-disabled="true">🔄 <span class="only-fa">بازیابی خرید — هنوز فعال نیست</span><span class="only-en">Restore purchase — Not available yet</span></button>
+  <button id="checkBazaarBtn" class="action termehQaOnly" type="button" onclick="checkBazaarOwnership()">🔎 <span class="only-fa">بررسی آزمایشی حساب بازار (بدون خرید)</span><span class="only-en">Check Bazaar connection (no payment)</span></button>
+  <button id="checkEncryptedPackBtn" class="action termehQaOnly" type="button" onclick="checkEncryptedDemoPack()">🔐 <span class="only-fa">آزمایش قفل رمزگذاری درس نمونه (بدون خرید)</span><span class="only-en">Test encrypted sample lesson lock (no payment)</span></button>
+  <button id="checkOfflineVaultBtn" class="action termehQaOnly" type="button" onclick="checkOfflineVaultDemo()">🗝️ <span class="only-fa">آزمایش نگهداری امن مجوز آفلاین (بدون خرید)</span><span class="only-en">Test protected offline license storage (no payment)</span></button>
+  <button id="restoreExistingBazaarBtn" class="action termehQaOnly" type="button" onclick="restoreExistingBazaarPurchase()">🔄 <span class="only-fa">بررسی بازیابی خرید قبلی بازار (بدون پرداخت)</span><span class="only-en">Check and cache a previous Bazaar purchase (no charge)</span></button>
+  <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">این بررسی فقط خریدهای قبلی را جست‌وجو می‌کند و پولی دریافت نمی‌کند؛ بازکردن نسخه کامل هنوز پیاده‌سازی نشده است.</span><span class="only-en">This check only restores previous purchases and never charges; the full version is not unlocked yet.</span></p>
+  <p id="bazaarBillingStatus" class="termehQaOnly" role="status" style="font-size:13px;color:#475569"></p>
+  <p class="termehQaOnly" style="font-size:12px;color:#6b7280"><span class="only-fa">نسخه آزمایشی: مسیرهای آموزشی فعلی برای بررسی و آزمایش در دسترس هستند. هیچ وجهی در این نسخه دریافت نمی‌شود.</span><span class="only-en">Beta preview: existing lesson progression remains available for testing. This build does not collect payments.</span></p>
+  <p class="termehStoreOnly" style="font-size:14px;color:#334155"><span class="only-fa">نسخهٔ مقدماتی شامل پنج نت کلید سل است. محتوای کامل و پرداخت هنوز در این نسخه فعال نیست؛ تا آماده‌شدن عرضهٔ تجاری هیچ هزینه‌ای از شما دریافت نمی‌شود.</span><span class="only-en">This introductory edition covers five treble notes. Full lessons and payment are not active yet; this edition does not charge users.</span></p>
 </section>
 
 <div role="group" aria-label="Support and app updates" style="margin-top:14px;border-top:2px solid #ddd;padding-top:12px">
