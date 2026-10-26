@@ -264,8 +264,7 @@ final class BazaarBillingBridge {
         if (content == null) return;
         activity.runOnUiThread(() -> {
             if (destroyed || entitlementEpoch.get() != version
-                    || !VerifiedPremiumLessons.enabled()
-                    || !new OfflineLicenseVault(activity).isOwnedOffline()) return;
+                    || !VerifiedPremiumLessons.enabled()) return;
             // JSON DATA, never receipt/token. Quote as JS string before parsing.
             web.evaluateJavascript("window.termehNativePremiumLoaded && window.termehNativePremiumLoaded(JSON.parse("
                     + JSONObject.quote(content.toString()) + "));", null);
