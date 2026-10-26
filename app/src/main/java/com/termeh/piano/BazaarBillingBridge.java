@@ -86,6 +86,17 @@ final class BazaarBillingBridge {
     }
 
     @JavascriptInterface
+    public boolean isLiveCheckoutEnabled() {
+        return BuildConfig.BAZAAR_CHECKOUT_ENABLED && VerifiedPremiumLessons.enabled();
+    }
+
+    @JavascriptInterface
+    public boolean canRestoreOwnedLessons() {
+        // An already-paid customer can recover lessons when sales are paused.
+        return VerifiedPremiumLessons.enabled();
+    }
+
+    @JavascriptInterface
     public String status() {
         if (BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty()) return "not_configured";
         return connected ? "ready" : "unavailable";
