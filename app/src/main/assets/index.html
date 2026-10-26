@@ -926,7 +926,7 @@
                 clefHtml = `
                     <g transform="translate(55, 18)">
                         <text x="0" y="132" font-size="135" fill="#e11d48" font-family="serif" style="user-select:none;">𝄞</text>
-                        ${state.hintEnabled ? `<circle cx="33" cy="102" r="5" fill="#f59e0b" />` : ''}
+                        ${state.hintEnabled && !(state.exam && state.exam.active) ? `<circle cx="33" cy="102" r="5" fill="#f59e0b" />` : ''}
                     </g>
                 `;
             } else {
