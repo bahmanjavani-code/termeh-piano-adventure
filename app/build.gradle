@@ -19,11 +19,12 @@ android {
         def paidAsset = file('src/release/assets/premium-lessons.tpk')
         def paidReady = (paidKey.length() == 64 && paidAsset.isFile() && bazaarKey.length() > 0)
         def liveRequested = System.getenv('TERMEH_ENABLE_LIVE_CHECKOUT') == '1'
-        // Owner must explicitly attest that real signed Bazaar test purchase,
-        // restore, refund, account change and teaching review have passed.
-        if (liveRequested && System.getenv('TERMEH_BAZAAR_QA_APPROVED') !=
-                'SIGNED_PURCHASE_RESTORE_REFUND_AND_LESSON_QA_PASSED') {
-            throw new GradleException('Live checkout requires explicit REAL Bazaar QA approval; do not publish test bills')
+        // Real charging cannot be tested before it is authorized; require a
+        // SECOND explicit acknowledgment for controlled store payments.
+        // This is consent to run a real payment test, NOT proof it passed.
+        if (liveRequested && System.getenv('TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED') !=
+                'I_AUTHORIZE_REAL_BAZAAR_TEST_CHARGES') {
+            throw new GradleException('Refusing REAL Bazaar checkout without explicit owner authorization')
         }
         if (liveRequested && !paidReady) {
             throw new GradleException('Refusing checkout without signed Bazaar public RSA and encrypted real lessons')
