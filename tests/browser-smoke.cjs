@@ -21,6 +21,7 @@ const { chromium }=require('playwright-core');
     fs.copyFileSync('app/src/main/assets/offline.css',path.join(dir,'offline.css'));
     fs.copyFileSync('app/src/main/assets/mastery-engine.js',path.join(dir,'mastery-engine.js'));
     fs.copyFileSync('app/src/main/assets/note-curriculum.js',path.join(dir,'note-curriculum.js'));
+    fs.copyFileSync('app/src/main/assets/meter-engine.js',path.join(dir,'meter-engine.js'));
     fs.copyFileSync('app/src/main/assets/rewards-engine.js',path.join(dir,'rewards-engine.js'));
     fs.copyFileSync('app/src/'+variant+'/assets/premium-preview.js',path.join(dir,'premium-preview.js'));
     return 'file://'+path.join(dir,'index.html');
@@ -298,7 +299,49 @@ const { chromium }=require('playwright-core');
     await assertEnglishScreen('rhythm lesson');
     await page.evaluate(()=>switchRhythmSubMode('hold'));
     await assertEnglishScreen('rhythm hold');
+    // A child can combine different durations; both accurate 6/8 compound
+    // groups and total sixteenth-note subdivisions must be taught honestly.
+    await page.locator('#rhythmSub-meter').click();
+    assert(await page.locator('#rhythmMeterSection').isVisible(),'Meter builder should be available as a fourth rhythm activity');
+    assert.equal(await page.locator('#meterSignatureDisplay').innerText(),'2/4');
+    assert((await page.locator('#meterBeatExplainer').innerText()).includes('each quarter note is one beat'));
+    assert(await page.locator('[data-meter-note="whole"]').isDisabled(),'Whole cannot fit into a 2/4 bar');
+    assert.equal(await page.evaluate(()=>state.meterBarsCompleted),0);
+    await page.locator('[data-meter-note="quarter"]').click();
+    assert.equal(await page.locator('#meterSignatureDisplay').innerText(),'2/4','Completed bar must stay visible, not change immediately');
+    assert.equal(await page.evaluate(()=>state.meterBarsCompleted),1,'Award one completed measure only');
+    assert(await page.locator('#meterNextButton').isEnabled(),'Next bar must unlock only when exactly filled');
+    assert(await page.locator('[data-meter-note="quarter"]').isDisabled(),'Solved bar cannot grant repeat rewards');
+    await page.locator('#meterNextButton').click();
+    assert.equal(await page.locator('#meterSignatureDisplay').innerText(),'3/4');
+    await page.locator('[data-meter-note="quarter"]').click();
+    await page.locator('#meterNextButton').click();
+    assert.equal(await page.locator('#meterSignatureDisplay').innerText(),'4/4');
+    await page.locator('[data-meter-note="quarter"]').click();
+    await page.locator('#meterNextButton').click();
+    await page.locator('[data-meter-note="quarter"]').click();
+    await page.locator('#meterNextButton').click();
+    await page.locator('[data-meter-note="quarter"]').click();
+    await page.locator('#meterNextButton').click();
+    assert.equal(await page.locator('#meterSignatureDisplay').innerText(),'6/8');
+    assert((await page.locator('#meterBeatExplainer').innerText()).includes('TWO dotted-quarter beats'),'6/8 must have two compound beats');
+    await page.locator('[data-meter-note="dottedQuarter"]').click();
+    assert.equal(await page.evaluate(()=>state.meterBarsCompleted),6);
+    await page.locator('#meterNextButton').click();
+    assert.equal(await page.locator('#meterSignatureDisplay').innerText(),'6/8');
+    assert.equal(await page.evaluate(()=>TermehMeterEngine.remaining('6/8',['sixteenth','sixteenth','sixteenth'])),9);
+    assert((await page.locator('#meterRemaining').innerText()).includes('9 left'));
+    await page.locator('[data-meter-note="quarter"]').click();
+    await page.locator('[data-meter-note="quarter"]').click();
+    assert(await page.locator('[data-meter-note="eighth"]').isDisabled(),'Eighth would overflow remaining one sixteenth');
+    await page.locator('[data-meter-note="sixteenth"]').click();
+    assert.equal(await page.evaluate(()=>state.meterBarsCompleted),7);
+    assert.equal(await page.evaluate(()=>state.meterBarSolved),true);
+    assert((await page.locator('#meterRemaining').innerText()).includes('0 left'));
+    await assertEnglishScreen('measure builder in compound time');
     await page.reload();
+    assert.equal(await page.evaluate(()=>state.meterBarsCompleted),7,'Measure completion must persist on-device');
+
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en','English preference not persisted');
     assert.equal(await page.evaluate(()=>document.documentElement.getAttribute('data-termeh-theme')),'dark','Dark theme preference must persist');
     // A different release asset is packaged for paying/non-paying production users.
@@ -342,6 +385,10 @@ const { chromium }=require('playwright-core');
     assert.equal(await freePage.evaluate(()=>TermehNoteCurriculum.maxTier(TREBLE_NOTES)),1,'Free release must not unlock absent premium note tiers');
     assert.equal(await freePage.evaluate(()=>BASS_NOTES.length),0,'Bass lessons leaked into release build');
     assert.equal(await freePage.evaluate(()=>NOTE_DURATIONS.length),0,'Rhythm lessons leaked into release build');
+    await freePage.locator('#modeTab-rhythm').click();
+    assert(await freePage.locator('#unlockOverlay').evaluate(el=>el.classList.contains('open')),
+      'Free release must not make paid rhythm activities navigable');
+    await freePage.locator('#unlockOverlay button.secondary').first().click();
     await freePage.evaluate(()=>{
       state.mastery.treble.attempts=Array.from({length:80},()=>({correct:true,note:'G4',ms:800,at:Date.now()}));
       state.mastery.treble.examPassed=true;
