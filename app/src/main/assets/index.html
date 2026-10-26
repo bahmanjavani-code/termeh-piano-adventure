@@ -619,7 +619,7 @@
         </div>
     </div>
 
-    <div id="qaPreviewBadge" hidden role="status" style="position:fixed;bottom:7px;right:8px;z-index:85;padding:5px 9px;border-radius:10px;background:#7c2d12;color:white;font:900 13px sans-serif;border:2px solid #fdba74;pointer-events:none">🧪 <span class="only-fa">فقط QA · مرور آزاد درس‌ها</span><span class="only-en">QA ONLY · Lesson preview</span></div>
+    <div id="qaPreviewBadge" hidden role="status" style="position:fixed;top:62px;right:7px;max-width:190px;z-index:85;padding:3px 7px;border-radius:10px;background:#7c2d12;color:white;font:900 11px/1.3 sans-serif;border:2px solid #fdba74;pointer-events:none;opacity:.9">🧪 <span class="only-fa">فقط QA · مرور آزاد درس‌ها</span><span class="only-en">QA ONLY · Lesson preview</span></div>
 
     <!-- ======================================================== -->
     <!-- MODAL 1: MASCOT CHARACTER SELECTOR                       -->
@@ -2615,7 +2615,7 @@ const phrases=[
 const phrasePairs=phrases.slice().sort((a,b)=>b[0].length-a[0].length); // Longest phrases first: avoid mixing Persian and English in partial matches.
 let observer;let current='fa';
 function translate(root){if(current!=='en')return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(node=>{if(node.parentElement&&['SCRIPT','STYLE','TEXTAREA','INPUT'].includes(node.parentElement.tagName))return;let out=node.nodeValue;for(const [fa,en] of phrasePairs)out=out.split(fa).join(en);if(out!==node.nodeValue)node.nodeValue=out;});}
-window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');window.showParentWelcomeIfNeeded();if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
+window.chooseLanguage=function(l){current=l;localStorage.setItem('termeh_language',l);try{if(window.TermehPractice)window.TermehPractice.setLanguage(l);}catch(ignored){}document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';document.getElementById('languageGate').classList.add('hide');window.showParentWelcomeIfNeeded();if(observer)observer.disconnect();if(l==='en'){translate(document.body);observer=new MutationObserver(m=>{observer.disconnect();for(const x of m){if(x.type==='characterData'&&x.target.parentNode)translate(x.target.parentNode);else x.addedNodes.forEach(n=>{if(n.nodeType===1)translate(n);else if(n.nodeType===3&&n.parentNode)translate(n.parentNode)})}observer.observe(document.body,{subtree:true,childList:true,characterData:true})});observer.observe(document.body,{subtree:true,childList:true,characterData:true});}else { /* Persian is the default UI; do not reload on startup. */ }
 // Static translation alone cannot update HTML created before language selection.
 // Rebuild the active exercise and piano keys in the selected language.
 if (typeof state!=='undefined' && state.currentStaffNote) {
