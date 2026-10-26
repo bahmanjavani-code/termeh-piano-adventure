@@ -550,6 +550,32 @@ const { chromium }=require('playwright-core');
     assert(!(await freePage.locator('#realBazaarOffer').isVisible()),
       'Disabled native catalog signal must hide store purchase offer');
 
+    // A buyer who already owns the course must be able to RESTORE even if
+    // the store has temporarily stopped offering new purchases.
+    await freePage.evaluate(()=>{
+      window.TermehBazaar={
+        canRestoreOwnedLessons:()=>true,
+        restoreVerifiedPurchase:()=>window.termehBazaarStatus('restore_unavailable')
+      };
+      window.termehRefreshRestoreAvailability();
+      window.termehBazaarOffer('offer_unavailable','');
+    });
+    assert(await freePage.locator('#realBazaarOffer').isVisible(),
+      'Unavailable catalog must not hide ownership recovery for prior buyers');
+    assert(await freePage.locator('#realBazaarRestoreBtn').isVisible(),
+      'Paid owner must retain Restore while checkout is closed');
+    assert(!(await freePage.locator('#realBazaarBuyBtn').isVisible()),
+      'A new purchase without valid official price must remain hidden');
+    await freePage.locator('#realBazaarRestoreBtn').click();
+    assert((await freePage.locator('#realBazaarStatus').innerText()).includes('Bazaar connection is unavailable'),
+      'A restore attempt without a live Bazaar app must fail safely');
+    await freePage.evaluate(()=>{
+      delete window.TermehBazaar;
+      window.termehRefreshRestoreAvailability();
+      window.termehBazaarOffer('offer_unavailable','');
+    });
+
+
     for(const id of ['checkBazaarBtn','checkEncryptedPackBtn','checkOfflineVaultBtn','restoreExistingBazaarBtn','buyPremiumBtn','restorePremiumBtn']){
       assert(!(await freePage.locator('#'+id).isVisible()),'Do not show inaccessible QA/checkout button to release parents: '+id);
     }

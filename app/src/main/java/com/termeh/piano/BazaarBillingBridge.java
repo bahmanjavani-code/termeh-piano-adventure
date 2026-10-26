@@ -20,6 +20,7 @@ import ir.cafebazaar.poolakey.entity.PurchaseInfo;
 import ir.cafebazaar.poolakey.entity.PurchaseState;
 import kotlin.Unit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Native Bazaar lifetime-purchase bridge with explicit BUILD-TIME safeties.
@@ -44,6 +45,7 @@ final class BazaarBillingBridge {
     private final AtomicBoolean restoreInProgress = new AtomicBoolean(false);
     private final AtomicBoolean purchaseInProgress = new AtomicBoolean(false);
     private volatile boolean catalogReady;
+    private final AtomicLong entitlementEpoch = new AtomicLong();
 
     BazaarBillingBridge(ComponentActivity activity, WebView web) {
         this.activity = activity;
@@ -86,6 +88,13 @@ final class BazaarBillingBridge {
             connected = false;
             publishStatus("unavailable");
         }
+    }
+
+    @JavascriptInterface
+    public boolean canRestoreOwnedLessons() {
+        // Previous customers keep their paid access even if NEW sales pause.
+        // This only describes native pack readiness, never a purchase receipt.
+        return VerifiedPremiumLessons.enabled();
     }
 
     @JavascriptInterface
@@ -261,16 +270,18 @@ final class BazaarBillingBridge {
     /** A LOCAL offline license only; no JS flag can call this accessor. */
     void deliverCachedContent() {
         if (!VerifiedPremiumLessons.enabled() || destroyed) return;
+        final long version = entitlementEpoch.get();
         new Thread(() -> {
             JSONObject result = VerifiedPremiumLessons.loadOwnedContent(activity);
-            if (result != null) publishPremiumContent(result);
+            if (result != null) publishPremiumContent(result, version);
         }, "termeh-offline-paid-content").start();
     }
 
-    private void publishPremiumContent(JSONObject content) {
+    private void publishPremiumContent(JSONObject content, long version) {
         if (content == null) return;
         activity.runOnUiThread(() -> {
-            if (destroyed || !VerifiedPremiumLessons.enabled()) return;
+            if (destroyed || entitlementEpoch.get() != version
+                    || !VerifiedPremiumLessons.enabled()) return;
             // JSON DATA, never receipt/token. Quote as JS string before parsing.
             web.evaluateJavascript("window.termehNativePremiumLoaded && window.termehNativePremiumLoaded(JSON.parse("
                     + JSONObject.quote(content.toString()) + "));", null);
@@ -409,7 +420,7 @@ final class BazaarBillingBridge {
                                         // signature-checked ownership is cached.
                                         JSONObject lessons = VerifiedPremiumLessons.loadOwnedContent(activity);
                                         if (lessons != null) {
-                                            publishPremiumContent(lessons);
+                                            publishPremiumContent(lessons, entitlementEpoch.get());
                                             result = "restore_active";
                                         } else {
                                             result = "restore_cached_no_unlock";
@@ -418,6 +429,7 @@ final class BazaarBillingBridge {
                                 } else if (vault.clearAfterConfirmedNotOwned()) {
                                     // Clear only on a SUCCESSFUL Bazaar query with no
                                     // valid ownership, never for offline/network errors.
+                                    entitlementEpoch.incrementAndGet();
                                     revokePremiumContent();
                                     result = "restore_no_purchase";
                                 }

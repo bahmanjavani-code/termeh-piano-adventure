@@ -211,6 +211,7 @@
     <style>
     html[data-termeh-edition="store"] .termehQaOnly{display:none!important}
     html[data-termeh-edition="qa"] .termehStoreOnly{display:none!important}
+    button[hidden]{display:none!important}
     </style>
 </head>
 <body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
@@ -2838,6 +2839,21 @@ window.termehBazaarStatus=function(code){
   el('bazaarBillingStatus').textContent=pair[en?1:0];
   const real=el('realBazaarStatus');if(real)real.textContent=pair[en?1:0];
 };
+// Native boolean describes packaging readiness, not an ownership grant.
+window.termehPriorOwnerRestoreSupported=false;
+window.termehRefreshRestoreAvailability=function(){
+  let canRestore=false;
+  try {
+    const sdk=window.TermehBazaar;
+    canRestore=!!(sdk && sdk.canRestoreOwnedLessons && sdk.canRestoreOwnedLessons());
+  }catch(ignored){}
+  window.termehPriorOwnerRestoreSupported=canRestore;
+  const panel=el('realBazaarOffer'),buy=el('realBazaarBuyBtn'),
+        restore=el('realBazaarRestoreBtn');
+  if(panel && canRestore)panel.hidden=false;
+  if(buy && canRestore && buy.disabled)buy.hidden=true;
+  if(restore)restore.hidden=!canRestore;
+};
 // Live SKU price is taken from Bazaar. Merely opening this screen
 // never starts checkout. The native bridge requires official store setup.
 window.termehBazaarOffer=function(code,publicPrice){
@@ -2845,8 +2861,11 @@ window.termehBazaarOffer=function(code,publicPrice){
   if(!offer||!price||!buy)return;
   const en=localStorage.getItem('termeh_language')==='en';
   const ready=code==='offer_ready' && typeof publicPrice==='string' && !!publicPrice;
-  offer.hidden=!ready;
+  offer.hidden=!(ready||window.termehPriorOwnerRestoreSupported);
+  buy.hidden=!ready;
   buy.disabled=!ready;
+  const restore=el('realBazaarRestoreBtn');
+  if(restore)restore.hidden=!window.termehPriorOwnerRestoreSupported;
   price.textContent=ready?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice:'';
 };
 window.termehBuyFromBazaar=function(){
@@ -2948,6 +2967,7 @@ window.termehToggleQaPreview=function(){
   switchGameMode('treble');
 };
 window.verifyParentHub=function(){const msg=el('hubGateMessage');const en=localStorage.getItem('termeh_language')==='en';if(Date.now()<lockUntil){msg.textContent=en?'Please wait one minute':'لطفاً یک دقیقه صبر کنید';return;}const val=normalize(el('hubAnswer').value);if(val!==''&&Number(val)===answer){failures=0;el('parentHubGate').hidden=true;el('parentHubOptions').hidden=false;el('hubAnswer').value='';if(window.termehShowErrorCount)window.termehShowErrorCount();if(window.termehRefreshPracticeReminder)window.termehRefreshPracticeReminder();if(window.termehRefreshQaPreview)window.termehRefreshQaPreview();
+  if(window.termehRefreshRestoreAvailability)window.termehRefreshRestoreAvailability();
   if(window.TermehBazaar && window.TERMEH_CONTENT_VARIANT==='release-free'){
     try{window.TermehBazaar.checkProductCatalog();}catch(ignored){}
   }
