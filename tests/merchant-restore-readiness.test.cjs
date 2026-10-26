@@ -48,7 +48,13 @@ assert(workflow.includes('allow_controlled_real_checkout') &&
   'Normal signed candidates must remain non-chargeable');
 assert(keys.includes('Release signing certificate changed: STOP!'),
   'Release cert continuity is required for upgrading prior installed copies');
-const icon=read('app/src/main/res/drawable/ic_termeh.xml');
-assert(icon.includes('viewportWidth="108"')&&manifest.includes('@drawable/ic_termeh'),
-  'Keep the previously approved piano icon consistent on the phone');
+const icon=fs.readFileSync('app/src/main/res/drawable-nodpi/ic_termeh_store.webp');
+const iconDigest=require('node:crypto').createHash('sha256').update(icon).digest('hex');
+assert(icon.length>20000 && icon.subarray(0,4).toString('ascii')==='RIFF'
+       && icon.subarray(8,12).toString('ascii')==='WEBP',
+  'Launcher artwork must be the user-approved Termeh+panda image (valid full-resolution WebP)');
+assert.equal(iconDigest, 'aba238c1e86ce6455af20a911f7cc50e60f3a3c84ba98839a4bfdb51d279ec27',
+  'The approved store and installed-app icon must not be silently changed');
+assert(manifest.includes('android:icon="@drawable/ic_termeh_store"'),
+  'Android launcher must use the same approved artwork shown in the Bazaar listing');
 console.log('PASS: prior ownership rechecked on resume; restore while sales paused; no accidental checkout, refund race, misplaced hidden button or signing key change.');
