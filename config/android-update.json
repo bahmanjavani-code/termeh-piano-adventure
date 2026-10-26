@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 33,
+  "latestVersionCode": 34,
   "storeUrl": "",
-  "notes": "Termeh Piano 1.0.0 (build 33): original permanent signing certificate; free five-note learning; Persian/English content and approved panda launcher icon; official Cafe Bazaar lifetime purchase and restore in the parent section when the SKU is active. New checkout remains OFF for ordinary CI builds, and real payment requires a separately approved controlled candidate. Never publish before purchase, restore and refund QA."
+  "notes": "Termeh Piano 1.0.1 (build 34): verified Bazaar purchase is visibly distinct from treble-clef skill progress; premium bass clef and note durations tabs show bought status and exact next milestone. The purchased curriculum and locally saved child progress remain intact. Signed normal builds do not initiate or allow fresh charges until a separate owner-approved candidate is built."
 }

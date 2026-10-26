@@ -518,6 +518,39 @@ const { chromium }=require('playwright-core');
     await freePage.locator('#welcomeContinue').click();
     assert.equal(await freePage.evaluate(()=>document.documentElement.getAttribute('data-termeh-edition')),'store','Store-specific polish must be applied');
     assert(!(await freePage.locator('#qaPreviewPanel').isVisible()),'Production must never show the QA lesson bypass');
+
+    // End-user release regression: purchase success is NOT the same as
+    // completion of treble practice. This is a browser-only UI MOCK, not
+    // a payment, receipt, purchase-verification or lesson-decryption test.
+    assert.equal(await freePage.locator('#modeTab-bass').getAttribute('data-locked'),'true');
+    assert((await freePage.locator('#modeAccess-bass').innerText()).includes('Premium'));
+    assert((await freePage.locator('#modeAccess-rhythm').innerText()).includes('Premium'));
+    await freePage.locator('#modeTab-bass').click();
+    assert((await freePage.locator('#unlockText').innerText()).includes('purchase'),
+      'Before buying, tab must explain that premium ownership is required');
+    await freePage.locator('#unlockOverlay button.secondary').click();
+    await freePage.evaluate(()=>{
+      window.TERMEH_NATIVE_PREMIUM=true; // mock VERIFIED callback for UI only
+      window.refreshPremiumModeTabs();
+    });
+    assert((await freePage.locator('#modeAccess-bass').innerText()).includes('Owned'),
+      'After simulated verified purchase, mode tab must acknowledge lifetime ownership');
+    assert((await freePage.locator('#modeAccess-rhythm').innerText()).includes('after treble'),
+      'Rhythm tab must state that teaching starts after completing treble');
+    await freePage.locator('#modeTab-rhythm').click();
+    assert((await freePage.locator('#unlockTitle').innerText()).includes('Purchase successful'),
+      'An existing customer must never be told that a purchased lesson was not paid for');
+    assert((await freePage.locator('#unlockText').innerText()).includes('final 20-question assessment'),
+      'Paid but educationally locked lesson must identify the real next milestone');
+    assert(!(await freePage.locator('#unlockParentsBtn').isVisible()),
+      'Do not send a verified customer back to buy the same lesson again');
+    assert.equal(await freePage.evaluate(()=>state.mode),'treble',
+      'Purchase alone must NOT bypass treble exam or open a new lesson');
+    await freePage.locator('#unlockOverlay button.secondary').click();
+    await freePage.evaluate(()=>{window.TERMEH_NATIVE_PREMIUM=false;window.refreshPremiumModeTabs()});
+    assert((await freePage.locator('#modeAccess-bass').innerText()).includes('Premium'),
+      'Unowned modes must return to clearly marked locked state');
+
     assert.equal(await freePage.evaluate(()=>{
       window.TERMEH_QA_PREVIEW=true;
       return window.termehQaPreviewActive();
