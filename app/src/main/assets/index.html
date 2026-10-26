@@ -2860,13 +2860,19 @@ window.termehBazaarOffer=function(code,publicPrice){
   const offer=el('realBazaarOffer'),price=el('realBazaarPrice'),buy=el('realBazaarBuyBtn');
   if(!offer||!price||!buy)return;
   const en=localStorage.getItem('termeh_language')==='en';
-  const ready=code==='offer_ready' && typeof publicPrice==='string' && !!publicPrice;
-  offer.hidden=!(ready||window.termehPriorOwnerRestoreSupported);
+  const known=(code==='offer_ready'||code==='offer_readonly')
+    && typeof publicPrice==='string' && !!publicPrice;
+  const ready=known && code==='offer_ready';
+  offer.hidden=!(known||window.termehPriorOwnerRestoreSupported);
+  // A read-only catalog result must NEVER display an enabled buy button.
   buy.hidden=!ready;
   buy.disabled=!ready;
   const restore=el('realBazaarRestoreBtn');
   if(restore)restore.hidden=!window.termehPriorOwnerRestoreSupported;
-  price.textContent=ready?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice:'';
+  price.textContent=known
+    ?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice
+      +(ready?'':(en?' (test: checkout off)':' (آزمایشی؛ خرید خاموش است)'))
+    :'';
 };
 window.termehBuyFromBazaar=function(){
   if(el('parentHubOptions').hidden||!el('parentHub').classList.contains('open'))return;
