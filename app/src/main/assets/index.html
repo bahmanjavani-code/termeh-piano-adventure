@@ -197,6 +197,17 @@
     .equippedPianoTrophy{position:absolute;right:12px;top:1px;opacity:.78;font-size:22px;line-height:1;pointer-events:none;z-index:22;filter:drop-shadow(0 1px 1px #000)}
     #shopEquippedPreview{background:#f0fdf4;border:1px solid #86efac;border-radius:11px;padding:8px;font-weight:800;font-size:13px;text-align:center;color:#166534}
     </style>
+
+    <style>
+    #learningMilestone{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:12px;background:#111438e6;z-index:88;box-sizing:border-box}
+    #learningMilestone.open{display:flex}
+    #learningMilestone .box{width:100%;max-width:490px;max-height:92dvh;overflow-y:auto;box-sizing:border-box;border:4px solid #fbbf24;border-radius:24px;background:#ffffff;padding:16px;color:#1e293b;text-align:center;box-shadow:0 18px 48px #0007}
+    #learningMilestone h2{font-size:23px;font-weight:900;color:#6d28d9;margin:3px 0 6px}
+    #learningMilestone p{font-size:14px;line-height:1.8;margin:8px 0}
+    #learningMilestone svg{display:block;width:100%;max-width:390px;margin:auto;background:#fffbeb;border:1px solid #fde68a;border-radius:15px}
+    #learningMilestone button{display:block;width:100%;min-height:48px;background:#7c3aed;color:white;border:0;border-radius:15px;font-weight:900;margin-top:10px;padding:10px 14px}
+    #learningMilestone .soft{background:#e0e7ff;color:#312e81}
+    </style>
 </head>
 <body class="text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 pb-8 relative">
 
@@ -560,6 +571,19 @@
 
     </div>
 
+
+    <!-- Genuine skill milestone: hard notes shown on a correctly placed staff. -->
+    <div id="learningMilestone" role="dialog" aria-modal="true" aria-labelledby="learningMilestoneHeading">
+        <div class="box" tabindex="-1">
+            <h2 id="learningMilestoneHeading">🌟 <span class="only-fa">آفرین! یک قدم جلوتر!</span><span class="only-en">Great job! A new step!</span></h2>
+            <p id="learningMilestoneDescription" aria-live="polite"></p>
+            <p id="learningMilestoneWeakTitle" class="font-black"></p>
+            <svg id="learningMilestoneStaff" viewBox="0 0 500 210" role="img" aria-label="Notes that could use more practice"></svg>
+            <p id="learningMilestoneNoteNames"></p>
+            <button id="learningMilestoneContinue" type="button" onclick="closeLearningMilestone()"><span class="only-fa">🎹 ادامهٔ تمرین با نت‌های قبلی و جدید</span><span class="only-en">🎹 Practice old and new notes together</span></button>
+        </div>
+    </div>
+
     <!-- ======================================================== -->
     <!-- MODAL 1: MASCOT CHARACTER SELECTOR                       -->
     <!-- ======================================================== -->
@@ -616,6 +640,7 @@
     <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
     <script src="premium-preview.js"></script>
     <script src="mastery-engine.js"></script>
+    <script src="note-curriculum.js"></script>
     <script src="rewards-engine.js"></script>
     <script>
         /**************************************************************
@@ -648,6 +673,8 @@
             holdIntervalId: null,
             holdOscillator: null,
             mastery: {treble:{attempts:[],examPassed:false,certifiedVersion:0},bass:{attempts:[],examPassed:false,certifiedVersion:0}},
+            trebleNoteTier: 1,
+            reviewedBassStage: 1,
             staffStartedAt: 0,
             exam: null
         };
@@ -670,6 +697,15 @@
                             }
                         }
                     }
+                    // Additive migration: keep all past attempts and rewards without
+                    // unlocking unavailable production-only premium lessons.
+                    const previousCertificate=state.mastery.treble.examPassed
+                        &&state.mastery.treble.certifiedVersion===TermehMasteryEngine.POLICY_VERSION;
+                    const tierMax=TermehNoteCurriculum.maxTier(TREBLE_NOTES);
+                    state.trebleNoteTier=previousCertificate?tierMax:
+                        Math.min(tierMax,Math.max(1,Number.isInteger(parsed.trebleNoteTier)?parsed.trebleNoteTier:1));
+                    state.reviewedBassStage=Number.isInteger(parsed.reviewedBassStage)
+                        &&parsed.reviewedBassStage>=1&&parsed.reviewedBassStage<=4?parsed.reviewedBassStage:1;
                     state.stars = parsed.stars || 0;
                     state.coins = parsed.coins || 0;
                     state.levelTreble = parsed.levelTreble || 1;
@@ -702,6 +738,8 @@
             try {
                 localStorage.setItem('notAmoozKidsState_v1', JSON.stringify({
                     mastery: state.mastery,
+                    trebleNoteTier: state.trebleNoteTier,
+                    reviewedBassStage: state.reviewedBassStage,
                     stars: state.stars,
                     coins: state.coins,
                     levelTreble: state.levelTreble,
