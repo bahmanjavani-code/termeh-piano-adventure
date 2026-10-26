@@ -371,6 +371,14 @@
                     <span id="nextBtnText">اول نت درست رو پیدا کن تا قفل باز بشه!</span>
                 </button>
             </div>
+            <section id="masteryDashboard" aria-label="Note-reading mastery progress" style="padding:12px;border:2px solid #c4b5fd;background:#f5f3ff;border-radius:16px;color:#312e81">
+                <p id="masteryStageTitle" style="margin:0 0 7px;font-weight:900;font-size:15px">🎯 مرحله ۱: شناخت همه نت‌ها</p>
+                <div id="masteryProgressTrack" role="progressbar" aria-label="Readiness for final assessment" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:13px;background:#ddd6fe;border-radius:999px;overflow:hidden">
+                    <div id="masteryProgressFill" style="width:0%;height:100%;border-radius:999px;background:#7c3aed;transition:width .2s ease"></div>
+                </div>
+                <p id="masteryStats" style="font-size:13px;font-weight:800;line-height:1.7;margin:7px 0 3px">در حال بررسی پیشرفت...</p>
+                <p id="masteryNextGoal" style="font-size:12px;line-height:1.8;margin:0">با تمرین‌های کوتاه و دقیق پیش برو.</p>
+            </section>
             <button id="examStartBtn" type="button" onclick="beginFinalAssessment()" disabled style="border-radius:14px;padding:11px;background:#5b21b6;color:white;font-weight:800;opacity:.9">🎓 آزمون پایانی / Final Assessment</button>
         </main>
 
@@ -569,6 +577,7 @@
     <!-- ======================================================== -->
     <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
     <script src="premium-preview.js"></script>
+    <script src="mastery-engine.js"></script>
     <script>
         /**************************************************************
          * 1. PERSISTENT STATE & REWARD DATA
@@ -597,7 +606,7 @@
             holdStartTime: 0,
             holdIntervalId: null,
             holdOscillator: null,
-            mastery: {treble:{attempts:[],examPassed:false},bass:{attempts:[],examPassed:false}},
+            mastery: {treble:{attempts:[],examPassed:false,certifiedVersion:0},bass:{attempts:[],examPassed:false,certifiedVersion:0}},
             staffStartedAt: 0,
             exam: null
         };
@@ -607,7 +616,19 @@
                 const raw = localStorage.getItem('notAmoozKidsState_v1');
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    if(parsed.mastery && typeof parsed.mastery === 'object') { for(const k of ['treble','bass']) {const v=parsed.mastery[k]; if(v && Array.isArray(v.attempts)) { state.mastery[k].attempts=v.attempts.slice(-240).filter(x=>x && typeof x.correct==='boolean' && typeof x.ms==='number' && typeof x.note==='string'); state.mastery[k].examPassed=v.examPassed===true; } } }
+                    if(parsed.mastery && typeof parsed.mastery === 'object') {
+                        for(const k of ['treble','bass']) {
+                            const v=parsed.mastery[k];
+                            if(v && Array.isArray(v.attempts)) {
+                                state.mastery[k].attempts=v.attempts.slice(-240)
+                                    .filter(x=>x && typeof x.correct==='boolean' && Number.isFinite(x.ms) && x.ms>=0 && typeof x.note==='string');
+                                // Keep existing practice and trophies. Old one-step exam
+                                // results cannot bypass the improved proficiency exam.
+                                state.mastery[k].examPassed=v.examPassed===true;
+                                state.mastery[k].certifiedVersion=v.certifiedVersion===TermehMasteryEngine.POLICY_VERSION?v.certifiedVersion:0;
+                            }
+                        }
+                    }
                     state.stars = parsed.stars || 0;
                     state.coins = parsed.coins || 0;
                     state.levelTreble = parsed.levelTreble || 1;
@@ -1009,8 +1030,9 @@
                     state.stars += 1;
                     state.coins += 5;
 
-                    if (state.mode === 'treble') state.levelTreble += 1;
-                    else state.levelBass += 1;
+                    // One correct answer earns rewards, NOT a completed level.
+                    // Progress follows first-try accuracy, speed, balanced note
+                    // coverage and repeatable 20-question proficiency rounds.
 
                     saveState();
                     updateHeaderUI();
@@ -1091,11 +1113,13 @@
 
         function loadNewStaffQuestion() {
             const pool = state.mode === 'treble' ? TREBLE_NOTES : BASS_NOTES;
-            let candidates = pool.filter(n => !state.currentStaffNote || n.code !== state.currentStaffNote.code);
-            if (candidates.length === 0) candidates = pool;
-
             const examNote = state.exam && state.exam.active ? state.exam.questions[state.exam.index] : null;
-            const chosen = examNote || candidates[Math.floor(Math.random() * candidates.length)];
+            // Adapt questions toward notes that were missed or answered slowly.
+            // The exam uses an independent, balanced schedule instead.
+            const chosen = examNote || TermehMasteryEngine.chooseNextNote(
+                pool, state.mastery[state.mode].attempts,
+                state.currentStaffNote ? state.currentStaffNote.code : null
+            );
             state.currentStaffNote = chosen;
             state.staffStartedAt = performance.now();
             state.staffQuestionSolved = false;
@@ -1111,13 +1135,13 @@
                     clefBadge.textContent = isEnglish() ? 'Treble clef 𝄞' : 'کلید سل 𝄞';
                     clefBadge.className = 'bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
-                if (levelText) levelText.textContent = localStorage.getItem('termeh_language')==='en' ? `Level ${state.levelTreble} (Treble clef)` : `مرحله ${state.levelTreble} (کلید سل)`;
+                if (levelText) {const stage=getMastery('treble').stage;levelText.textContent=isEnglish()?`Practice stage ${Math.min(3,stage)}/3 (Treble)`:`تمرین ${Math.min(3,stage)} از ۳ (کلید سل)`;}
             } else {
                 if (clefBadge) {
                     clefBadge.textContent = isEnglish() ? 'Bass clef 𝄢' : 'کلید فا 𝄢';
                     clefBadge.className = 'bg-purple-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
-                if (levelText) levelText.textContent = localStorage.getItem('termeh_language')==='en' ? `Level ${state.levelBass} (Bass clef)` : `مرحله ${state.levelBass} (کلید فا)`;
+                if (levelText) {const stage=getMastery('bass').stage;levelText.textContent=isEnglish()?`Practice stage ${Math.min(3,stage)}/3 (Bass)`:`تمرین ${Math.min(3,stage)} از ۳ (کلید فا)`;}
             }
 
             lockStaffNextButton();
@@ -1574,19 +1598,15 @@
             history.push({correct:!!correct,note:String(note),ms:Math.max(0,Math.min(60000,Math.round(ms))),at:Date.now()});
             if(history.length>240)history.splice(0,history.length-240);
             saveState();
+            updateExamButton();
         }
         function getMastery(mode) {
-            const h=(state.mastery[mode]||{attempts:[]}).attempts;
-            const recent=h.slice(-80);
-            const accuracy=recent.length?recent.filter(x=>x.correct).length/recent.length:0;
-            const correct=recent.filter(x=>x.correct);
-            const speed=correct.length?correct.reduce((s,x)=>s+Math.max(0,Math.min(1,5000/Math.max(1000,x.ms))),0)/correct.length:0;
-            const notePool=mode==='treble'?TREBLE_NOTES:BASS_NOTES;
-            const diversity=new Set(correct.map(x=>x.note)).size/Math.max(1,new Set(notePool.map(x=>x.code)).size);
-            const score=Math.round(100*(.5*accuracy+.3*speed+.2*Math.min(1,diversity)));
-            const examPassed=state.mastery[mode].examPassed===true;
-            const target=mode==='treble'?85:90;
-            return {score,passed:h.length>=80&&score>=target&&examPassed,examPassed,attempts:h.length};
+            const data=state.mastery[mode]||{attempts:[],examPassed:false,certifiedVersion:0};
+            const pool=mode==='treble'?TREBLE_NOTES:BASS_NOTES;
+            const wasPassed=state.mastery[mode]&&state.mastery[mode].examPassed===true;
+            return TermehMasteryEngine.evaluate(
+                data.attempts,pool.map(n=>n.code),wasPassed,data.certifiedVersion||0
+            );
         }
 
         function switchGameMode(newMode) {
