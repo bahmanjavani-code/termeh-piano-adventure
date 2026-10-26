@@ -299,6 +299,64 @@ const { chromium }=require('playwright-core');
     await assertEnglishScreen('rhythm lesson');
     await page.evaluate(()=>switchRhythmSubMode('hold'));
     await assertEnglishScreen('rhythm hold');
+    // Regression for the screenshot: no Persian "بریم" after English success,
+    // no "1 beats", and a quick tap must not complete a full quarter-note.
+    assert((await page.locator('#holdTargetTitle').innerText()).includes('1 quarter-note beat'),
+      'English singular quarter-note beat must read naturally');
+    assert((await page.locator('#holdTargetDesc').innerText()).includes('for 1 beat,'),
+      'English target must say "1 beat", not "1 beats"');
+    assert((await page.locator('#holdTargetBeatBadge').innerText()).includes('1 beat'));
+    const holdStarsBefore=await page.evaluate(()=>state.stars);
+    await page.evaluate(()=>{startRhythmHold();endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isDisabled(),'Instant touch must not count as 650ms of practice');
+    assert((await page.locator('#holdLiveCounterText').innerText()).includes('Released too early'));
+    await assertEnglishScreen('hold released too early');
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS*1.9;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isDisabled(),'Holding too long must require a retry');
+    assert((await page.locator('#holdLiveCounterText').innerText()).includes('Held too long'));
+    await assertEnglishScreen('hold released too late');
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isEnabled(),'Proper one-beat duration must unlock the next lesson');
+    assert((await page.locator('#nextHoldGameBtn').innerText()).includes('Next rhythm challenge'),
+      'Screenshot regression: English button must contain no Persian after success');
+    assert((await page.locator('#holdLiveCounterText').innerText()).includes('1 beat!'));
+    assert.equal(await page.evaluate(()=>state.stars),holdStarsBefore+1,
+      'Correct hold grants exactly one practice star');
+    await page.evaluate(()=>{startRhythmHold();endRhythmHold()});
+    assert.equal(await page.evaluate(()=>state.stars),holdStarsBefore+1,
+      'Repeated touching a solved hold must never farm stars');
+    await assertEnglishScreen('hold succeeded for 1 beat');
+    await page.locator('#nextHoldGameBtn').click();
+    assert((await page.locator('#holdTargetDesc').innerText()).includes('for 2 beats,'));
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS*2;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isEnabled(),'Two-beat hold must work');
+    await assertEnglishScreen('hold succeeded for 2 beats');
+    await page.locator('#nextHoldGameBtn').click();
+    assert((await page.locator('#holdTargetDesc').innerText()).includes('for 4 beats,'));
+    await page.evaluate(()=>{startRhythmHold();holdStartedAt=performance.now()-HOLD_BEAT_MS*4;endRhythmHold()});
+    assert(await page.locator('#nextHoldGameBtn').isEnabled(),'Four-beat hold must work');
+    await assertEnglishScreen('hold succeeded for 4 beats');
+    // Test the live countdown and its cleanup on mode changes.
+    await page.locator('#nextHoldGameBtn').click();
+    await page.evaluate(()=>startRhythmHold());
+    assert.equal(await page.evaluate(()=>state.isHoldingPad),true);
+    await page.locator('#rhythmSub-learn').click();
+    assert.equal(await page.evaluate(()=>state.isHoldingPad),false,
+      'Leaving the hold challenge must stop its timer and tone');
+    assert.equal(await page.evaluate(()=>state.holdIntervalId),null);
+    await page.evaluate(()=>playDurationCardDemo('eighth'));
+    await page.waitForTimeout(100);
+    assert((await page.locator('#demoBeat-1').innerText()).includes('Half a beat'),
+      'The half-beat lesson must not switch back to Persian while English is selected');
+    await assertEnglishScreen('English learn-card playback after half a beat');
+    await page.evaluate(()=>switchRhythmSubMode('hold'));
+    await page.evaluate(()=>switchRhythmSubMode('quiz'));
+    await page.evaluate(()=>{
+      const wrong=NOTE_DURATIONS.find(d=>d.id!==state.currentRhythmQuiz.id);
+      handleRhythmQuizAnswer(wrong.id);
+    });
+    await assertEnglishScreen('rhythm quiz incorrect feedback');
+
     // A child can combine different durations; both accurate 6/8 compound
     // groups and total sixteenth-note subdivisions must be taught honestly.
     await page.locator('#rhythmSub-meter').click();
