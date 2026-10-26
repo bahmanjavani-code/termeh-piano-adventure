@@ -32,10 +32,17 @@ assert(!resumeCheck[1].includes('beginLifetimePurchase('),
 
 assert(html.includes('window.termehRefreshRestoreAvailability=function()'));
 assert(html.includes('api') || html.includes('sdk.canRestoreOwnedLessons()'));
-assert(html.includes('offer.hidden=!(ready||window.termehPriorOwnerRestoreSupported)'),
-  'Restore path cannot be hidden by a temporarily empty store catalog');
+assert(html.includes('offer.hidden=!(known||window.termehPriorOwnerRestoreSupported)'),
+  'Read-only Bazaar price and restore path must remain visible when NEW sales are paused');
+assert(bridge.includes('private boolean catalogLookupConfigured()')
+       && bridge.includes('if (!catalogLookupConfigured())')
+       && bridge.includes('BuildConfig.BAZAAR_CHECKOUT_ENABLED ? "offer_ready" : "offer_readonly"'),
+  'Nonchargeable signed QA must query the real Bazaar SKU without granting permission to charge');
+assert(html.includes("const ready=known && code==='offer_ready'"),
+  'Only an EXPLICIT live-purchase SKU state can reveal a buy button');
 assert(html.includes('buy.hidden=!ready') && html.includes('buy.disabled=!ready'),
-  'Unpriced NEW purchases must remain hidden and disabled');
+  'A known price in a safe QA build can never enable a monetary action');
+
 assert(html.includes('button[hidden]{display:none!important}'),
   'Normal app button styles must never override browser hidden semantics');
 assert(workflow.includes('Show safe merchant setup readiness') &&
