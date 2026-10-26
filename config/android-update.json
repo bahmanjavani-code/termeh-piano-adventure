@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 24,
+  "latestVersionCode": 25,
   "storeUrl": "",
-  "notes": "1.3.19-beta signed QA: restore FREE 5-note starter APK with paid advanced assets EXCLUDED, planned lifetime in-app Cafe Bazaar purchase remains disabled until verified checkout/restore/content tests. Add optional parent-gated offline Android daily practice reminder ~18:00 local time, maximum once per day and skipped on days with completed exercises. No automatic notification permission prompt; learning progress unchanged."
+  "notes": "1.3.20-beta QA: inspect every lesson without long mastery drills using a NEW side-by-side com.termeh.piano.qa debug preview APK with an explicit parent-gated, session-only all-lesson inspection switch. Public release com.termeh.piano stays free with only 5 starter notes and no QA bypass. Preserves saved progress. Bazaar checkout still inactive until genuine lesson delivery and restore validation."
 }
