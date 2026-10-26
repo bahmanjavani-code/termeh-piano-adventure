@@ -463,9 +463,40 @@ const { chromium }=require('playwright-core');
       'QA navigation must not pretend child earned higher-level certification');
     assert.equal(await qaPage.evaluate(()=>state.mastery.treble.attempts.length),0,
       'Opening QA preview must never fabricate mastery attempts');
+    // Crucial pedagogy regression: the old seven-name keyboard would accept
+    // lower C for high C. Exact pitch C4/C5 must now require different keys.
+    await qaPage.evaluate(()=>{
+      state.mode='treble';state.exam=null;
+      state.currentStaffNote=TREBLE_NOTES.find(n=>n.code==='C5');
+      state.wrongKeysPressed=new Set();state.staffQuestionSolved=false;
+      state.staffStartedAt=performance.now();
+      renderPianoKeyboard();
+    });
+    assert(await qaPage.locator('#pianoKey-C4').count()===1);
+    assert(await qaPage.locator('#pianoKey-C5').count()===1);
+    await qaPage.locator('#pianoKey-C4').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),false,
+      'C4 must NOT be accepted as high C5');
+    await qaPage.locator('#pianoKey-C5').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),true,
+      'C5 must be accepted on its own button');
+
     await qaPage.locator('#modeTab-bass').click();
     assert.equal(await qaPage.evaluate(()=>state.mode),'bass','Parent should inspect bass staff immediately');
     assert.equal(await qaPage.evaluate(()=>BASS_NOTES.length),10,'Bass notes remain in debug QA assets');
+    await qaPage.evaluate(()=>{
+      state.currentStaffNote=BASS_NOTES.find(n=>n.code==='C3');
+      state.wrongKeysPressed=new Set();state.staffQuestionSolved=false;
+      state.staffStartedAt=performance.now();
+      renderPianoKeyboard();
+    });
+    await qaPage.locator('#pianoKey-C4').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),false,
+      'C4 must NOT solve bass C3');
+    await qaPage.locator('#pianoKey-C3').click();
+    assert.equal(await qaPage.evaluate(()=>state.staffQuestionSolved),true,
+      'Correct bass octave must solve the note');
+
     await qaPage.locator('#modeTab-rhythm').click();
     assert.equal(await qaPage.evaluate(()=>state.mode),'rhythm','Parent should inspect rhythm immediately');
     await qaPage.locator('#rhythmSub-meter').click();
