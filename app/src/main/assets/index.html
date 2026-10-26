@@ -1649,7 +1649,20 @@
                     'سه مرحله تمام شد! آزمون: ۲۰ سؤال متنوع؛ حداقل ۱۸ پاسخ درست و ۱۵ پاسخ درست در کمتر از ۵ ثانیه.';
             }
             if(fill)fill.style.width=result.score+'%';
-            if(track)track.setAttribute('aria-valuenow',String(result.score));
+            if(track){track.setAttribute('aria-valuenow',String(result.score));track.setAttribute('aria-label',en?'Assessment readiness':'آمادگی آزمون');}
+            const accTrack=document.getElementById('masteryAccuracyTrack');
+            const accFill=document.getElementById('masteryAccuracyFill');
+            if(accFill)accFill.style.width=result.accuracy60+'%';
+            if(accTrack){accTrack.setAttribute('aria-valuenow',String(result.accuracy60));accTrack.setAttribute('aria-label',en?'First-try accuracy':'دقت بار اول');}
+            const speedPct=result.medianMs===null?0:Math.min(100,Math.round(4200/Math.max(100,result.medianMs)*100));
+            const speedTrack=document.getElementById('masterySpeedTrack');
+            const speedFill=document.getElementById('masterySpeedFill');
+            if(speedFill)speedFill.style.width=speedPct+'%';
+            if(speedTrack){
+                speedTrack.setAttribute('aria-valuenow',String(speedPct));
+                speedTrack.setAttribute('aria-label',en?'Speed relative to practice target':'سرعت نسبت به هدف تمرین');
+                speedTrack.setAttribute('aria-valuetext',result.medianMs===null?(en?'Not measured yet':'هنوز ثبت نشده'):speed);
+            }
             const level=document.getElementById('levelProgressText');
             if(level && !(state.exam&&state.exam.active)){
                 level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3`:
