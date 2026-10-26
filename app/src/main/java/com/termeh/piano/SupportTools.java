@@ -135,6 +135,27 @@ final class SupportTools {
         }
     }
 
+    void composeFeedback() {
+        // Parent-gated entry in the packaged UI. Never send automatically, and do
+        // not collect child name, responses, progress, contact details, or device ID.
+        Intent email = new Intent(Intent.ACTION_SENDTO);
+        email.setData(Uri.parse("mailto:"));
+        if (!SUPPORT_EMAIL.isEmpty())
+            email.putExtra(Intent.EXTRA_EMAIL, new String[]{SUPPORT_EMAIL});
+        email.putExtra(Intent.EXTRA_SUBJECT, "Termeh Piano — parent suggestion");
+        email.putExtra(Intent.EXTRA_TEXT,
+                "Your suggestion for Termeh Piano:\n\n"
+                + "(Please do not include children's personal information.)\n");
+        try {
+            activity.startActivity(Intent.createChooser(email,
+                    "Choose email app / انتخاب ایمیل"));
+        } catch (ActivityNotFoundException ex) {
+            new AlertDialog.Builder(activity)
+                    .setMessage("Email application not available. / برنامه ایمیل پیدا نشد.")
+                    .setPositiveButton("OK", null).show();
+        }
+    }
+
     private boolean validStoreUrl(String url) {
         if (url == null || url.isEmpty()) return false;
         Uri uri = Uri.parse(url);

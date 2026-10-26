@@ -2,6 +2,8 @@ name: Build Android APK
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   build:
@@ -29,6 +31,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Browser smoke (Persian/English, parents, progression and settings)
+        run: |
+          npm install --no-save --ignore-scripts playwright-core@1.56.1
+          node tests/browser-smoke.cjs
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
         run: node tests/secure-premium-pack.test.cjs
       - name: Test safe offline premium entitlement core (mocks only, never charge)

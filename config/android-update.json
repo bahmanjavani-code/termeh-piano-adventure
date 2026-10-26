@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 16,
+  "latestVersionCode": 17,
   "storeUrl": "",
-  "notes": "1.3.11 beta QA: adaptive, meaningful treble/bass note mastery (30/80/150 questions, first-try accuracy, recognition speed, balanced final assessment). Existing progress/rewards remain saved; no real checkout or paid unlock."
+  "notes": "1.3.12-beta QA: compact accessible settings, bilingual scientific/educational and legal transparency, theme preference, child-safe parent feedback and varied adult challenges. Progress preserved, starter lessons unchanged, paid checkout still disabled."
 }
