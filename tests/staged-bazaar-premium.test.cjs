@@ -47,7 +47,13 @@ try{
  assert(gradle.includes("if (liveRequested && !paidReady)"),
    'No checkout without RSA and paid lesson pack');
  const native=fs.readFileSync('app/src/main/java/com/termeh/piano/VerifiedPremiumLessons.java','utf8');
- assert(native.includes('!BuildConfig.DEBUG')&&native.includes('BuildConfig.BAZAAR_CHECKOUT_ENABLED'));
+ assert(native.includes('!BuildConfig.DEBUG')&&native.includes('BuildConfig.PAID_PACK_STAGED'),
+ 'Existing owned content should restore with valid signed RSA+AES even when NEW checkout is disabled');
+ const bridge=fs.readFileSync('app/src/main/java/com/termeh/piano/BazaarBillingBridge.java','utf8');
+ assert(bridge.includes('&& BuildConfig.BAZAAR_CHECKOUT_ENABLED'),
+ 'Only a separate live-sales gate may initiate NEW Bazaar charges');
+ assert(bridge.includes('VerifiedPremiumLessons.enabled()'),
+ 'Sale enablement must ALSO require the authentic paid lesson pack');
  assert(native.includes('isOwnedOffline()'),'Paid content must be owned in native Android Keystore');
  assert(native.includes('PremiumPackReader.decrypt('),'AES tamper checks must gate lesson delivery');
  console.log('PASS: full curriculum encrypted with disposable key, never shipped in plaintext, native ownership guard; checkout opt-in OFF by default.');
