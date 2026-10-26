@@ -207,6 +207,10 @@ public class MainActivity extends ComponentActivity {
     @Override protected void onResume() {
         super.onResume();
         if (support != null) support.enforceCachedPolicy();
+        // A parent may have returned from the Bazaar app after a refund or
+        // account change. Revalidate on foreground instead of keeping stale
+        // premium lessons until a full restart; no checkout is initiated.
+        if (billing != null) billing.recheckOwnershipOnResume();
     }
 
     @Override public void onBackPressed() {
