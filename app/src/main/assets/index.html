@@ -297,13 +297,13 @@
                 <span>مود کلید سل</span>
             </button>
 
-            <button id="modeTab-bass" onclick="switchGameMode('bass')" aria-disabled="true" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
+            <button id="modeTab-bass" onclick="switchGameMode('bass')" data-locked="true" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
                 <span class="text-2xl leading-none">𝄢</span>
                 <span>مود کلید فا</span>
                 <span id="modeAccess-bass" class="text-[10px] leading-tight" aria-live="polite">🔒 خرید لازم</span>
             </button>
 
-            <button id="modeTab-rhythm" onclick="switchGameMode('rhythm')" aria-disabled="true" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
+            <button id="modeTab-rhythm" onclick="switchGameMode('rhythm')" data-locked="true" class="btn-cartoon py-2.5 px-2 rounded-2xl font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1 border-b-4 transition-all bg-white/90 text-purple-900 border-purple-300 shadow">
                 <span class="text-2xl leading-none">⏱️</span>
                 <span>کشش نت‌ها</span>
                 <span id="modeAccess-rhythm" class="text-[10px] leading-tight" aria-live="polite">🔒 خرید لازم</span>
@@ -2709,7 +2709,7 @@ window.refreshPremiumModeTabs=function(){
     tab.classList.toggle('opacity-55',!owned);
     tab.classList.toggle('border-emerald-400',owned&&!ready);
     tab.classList.toggle('bg-emerald-100',owned&&!ready);
-    tab.setAttribute('aria-disabled',String(!ready));
+    tab.setAttribute('data-locked',String(!ready));
     tab.setAttribute('aria-label',(mode==='bass'?(en?'Bass clef':'کلید فا'):(en?'Note durations':'کشش نت‌ها'))+' — '+(ready?(en?'Ready':'آماده'):owned?(en?'Purchased; finish treble lessons':'خرید تأیید شد؛ بعد از کلید سل'):(en?'Requires lifetime purchase':'نیازمند خرید دائمی')));
     badge.textContent=ready?(en?'✅ Ready':'✅ آماده'):owned?(en?'✅ Owned · after treble':'✅ خریداری شد · بعد از کلید سل'):(en?'🔒 Premium':'🔒 خرید لازم');
   }
