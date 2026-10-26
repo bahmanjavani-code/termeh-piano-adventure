@@ -148,7 +148,7 @@ const { chromium }=require('playwright-core');
     await page.locator('#parentHubGate button').click();
     assert(await page.locator('#parentHubOptions').isVisible(),'Parent gate not passable');
     await assertEnglishScreen('parent account panel');
-    assert(await page.locator('#parentHubOptions button').first().isDisabled(),'Fake sign in must be disabled');
+    assert(await page.locator('#parentHubOptions button:has-text("Sign in")').isDisabled(),'Fake sign in must be disabled');
     assert(await page.locator('#premiumOffer').isVisible(),'One-time premium offer missing in parent hub');
     assert(await page.locator('#buyPremiumBtn').isDisabled(),'Payment MUST stay disabled until Bazaar billing integration');
     assert(await page.locator('#restorePremiumBtn').isDisabled(),'Restore MUST stay disabled until verified purchases are possible');
