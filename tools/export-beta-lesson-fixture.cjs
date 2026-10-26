@@ -30,7 +30,7 @@ function getBetaLessonFixture(){
     bass:data.bass,
     durations:data.durations
   }));
-  if(fixture.trebleExtra.length!==6||fixture.bass.length!==10||fixture.durations.length!==4)
+  if(fixture.trebleExtra.length!==7||fixture.bass.length!==10||fixture.durations.length!==4)
     throw Error('Unexpected beta fixture structure');
   const allCodes=[...fixture.trebleExtra,...fixture.bass].map(n=>n.code);
   if(allCodes.some(x=>!/^[A-G][2-5]$/.test(x)))throw Error('Invalid note code');
