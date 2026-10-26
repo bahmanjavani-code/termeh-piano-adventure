@@ -63,6 +63,6 @@ assert(html.includes('meterBarsCompleted: state.meterBarsCompleted'),'Completed 
 assert(html.includes('if(state.meterBarSolved||state.meterBuiltNotes.length===0)return;'),
   'Undo must not retract already rewarded questions');
 assert(html.includes('rewardCompletedExercise();'),'Meter exercise rewards must use existing slow coin economy');
-assert(html.includes('دو ضربِ سیاه نقطه‌دار'),'App must explicitly teach the correct 6/8 beat grouping');
+assert(html.includes('۲ ضربِ سیاه نقطه‌دار'),'App must explicitly teach the correct 6/8 beat grouping');
 assert(html.includes('چهار نت سیاه'),'App must explicitly teach whole/quarter duration equivalence');
 console.log('PASS: exact time signatures, 6/8 compound beat subdivisions, no overfilling, progressive mixed measures, safe state and rewards.');
