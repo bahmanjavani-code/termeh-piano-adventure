@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 32,
+  "latestVersionCode": 33,
   "storeUrl": "",
-  "notes": "1.3.27-beta signed Bazaar QA: fix literal backslash-n text in Persian/English native parent payment dialogs. Store ownership checks and one-run authorized charge guard remain unchanged. Real payment is blocked until the marketplace SKU is active. Do not publish before merchant transaction, restore and refund QA."
+  "notes": "Termeh Piano 1.0.0 (build 33): original permanent signing certificate; free five-note learning; Persian/English content and approved panda launcher icon; official Cafe Bazaar lifetime purchase and restore in the parent section when the SKU is active. New checkout remains OFF for ordinary CI builds, and real payment requires a separately approved controlled candidate. Never publish before purchase, restore and refund QA."
 }
