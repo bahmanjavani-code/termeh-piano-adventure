@@ -26,6 +26,8 @@ jobs:
           node-version: '22'
       - name: Run music theory and privacy checks
         run: node tests/quality.test.cjs
+      - name: Test long-term note mastery, adaptive drill and balanced final assessment
+        run: node tests/mastery-engine.test.cjs
       - name: Verify AES-GCM premium content-pack prototype (developer tooling only)
         run: node tests/secure-premium-pack.test.cjs
       - name: Test safe offline premium entitlement core (mocks only, never charge)
