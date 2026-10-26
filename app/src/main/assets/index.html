@@ -386,16 +386,10 @@
                     <!-- Decorative Piano Top Red Felt Strip -->
                     <div class="w-full h-2 bg-rose-600 rounded-full mb-1.5 opacity-90"></div>
 
-                    <!-- Black Keys Row -->
-                    <div class="relative w-full h-0 pointer-events-none">
-                        <button onclick="playDecorativeSharp(0)" class="pointer-events-auto piano-key-black absolute top-0 left-[10.5%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
-                        <button onclick="playDecorativeSharp(1)" class="pointer-events-auto piano-key-black absolute top-0 left-[24.8%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
-                        <button onclick="playDecorativeSharp(2)" class="pointer-events-auto piano-key-black absolute top-0 left-[53.4%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
-                        <button onclick="playDecorativeSharp(3)" class="pointer-events-auto piano-key-black absolute top-0 left-[67.7%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
-                        <button onclick="playDecorativeSharp(4)" class="pointer-events-auto piano-key-black absolute top-0 left-[82%] w-[7%] h-16 sm:h-20 rounded-b-xl"></button>
-                    </div>
-
-                    <!-- 7 White Keys (Do, Re, Mi, Fa, Sol, La, Si) -->
+                    <!-- Only actual white-note answer keys are interactive.
+                         Old decorative sharps overlaid and blocked white notes
+                         on narrow phones and were not in this curriculum. -->
+                    <!-- Responsive white keys labelled with pitch + octave -->
                     <div id="pianoKeysGrid" class="grid gap-1.5 sm:gap-2" role="group" aria-label="Piano keys by pitch and octave">
                         <!-- Generated dynamically by JS -->
                     </div>
