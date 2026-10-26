@@ -154,7 +154,17 @@ assert(billing.includes('LIFETIME_SKU.equals(purchase.getProductId())'),'Owned S
 assert(billing.includes('PACKAGE_ID.equals(purchase.getPackageName())'),'Owned package must be checked');
 assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),'Refunded purchases must not be treated as owned');
 assert(!billing.includes('payment.consumeProduct('),'Lifetime products must NEVER be consumed');
-assert(!billing.includes('payment.purchaseProduct('),'Checkout must not start until server verifier is ready');
+assert(billing.includes('payment.purchaseProduct('),'Native Poolakey lifetime checkout callback missing');
+assert(billing.includes('VerifiedPremiumLessons.enabled()'),
+  'No charge unless native checkout, signed ownership and encrypted pack are enabled');
+assert(billing.includes('new AlertDialog.Builder(activity)'),
+  'A purchase requires a parent confirmation in Android native UI');
+assert(billing.includes('purchase.getPurchaseState() == PurchaseState.PURCHASED'),
+  'Reject refunded and pending purchases');
+assert(billing.includes('getInAppSkuDetails('),
+  'Public Bazaar SKU must exist and return a verified catalog price before a buy button is enabled');
+assert(billing.includes('restoreVerifiedPurchase();'),
+  'Re-query purchased inventory after native purchase success, never trust JS or callback alone');
 assert(!billing.includes('localStorage'),'Local storage is not a payment entitlement');
 assert(html.includes('id="buyPremiumBtn"') && html.includes('id="restorePremiumBtn"'));
 assert(/id="buyPremiumBtn"[^>]*disabled/.test(html),'Unverified purchase flow must be disabled');
