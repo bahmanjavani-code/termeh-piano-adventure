@@ -261,15 +261,16 @@ const { chromium }=require('playwright-core');
     assert.equal(await page.evaluate(()=>state.trebleNoteTier),3);
     assert.deepEqual(await page.evaluate(()=>getActiveTrebleNotes().map(n=>n.code)),['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5']);
     await assertEnglishScreen('upper treble lesson completion');
+    await page.locator('#learningMilestoneContinue').click();
+    await page.reload();
+    assert.equal(await page.evaluate(()=>state.trebleNoteTier),3,'Full preview tier must persist across reload');
     assert.equal(await page.locator('[data-pitch]').count(),12,'High-note stage requires 12 separate octave-specific piano keys');
     assert(await page.locator('#pianoKey-C4').count()===1);
     assert(await page.locator('#pianoKey-C5').count()===1);
     assert.notEqual(await page.locator('#pianoKey-C4').getAttribute('aria-label'),
                     await page.locator('#pianoKey-C5').getAttribute('aria-label'),
       'Piano labels must tell C4 apart from C5');
-    await page.locator('#learningMilestoneContinue').click();
-    await page.reload();
-    assert.equal(await page.evaluate(()=>state.trebleNoteTier),3,'Full preview tier must persist across reload');
+
     // Manual review from the menu should not jump questions or reveal an exam answer.
     const earlierNote=await page.evaluate(()=>state.currentStaffNote.code);
     await page.locator('#appMenuToggle').click();
