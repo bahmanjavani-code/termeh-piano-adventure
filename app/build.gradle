@@ -43,23 +43,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
-        // Private, signed QA build for the creator's family device only.
-        // Same package ID and approved permanent signing key preserve local
-        // progress on upgrade. NEVER upload family APK to Cafe Bazaar.
-        // Public commercial release still excludes the debug preview fixtures.
-        family {
-            initWith release
-            matchingFallbacks = ['release']
-            debuggable false
-            signingConfig signingConfigs.release
-        }
-    }
-    sourceSets {
-        family {
-            // Temporary, noncommercial complete practice materials.
-            // This is NOT evidence of paid ownership or a commercial license.
-            assets.srcDirs = ['src/debug/assets']
-        }
     }
 }
 
