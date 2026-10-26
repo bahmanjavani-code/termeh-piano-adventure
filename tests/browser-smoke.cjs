@@ -19,6 +19,7 @@ const { chromium }=require('playwright-core');
     dirs.push(dir);
     fs.copyFileSync('app/src/main/assets/index.html',path.join(dir,'index.html'));
     fs.copyFileSync('app/src/main/assets/offline.css',path.join(dir,'offline.css'));
+    fs.copyFileSync('app/src/main/assets/mastery-engine.js',path.join(dir,'mastery-engine.js'));
     fs.copyFileSync('app/src/'+variant+'/assets/premium-preview.js',path.join(dir,'premium-preview.js'));
     return 'file://'+path.join(dir,'index.html');
   }
@@ -114,26 +115,40 @@ const { chromium }=require('playwright-core');
     await page.evaluate(()=>openTrophyModal());
     await assertEnglishScreen('trophies');
     await page.evaluate(()=>closeTrophyModal());
-    // Simulate previous legitimate practice history to exercise assessment UI.
+    // An easy two-minute run must never make the child 'finish' treble.
+    await page.evaluate(()=>{
+      state.mastery.treble.attempts=Array.from({length:20},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:500,at:Date.now()}));
+      updateExamButton();
+    });
+    assert(await page.locator('#examStartBtn').isDisabled(),'20 perfect fast responses must NOT unlock exam');
+    assert.equal(await page.evaluate(()=>getMastery('treble').stage),1,'Short session must still be practice stage 1');
+    assert((await page.locator('#masteryStats').innerText()).includes('20 questions'),'Mastery dashboard must report real practice, not fake levels');
+    // Even 80 flawless questions are NOT enough for the new 150-question fluency gate.
     await page.evaluate(()=>{
       state.mastery.treble.attempts=Array.from({length:80},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:1200,at:Date.now()}));
+      updateExamButton();
+    });
+    assert(await page.locator('#examStartBtn').isDisabled(),'80 easy answers must NOT complete the new curriculum');
+    // Simulate sustained balanced practice (not a purchase or an entitlement).
+    await page.evaluate(()=>{
+      state.mastery.treble.attempts=Array.from({length:150},(_,i)=>({correct:true,note:TREBLE_NOTES[i%TREBLE_NOTES.length].code,ms:1600,at:Date.now()}));
       updateExamButton();
     });
     assert(await page.locator('#examStartBtn').isEnabled(),'Assessment should be available after mastery');
     await page.locator('#examStartBtn').click();
     assert(await page.evaluate(()=>state.exam&&state.exam.active),'Exam did not begin');
     await page.evaluate(()=>{for(let i=0;i<20;i++)submitExamAnswer(state.currentStaffNote.keyId)});
-    assert(await page.evaluate(()=>state.mastery.treble.examPassed),'Independent assessment did not pass');
+    assert(await page.evaluate(()=>state.mastery.treble.examPassed&&state.mastery.treble.certifiedVersion===2),'New independent assessment did not grant version-2 skill certification');
     await page.locator('#modeTab-bass').click();
     assert.equal(await page.evaluate(()=>state.mode),'bass','Bass did not unlock after assessment');
     await assertEnglishScreen('bass clef');
     await page.evaluate(()=>{
-      state.mastery.bass.attempts=Array.from({length:80},(_,i)=>({correct:true,note:BASS_NOTES[i%BASS_NOTES.length].code,ms:1200,at:Date.now()}));
+      state.mastery.bass.attempts=Array.from({length:150},(_,i)=>({correct:true,note:BASS_NOTES[i%BASS_NOTES.length].code,ms:1200,at:Date.now()}));
       updateExamButton();
     });
     await page.locator('#examStartBtn').click();
     await page.evaluate(()=>{for(let i=0;i<20;i++)submitExamAnswer(state.currentStaffNote.keyId)});
-    assert(await page.evaluate(()=>state.mastery.bass.examPassed),'Bass assessment failed to save');
+    assert(await page.evaluate(()=>state.mastery.bass.examPassed&&state.mastery.bass.certifiedVersion===2),'Bass assessment failed to save version-2 certification');
     await page.locator('#modeTab-rhythm').click();
     assert.equal(await page.evaluate(()=>state.mode),'rhythm');
     await page.evaluate(()=>switchRhythmSubMode('quiz'));
@@ -165,6 +180,6 @@ const { chromium }=require('playwright-core');
     await freePage.locator('#modeTab-bass').click();
     assert(await freePage.locator('#unlockOverlay').evaluate(x=>x.classList.contains('open')),'Free release must show locked premium lesson notice');
     assert(!errors.length,'Browser JavaScript errors: '+errors.join(' | '));
-    console.log('PASS: English flow, correct/wrong note, parent gate, independent exams, bass/rhythm unlock and persistence.');
+    console.log('PASS: English flow, parent gate, 20/80-question false-completion regression, 150-question fluency and independent treble/bass exams.');
   }finally{await browser.close();for(const dir of dirs)fs.rmSync(dir,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exit(1)});
