@@ -2698,10 +2698,14 @@ window.showUnlock=function(mode){
   const title=document.getElementById('unlockTitle');
   const text=document.getElementById('unlockText');
   if(!window.TERMEH_DEBUG_PREMIUM&&!window.TERMEH_NATIVE_PREMIUM){
-    title.textContent=en?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒';
-    text.textContent=en?
-      'Advanced lessons are locked in this free QA release. Real billing and restore must be fully tested before sales; starter lessons remain free.':
-      'درس‌های پیشرفته در این نسخه رایگان آزمایشی قفل‌اند. خرید و بازیابی واقعی تا پایان آزمایش‌ها فعال نیستند؛ درس‌های مقدماتی رایگان می‌مانند.';
+    const live=document.documentElement.getAttribute('data-termeh-billing')==='live';
+    title.textContent=live?(en?'Premium lessons — parents only 🔒':'درس‌های ویژه ـ ویژهٔ والدین 🔒'):
+      (en?'Premium lessons not available yet 🔒':'درس‌های ویژه هنوز فعال نیستند 🔒');
+    text.textContent=live?
+      (en?'Please ask a parent to review the optional lifetime upgrade in the protected Parent section. The five starter notes remain free; buying does not skip lessons.':
+        'برای بررسی خرید یک‌بارهٔ اختیاری، گوشی را به والدین بدهید تا از بخش محافظت‌شدهٔ والدین اقدام کنند. پنج نت اول رایگان است و خرید جای تمرین را نمی‌گیرد.'):
+      (en?'Advanced lessons are not available in this free QA release; no payment is possible. Starter lessons remain free.':
+        'درس‌های پیشرفته در این نسخهٔ آزمایشی هنوز عرضه نشده‌اند و پرداختی انجام نمی‌شود؛ درس‌های مقدماتی رایگان هستند.');
     return;
   }
   title.textContent=en?'New lesson locked 🔒':'درس جدید هنوز قفل است 🔒';
@@ -3056,7 +3060,8 @@ html[data-termeh-theme=dark] #appMenuToggle{background:#1e293b;color:#f5f3ff;bor
       <p><span class="only-fa">طراح، توسعه‌دهنده و صاحب امتیاز محتوای اختصاصی: بهمن جوانی</span><span class="only-en">Creator, developer and rights holder for original content: Bahman Javani</span></p>
       <p>© 2026 Bahman Javani · Termeh Piano Adventure — <span class="only-fa">تمامی حقوق محتوای اختصاصی محفوظ است.</span><span class="only-en">All rights in original content reserved.</span></p>
       <p><span class="only-fa">مجوز کتابخانه‌ها، فونت‌ها و اجزای متعلق به اشخاص ثالث تابع شرایط صاحبان آن‌هاست و باید پیش از انتشار تجاری بررسی شود.</span><span class="only-en">Third-party libraries, fonts and assets retain their own licensing terms, which must be reviewed before commercial release.</span></p>
-      <p>© 2026 · <span class="only-fa">نسخهٔ آزمایشی کافه‌بازار؛ حساب آنلاین و خرید درون‌برنامه‌ای واقعی هنوز فعال نیستند.</span><span class="only-en">Cafe Bazaar beta candidate · online accounts and real in-app checkout are not yet active.</span></p>
+      <p class="termehBillingOffOnly">© 2026 · <span class="only-fa">نسخهٔ آزمایشی کافه‌بازار؛ حساب آنلاین و خرید درون‌برنامه‌ای واقعی فعال نیستند.</span><span class="only-en">Cafe Bazaar beta candidate · online accounts and real checkout are not active.</span></p>
+      <p class="termehBillingLiveOnly">© 2026 · <span class="only-fa">نسخهٔ تست کنترل‌شدهٔ بازار؛ حساب آنلاین کودک وجود ندارد و خرید واقعی فقط به درخواست آگاهانهٔ والدین ممکن است.</span><span class="only-en">Controlled Bazaar checkout test · no child account; real purchase requires an explicit parent request.</span></p>
     </section>
     <button type="button" class="termehMenuAction" onclick="closeTermehInfo()">🎹 <span class="only-fa">بازگشت به بازی</span><span class="only-en">Return to game</span></button>
   </div>
