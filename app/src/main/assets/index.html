@@ -1210,7 +1210,7 @@
         }
 
         function loadNewStaffQuestion() {
-            const pool = state.mode === 'treble' ? TREBLE_NOTES : BASS_NOTES;
+            const pool = state.mode === 'treble' ? getActiveTrebleNotes() : BASS_NOTES;
             const examNote = state.exam && state.exam.active ? state.exam.questions[state.exam.index] : null;
             // Adapt questions toward notes that were missed or answered slowly.
             // The exam uses an independent, balanced schedule instead.
@@ -1233,7 +1233,11 @@
                     clefBadge.textContent = isEnglish() ? 'Treble clef 𝄞' : 'کلید سل 𝄞';
                     clefBadge.className = 'bg-rose-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm';
                 }
-                if (levelText) {const stage=getMastery('treble').stage;levelText.textContent=isEnglish()?`Practice stage ${Math.min(3,stage)}/3 (Treble)`:`تمرین ${Math.min(3,stage)} از ۳ (کلید سل)`;}
+                if(levelText){
+                    const stage=getMastery('treble').stage,notes=getActiveTrebleNotes().length;
+                    levelText.textContent=isEnglish()?`Practice stage ${Math.min(3,stage)}/3 · ${notes} notes`:
+                        `تمرین ${Math.min(3,stage)} از ۳ · ${notes} نت`;
+                }
             } else {
                 if (clefBadge) {
                     clefBadge.textContent = isEnglish() ? 'Bass clef 𝄢' : 'کلید فا 𝄢';
@@ -1262,6 +1266,7 @@
         function goToNextStaffQuestion() {
             if (state.exam && state.exam.active) return;
             if (!state.staffQuestionSolved) return;
+            if(showUpcomingMilestone())return;
             loadNewStaffQuestion();
         }
 
@@ -1703,8 +1708,9 @@
             }
             const level=document.getElementById('levelProgressText');
             if(level && !(state.exam&&state.exam.active)){
-                level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3`:
-                    `تمرین ${Math.min(3,result.stage)} از ۳`;
+                const noteCount=state.mode==='treble'?getActiveTrebleNotes().length:result.noteCount;
+                level.textContent=en?`Practice stage ${Math.min(3,result.stage)}/3 · ${noteCount} notes`:
+                    `تمرین ${Math.min(3,result.stage)} از ۳ · ${noteCount} نت`;
             }
         }
         let masteryDetailsTimer=null;
@@ -1756,7 +1762,7 @@
             if(state.exam && state.exam.active){state.exam=null;loadNewStaffQuestion();updateExamButton();return;}
             const score=getMastery(state.mode);
             if(!score.ready || score.passed)return;
-            const pool=state.mode==='treble'?TREBLE_NOTES:BASS_NOTES;
+            const pool=state.mode==='treble'?getActiveTrebleNotes():BASS_NOTES;
             state.exam={active:true,mode:state.mode,questions:TermehMasteryEngine.buildBalancedExam(pool,20),index:0,correct:0,busy:false,answers:[]};
             loadNewStaffQuestion();updateExamButton();
         }
@@ -1795,13 +1801,20 @@
             saveState();
             updateExamButton();
         }
+        function getActiveTrebleNotes(){
+            return TermehNoteCurriculum.activeNotes(TREBLE_NOTES,state.trebleNoteTier);
+        }
         function getMastery(mode) {
             const data=state.mastery[mode]||{attempts:[],examPassed:false,certifiedVersion:0};
-            const pool=mode==='treble'?TREBLE_NOTES:BASS_NOTES;
+            const pool=mode==='treble'?getActiveTrebleNotes():BASS_NOTES;
             const wasPassed=state.mastery[mode]&&state.mastery[mode].examPassed===true;
-            return TermehMasteryEngine.evaluate(
+            const result=TermehMasteryEngine.evaluate(
                 data.attempts,pool.map(n=>n.code),wasPassed,data.certifiedVersion||0
             );
+            // A partial preview curriculum cannot start the full-note final exam.
+            // Commercial paid content remains governed by the separate store gate.
+            const awaitingMore=mode==='treble'&&state.trebleNoteTier<TermehNoteCurriculum.maxTier(TREBLE_NOTES);
+            return {...result,ready:result.ready&&!awaitingMore};
         }
 
         function switchGameMode(newMode) {
