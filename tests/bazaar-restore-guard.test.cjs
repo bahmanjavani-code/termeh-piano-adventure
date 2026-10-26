@@ -16,7 +16,7 @@ const section=java.slice(start,end);
 assert.match(section,/activity\.runOnUiThread\(/);
 assert.match(section,/if \(destroyed\) return;/);
 assert.match(section,/!connected \|\| payment == null/);
-assert.match(section,/AtomicBoolean/); // safe re-entrancy guard
+assert.match(java,/new AtomicBoolean\(false\)/); // safe re-entrancy guard
 assert.match(section,/restoreInProgress\.compareAndSet\(false, true\)/);
 assert.match(section,/payment\.getPurchasedProducts\(callback ->/);
 assert.match(section,/callback\.querySucceed\(purchases ->/);
