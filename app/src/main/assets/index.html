@@ -614,6 +614,7 @@
     <!-- This file is variant-specific: debug contains test fixtures; release contains NO premium lessons. -->
     <script src="premium-preview.js"></script>
     <script src="mastery-engine.js"></script>
+    <script src="rewards-engine.js"></script>
     <script>
         /**************************************************************
          * 1. PERSISTENT STATE & REWARD DATA
@@ -631,6 +632,8 @@
             hintEnabled: true,
             selectedMascotId: 'panda',
             unlockedBadges: ['starter_star'],
+            equippedBadgeId: 'starter_star',
+            rewardPendingQuestions: 0,
             currentStaffNote: null,
             staffQuestionSolved: false,
             wrongKeysPressed: new Set(),
@@ -672,10 +675,25 @@
                     state.levelRhythm = parsed.levelRhythm || 1;
                     state.selectedMascotId = parsed.selectedMascotId || 'panda';
                     state.unlockedBadges = Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : ['starter_star'];
+                    // Preserve legacy trophies/coins; display previously owned rewards too.
+                    if(!state.unlockedBadges.includes('starter_star')) state.unlockedBadges.unshift('starter_star');
+                    const ownedKnown=state.unlockedBadges.filter(id=>TROPHIES.some(t=>t.id===id));
+                    state.equippedBadgeId=ownedKnown.includes(parsed.equippedBadgeId)
+                        ? parsed.equippedBadgeId:(ownedKnown[ownedKnown.length-1]||'starter_star');
+                    state.rewardPendingQuestions=Number.isSafeInteger(parsed.rewardPendingQuestions)
+                        &&parsed.rewardPendingQuestions>=0&&parsed.rewardPendingQuestions<4?parsed.rewardPendingQuestions:0;
                 }
             } catch (e) {
                 console.warn('Could not load saved state:', e);
             }
+        }
+
+        // Coins are slower to earn and are never sold for real money.
+        // One coin every four completed exercises, regardless of mistakes or speed.
+        function rewardCompletedExercise() {
+            const result=TermehRewards.finishQuestion(state.rewardPendingQuestions);
+            state.rewardPendingQuestions=result.pending;
+            state.coins+=result.coins;
         }
 
         function saveState() {
@@ -688,7 +706,9 @@
                     levelBass: state.levelBass,
                     levelRhythm: state.levelRhythm,
                     selectedMascotId: state.selectedMascotId,
-                    unlockedBadges: state.unlockedBadges
+                    unlockedBadges: state.unlockedBadges,
+                    equippedBadgeId: state.equippedBadgeId,
+                    rewardPendingQuestions: state.rewardPendingQuestions
                 }));
             } catch (e) {
                 console.warn('Could not save state:', e);
@@ -729,15 +749,17 @@
             }
         ];
 
+        // Cosmetic rewards are earned over many short sessions. Star requirements
+        // reflect practice participation only; they never gate learning or purchases.
         const TROPHIES = [
-            { id: 'starter_star', name: 'نوازنده تازه‌کار', emoji: '🌟', cost: 0, desc: 'جایزه شروع ماجراجویی موسیقی!' },
-            { id: 'golden_piano', name: 'پیانوی طلایی', emoji: '🎹', cost: 20, desc: 'مخصوص بچه‌هایی که نت‌ها رو عالی می‌شناسن' },
-            { id: 'magic_violin', name: 'ویولن جادویی', emoji: '🎻', cost: 35, desc: 'ساز خوش‌صدای ارکستر کودکان' },
-            { id: 'rock_guitar', name: 'گیتار ستاره‌ای', emoji: '🎸', cost: 50, desc: 'جایزه قهرمان کلید سل و فا' },
-            { id: 'happy_drum', name: 'طبل ریتمیک', emoji: '🥁', cost: 70, desc: 'استاد شمردن ضرب و کشش نت‌ها' },
-            { id: 'gold_trumpet', name: 'ترومپت درخشان', emoji: '🎺', cost: 90, desc: 'ساز بادی شاد و پرانرژی' },
-            { id: 'mozart_crown', name: 'تاج موتسارت کوچولو', emoji: '👑', cost: 120, desc: 'بالاترین نشان افتخار نت‌آموز!' },
-            { id: 'rainbow_trophy', name: 'جام رنگین‌کمان', emoji: '🏆', cost: 150, desc: 'قهرمان تمام مودهای پیانو!' }
+            { id: 'starter_star', name: 'نوازنده تازه‌کار', emoji: '🌟', cost: 0, minStars: 0, desc: 'یادگاری شروع ماجراجویی موسیقی!' },
+            { id: 'golden_piano', name: 'پیانوی طلایی', emoji: '🎹', cost: 12, minStars: 40, desc: 'جایزه تمرین پیوسته و کشف نت‌ها' },
+            { id: 'magic_violin', name: 'ویولن جادویی', emoji: '🎻', cost: 22, minStars: 100, desc: 'یادگاری پشتکار در بازی‌های موسیقی' },
+            { id: 'rock_guitar', name: 'گیتار ستاره‌ای', emoji: '🎸', cost: 34, minStars: 180, desc: 'جایزه جلسه‌های متعدد تمرین' },
+            { id: 'happy_drum', name: 'طبل ریتمیک', emoji: '🥁', cost: 48, minStars: 280, desc: 'نشانه ادامه دادن تمرین و مرور' },
+            { id: 'gold_trumpet', name: 'ترومپت درخشان', emoji: '🎺', cost: 65, minStars: 400, desc: 'یادگاری کوشش بلندمدت موسیقایی' },
+            { id: 'mozart_crown', name: 'تاج موتسارت کوچولو', emoji: '👑', cost: 85, minStars: 550, desc: 'نشان ویژه و تزئینی برای تمرین فراوان' },
+            { id: 'rainbow_trophy', name: 'جام رنگین‌کمان', emoji: '🏆', cost: 110, minStars: 750, desc: 'جایزه تزئینی همراهی در سفر موسیقی' }
         ];
 
         /**************************************************************
@@ -1064,7 +1086,7 @@
                     state.staffQuestionSolved = true;
                     state.streak += 1;
                     state.stars += 1;
-                    state.coins += 5;
+                    rewardCompletedExercise();
 
                     // One correct answer earns rewards, NOT a completed level.
                     // Progress follows first-try accuracy, speed, balanced note
@@ -1379,7 +1401,7 @@
                 if (!state.rhythmQuizSolved) {
                     state.rhythmQuizSolved = true;
                     state.stars += 1;
-                    state.coins += 5;
+                    rewardCompletedExercise();
                     state.streak += 1;
                     state.levelRhythm += 1;
                     saveState();
@@ -1537,7 +1559,7 @@
                 if (!state.holdChallengeSolved) {
                     state.holdChallengeSolved = true;
                     state.stars += 1;
-                    state.coins += 5;
+                    rewardCompletedExercise();
                     state.streak += 1;
                     saveState();
                     updateHeaderUI();
@@ -1775,6 +1797,7 @@
             document.getElementById('coinCount').textContent = state.coins;
             document.getElementById('streakCount').textContent = state.streak;
             document.getElementById('unlockedBadgeCount').textContent = `${state.unlockedBadges.length}/${TROPHIES.length}`;
+            showEquippedTrophy();
         }
 
         function toggleHintMode() {
@@ -1842,6 +1865,25 @@
             setMascotBubble(localStorage.getItem('termeh_language')==='en' ? 'Hello from your buddy!' : `سلام از طرف ${m.name}!`, localStorage.getItem('termeh_language')==='en' ? 'Let’s learn piano together! 🎹' : m.greeting, 'joy');
             playSuccessSound();
             closeMascotModal();
+        }
+
+        function showEquippedTrophy() {
+            const trophy=TROPHIES.find(t=>t.id===state.equippedBadgeId
+                &&state.unlockedBadges.includes(t.id))||TROPHIES[0];
+            for(const id of ['equippedTrophyStaff','equippedTrophyPiano']) {
+                const slot=document.getElementById(id);
+                if(slot){slot.textContent=trophy.emoji;slot.setAttribute('title',isEnglish()?EN_TROPHIES[trophy.id][0]:trophy.name);}
+            }
+            const badge=document.getElementById('shopEquippedPreview');
+            if(badge)badge.textContent=(isEnglish()?'On your piano: ':'روی پیانوی تو: ')+trophy.emoji+' '+(isEnglish()?EN_TROPHIES[trophy.id][0]:trophy.name);
+        }
+        function equipTrophy(trophyId) {
+            if(!state.unlockedBadges.includes(trophyId)||!TROPHIES.some(t=>t.id===trophyId))return;
+            state.equippedBadgeId=trophyId;
+            saveState();
+            showEquippedTrophy();
+            closeTrophyModal(); // Reveal the reward on the real staff and piano immediately.
+            playSuccessSound();
         }
 
         function openTrophyModal() {
