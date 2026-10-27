@@ -692,11 +692,38 @@ const { chromium }=require('playwright-core');
       'Purchased lessons must preserve earned stars');
     assert.equal(await freshPaid.evaluate(()=>state.mastery.treble.examPassed),false,
       'Passing just five free notes must NOT certify the complete twelve-note curriculum');
+    // UI ONLY: after the verified native lesson callback, a customer who
+    // owns the one-time product must NOT see a second purchase prompt.
+    await freshPaid.evaluate(()=>window.termehBazaarOffer('offer_ready','990,000 ریال'));
+    assert.equal(await freshPaid.locator('#realBazaarBuyBtn').evaluate(x=>x.hidden),true,
+      'Already-owned lifetime customers must never see another buy button');
+    assert(await freshPaid.locator('#realBazaarBuyBtn').isDisabled(),
+      'Owned lifetime product must disable checkout even if SKU stays active');
+    assert((await freshPaid.locator('#realBazaarPrice').textContent()).includes('already owned'),
+      'Parent section must positively acknowledge prior ownership');
+    await freshPaid.evaluate(()=>{
+      window.__checkoutCalls=0;
+      document.querySelector('#parentHubOptions').hidden=false;
+      document.querySelector('#parentHub').classList.add('open');
+      window.TermehBazaar={beginLifetimePurchase:()=>window.__checkoutCalls++};
+      window.termehBuyFromBazaar();
+    });
+    assert.equal(await freshPaid.evaluate(()=>window.__checkoutCalls),0,
+      'Owned customers must not reach native new-payment bridge from parent button');
+
     assert.equal(await freshPaid.evaluate(()=>isModeUnlocked('bass')),false,
       'Paying once must not bypass gradual educational requirements');
     await freshPaid.evaluate(()=>{
       window.termehNativePremiumRevoked();
     });
+    assert.equal(await freshPaid.locator('#realBazaarBuyBtn').evaluate(x=>x.hidden),false,
+      'After a simulated confirmed refund, official live SKU purchase may be offered again');
+    assert.equal(await freshPaid.locator('#realBazaarBuyBtn').isDisabled(),false,
+      'Refunded user can opt to buy again (not automatically charged)');
+    assert((await freshPaid.locator('#realBazaarPrice').textContent()).includes('Official Cafe Bazaar price:'),
+      'Previously owned badge must not remain after confirmed refund');
+    assert.equal(await freshPaid.evaluate(()=>window.__checkoutCalls),0,
+      'Refund state transition itself must never launch payment');
     assert.equal(await freshPaid.evaluate(()=>TREBLE_NOTES.length),5);
     assert.equal(await freshPaid.evaluate(()=>BASS_NOTES.length),0);
     assert.equal(await freshPaid.evaluate(()=>state.stars),22,
