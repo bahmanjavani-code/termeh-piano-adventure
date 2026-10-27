@@ -963,6 +963,7 @@
             if(state.mode!=='treble' && !isModeUnlocked(state.mode))state.mode='treble';
             switchGameMode(state.mode);
             if(typeof window.refreshPremiumModeTabs==='function')window.refreshPremiumModeTabs();
+            if(typeof window.refreshBazaarPurchaseOwnership==='function')window.refreshBazaarPurchaseOwnership();
             if(window.termehBazaarStatus)window.termehBazaarStatus('restore_active');
         };
         window.termehNativePremiumRevoked=function(){
@@ -973,6 +974,7 @@
             state.exam=null;
             switchGameMode('treble');
             if(typeof window.refreshPremiumModeTabs==='function')window.refreshPremiumModeTabs();
+            if(typeof window.refreshBazaarPurchaseOwnership==='function')window.refreshBazaarPurchaseOwnership();
             if(window.termehBazaarStatus)window.termehBazaarStatus('restore_no_purchase');
         };
 
@@ -2884,28 +2886,41 @@ window.termehRefreshRestoreAvailability=function(){
   if(buy && canRestore && buy.disabled)buy.hidden=true;
   if(restore)restore.hidden=!canRestore;
 };
+// Last known PUBLIC SKU state only. Never store purchase tokens or receipts.
+window.termehLastBazaarOffer={code:'offer_unavailable',publicPrice:''};
+window.refreshBazaarPurchaseOwnership=function(){
+  const last=window.termehLastBazaarOffer;
+  if(last && typeof window.termehBazaarOffer==='function')
+    window.termehBazaarOffer(last.code,last.publicPrice);
+};
 // Live SKU price is taken from Bazaar. Merely opening this screen
 // never starts checkout. The native bridge requires official store setup.
 window.termehBazaarOffer=function(code,publicPrice){
+  window.termehLastBazaarOffer={code,publicPrice};
   const offer=el('realBazaarOffer'),price=el('realBazaarPrice'),buy=el('realBazaarBuyBtn');
   if(!offer||!price||!buy)return;
   const en=localStorage.getItem('termeh_language')==='en';
   const known=(code==='offer_ready'||code==='offer_readonly')
     && typeof publicPrice==='string' && !!publicPrice;
-  const ready=known && code==='offer_ready';
-  offer.hidden=!(known||window.termehPriorOwnerRestoreSupported);
+  const owned=!!window.TERMEH_NATIVE_PREMIUM;
+  const ready=known && code==='offer_ready' && !owned;
+  offer.hidden=!(known||window.termehPriorOwnerRestoreSupported||owned);
   // A read-only catalog result must NEVER display an enabled buy button.
   buy.hidden=!ready;
   buy.disabled=!ready;
   const restore=el('realBazaarRestoreBtn');
   if(restore)restore.hidden=!window.termehPriorOwnerRestoreSupported;
-  price.textContent=known
-    ?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice
-      +(ready?'':(en?' (test: checkout off)':' (آزمایشی؛ خرید خاموش است)'))
-    :'';
+  price.textContent=owned
+    ?(en?'✅ Lifetime purchase already owned — no second payment needed':'✅ خرید دائمی شما فعال است؛ نیازی به پرداخت دوباره نیست')
+    :known
+      ?(en?'Official Cafe Bazaar price: ':'قیمت رسمی کافه‌بازار: ')+publicPrice
+        +(ready?'':(en?' (test: checkout off)':' (آزمایشی؛ خرید خاموش است)'))
+      :'';
 };
 window.termehBuyFromBazaar=function(){
   if(el('parentHubOptions').hidden||!el('parentHub').classList.contains('open'))return;
+  // No second checkout flow for a customer with a verified lifetime license.
+  if(window.TERMEH_NATIVE_PREMIUM){window.termehBazaarStatus('restore_active');return;}
   const api=window.TermehBazaar;
   if(!api){window.termehBazaarStatus('purchase_unavailable');return;}
   try{api.beginLifetimePurchase(localStorage.getItem('termeh_language')==='en'?'en':'fa');}

@@ -41,7 +41,7 @@ assert(!resumeCheck[1].includes('beginLifetimePurchase('),
 
 assert(html.includes('window.termehRefreshRestoreAvailability=function()'));
 assert(html.includes('api') || html.includes('sdk.canRestoreOwnedLessons()'));
-assert(html.includes('offer.hidden=!(known||window.termehPriorOwnerRestoreSupported)'),
+assert(html.includes('offer.hidden=!(known||window.termehPriorOwnerRestoreSupported||owned)'),
   'Read-only Bazaar price and restore path must remain visible when NEW sales are paused');
 assert(bridge.includes('private boolean catalogLookupConfigured()')
        && bridge.includes('if (!catalogLookupConfigured())')
@@ -51,6 +51,13 @@ assert(html.includes("const ready=known && code==='offer_ready'"),
   'Only an EXPLICIT live-purchase SKU state can reveal a buy button');
 assert(html.includes('buy.hidden=!ready') && html.includes('buy.disabled=!ready'),
   'A known price in a safe QA build can never enable a monetary action');
+assert(html.includes("const ready=known && code==='offer_ready' && !owned;"),
+  'A customer with a verified lifetime entitlement must not see a second checkout');
+assert(html.includes('window.refreshBazaarPurchaseOwnership()'),
+  'Verified ownership and refund revocation must update the offered SKU display');
+assert(html.includes("if(window.TERMEH_NATIVE_PREMIUM){window.termehBazaarStatus('restore_active');return;}"),
+  'Parent checkout action must stop immediately if lifetime ownership is already verified');
+
 
 assert(html.includes('button[hidden]{display:none!important}'),
   'Normal app button styles must never override browser hidden semantics');
