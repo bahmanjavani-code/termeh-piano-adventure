@@ -1,47 +1,70 @@
-# Termeh Piano — متن اولیه صفحه کافه‌بازار / Store Listing Draft
+# پیانوی ترمه — متن نهایی پیشنهادی پیشخان کافه‌بازار / ۱.۰.۲
 
-> **پیش‌نویس، نه متن انتشارشده.** تا قبل از اتصال کامل خرید، بازیابی و دریافت امن محتوای پولی و تست روی گوشی واقعی، برنامه نباید به شکل تجاری معرفی یا فروخته شود.
+> **آماده برای بازبینی صاحب برنامه، نه تأیید انتشار خودکار.** تا قبل از پاسخ استرداد، تأیید پشتیبان امن کلید امضا خارج از گوشی و موافقت نهایی مالک، انتشار عمومی انجام نشود.
 
-## اطلاعات ثابت
+## اطلاعات برنامه
 
-- نام برنامه: **Termeh Piano — پیانوی ترمه**
-- شناسه بسته: `com.termeh.piano` (پس از نخستین انتشار نباید عوض شود).
-- شیوه درآمدزاییِ مورد تأیید: **دانلود رایگان + خرید دائمیِ یک‌باره و اختیاری ۹۹٬۰۰۰ تومانی** برای درس‌های ویژه (مبلغ پیشنهادی تا تأیید نهایی کنسول کافه‌بازار).
-- شناسه پیشنهادی محصول: `termeh_premium_lifetime` — غیرمصرفی / non-consumable. این محصول هنوز باید در پنل بازار ساخته شود.
-- حریم خصوصی: `https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html`
-- شرایط استفاده: `https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html`
-- وب‌سایت رسمی: `https://bahmanjavani-code.github.io/termeh-piano-adventure/`
-- مخاطب هدف: **کودکان با نظارت والدین**. سن دقیق هدف باید توسط توسعه‌دهنده و مربی موسیقی تعیین شود؛ حدس نزنید.
+- نام فارسی در پیشخان: **پیانوی ترمه**
+- نام انگلیسی: **Termeh Piano**
+- شناسه برنامه: `com.termeh.piano`
+- نسخهٔ آمادهٔ فروشِ آزمایش‌شده در CI: **1.0.2 / versionCode 35**. فایل **دارای قابلیت پرداخت واقعی** باید از Artifact اجرای امضاشدهٔ [40455145834](https://github.com/bahmanjavani-code/termeh-piano-adventure/actions/runs/40455145834) انتخاب شود، نه Artifact پیش‌فرض پرداخت‌خاموش و نه فایل `.qa`.
+- نصب **رایگان** + گزینهٔ **خرید درون‌برنامه‌ای** در پنل: فعال.
+- محصول غیرمصرفی: `termeh_premium_lifetime`، «نسخه کامل پیانوی ترمه»، یک بار خرید دائمی؛ قیمت ثبت‌شده **۹۹۰٬۰۰۰ ریال / ۹۹٬۰۰۰ تومان**. قیمت نهایی را بازار هنگام پرداخت نمایش می‌دهد.
+- دسته: آموزش؛ نوع «برنامه کاربردی» مطابق انتخاب فعلی پیشخان. تصویر آیکون منتخب: دختر پشت پیانو همراه پاندای کارتونی.
+- سیاست حریم خصوصی: https://bahmanjavani-code.github.io/termeh-piano-adventure/privacy.html
+- شرایط استفاده: https://bahmanjavani-code.github.io/termeh-piano-adventure/terms.html
+- پشتیبانی: همان ایمیل ثبت‌شده در پیشخان؛ از درخواست نام یا مشخصات کودکان خودداری شود.
+- بدون اشتراک ماهانه، بدون الزام حساب کودک و بدون تبلیغات در برنامه (بر مبنای نسخه بررسی‌شده).
 
-## شرح کوتاه پیشنهادی (فقط پس از فعال‌شدن امکانات تجاری)
+## توضیح کوتاه فارسی
 
-🎹 یادگیری نت‌خوانی و ریتم با بازی، تمرین‌های کودکانه و دوستان موزیکال دوست‌داشتنی!
+🎹 بازی شاد آموزش نت‌خوانی پیانو برای کودکان؛ پنج نت رایگان، تمرین مرحله‌ای و درس‌های ویژهٔ اختیاری!
 
-## شرح فارسی پیشنهادی (نسخه منتشرشده، بعد از تکمیل پرداخت)
+## توضیح کامل فارسی برای کپی در پیشخان
 
-با Termeh Piano کودکان قدم‌به‌قدم با دنیای موسیقی آشنا می‌شوند. تمرین‌های تصویری، صدای نت‌ها و شخصیت‌های شاد به یادگیری جایگاه نت‌ها روی حامل کمک می‌کنند.
+🎹 **به ماجراجویی موسیقی «پیانوی ترمه» خوش آمدید!**
 
-**درس‌های مقدماتی کلید سل رایگان‌اند** و برای شروع نیازی به ساخت حساب نیست. والدین می‌توانند در صورت تمایل، درس‌های پیشرفتهٔ کلید سل، کلید فا و ریتم را با **یک خرید دائمی و غیرتکرارشونده** از طریق صفحه پرداخت رسمی کافه‌بازار فعال کنند. این خرید اشتراک ماهانه نیست.
+با پیانوی ترمه، کودکان در قالب بازی با صدای نت‌های پیانو، جایگاه آن‌ها روی خطوط حامل، کلید سل و فا، کشش نت‌ها و تمرین‌های سادهٔ ریتم آشنا می‌شوند. شخصیت‌های دوست‌داشتنی، ستاره‌ها و تمرین‌های مرحله‌ای یادگیری را جذاب‌تر می‌کنند.
 
-پس از خرید و فعال‌سازی اولیه اینترنتی، تمرین‌های اصلی بدون نیاز به اتصال دائمی به اینترنت اجرا می‌شوند. برای بازیابی خرید روی گوشی جدید یا پس از نصب مجدد، حساب کافه‌بازار و اینترنت لازم است.
+🎁 **شروع رایگان:** پنج نت آغازین کلید سل برای همه رایگان است؛ برای تمرین نیازی به ثبت‌نام یا ایجاد حساب کودک ندارید.
 
-پیشرفت آموزشی روی گوشی ذخیره می‌شود؛ لطفاً قبل از پاک‌کردن برنامه از محدودیت‌های بازیابی پیشرفت آگاه باشید. والدین می‌توانند از بخش ویژه، اطلاعات حریم خصوصی، گزارش خطا و وضعیت نسخه را ببینند.
+🔓 **نسخهٔ کامل اختیاری:** والدین می‌توانند یک بار از طریق پرداخت رسمی کافه‌بازار، دسترسی دائمی به درس‌های پیشرفته، کلید فا و کشش نت‌ها را تهیه کنند. **این خرید اشتراک نیست و تمدید خودکار ندارد.** قیمت رسمی قبل از پرداخت نشان داده می‌شود.
 
-**نکته:** نسخه آزمایشی هنوز هیچ پرداختی دریافت نمی‌کند و دکمه‌های خرید غیرفعال‌اند. این متن تا قبل از فعال‌شدن فروش نباید به‌عنوان امکانات بالفعل استفاده شود.
+📚 **نکتهٔ مهم:** خرید موفق، مالکیت درس‌های ویژه را فعال می‌کند؛ ولی شروع درس‌های کلید فا و کشش نت‌ها **پس از تکمیل مسیر تمرینی کلید سل و قبولی در آزمون پایانی** است. این قفل، شرط پیشرفت آموزشی است و به معنای ناموفق بودن خرید نیست. برای دسترسی قبلی، در بخش والدین گزینهٔ بازیابی خرید در نظر گرفته شده است.
 
-## English store copy draft (publish only after verified payment/restore)
+📴 **تمرین آفلاین:** تمرین‌ها بدون اتصال دائمی به اینترنت اجرا می‌شوند. خرید اولیه و بازیابی خرید پس از نصب دوباره یا تغییر گوشی، به اتصال اینترنت و همان حساب کافه‌بازار نیاز دارد.
 
-**Short:** Learn piano notes and rhythm through playful, child-friendly music lessons!
+💾 **توجه دربارهٔ پیشرفت کودک:** تمرین‌ها، امتیازها و پیشرفت آموزشی **فقط روی همان گوشی** ذخیره می‌شوند؛ حذف برنامه یا پاک‌کردن داده‌ها ممکن است آن‌ها را از بین ببرد. **بازیابی خرید دائمی، پیشرفت آموزشی پاک‌شده را برنمی‌گرداند.**
 
-**Long:** Termeh Piano introduces children to music reading through interactive note exercises, friendly characters, and musical rewards. Starter treble-clef lessons are free. Parents may optionally unlock advanced note-reading, bass clef and rhythm lessons through a single non-consumable lifetime purchase via Cafe Bazaar. This is not a recurring subscription. The initial purchase and restoration require Internet; unlocked music practice is designed for offline use afterward. Progress is stored locally. Visit the parent section for privacy, update checks and manually reviewed technical reports. Purchasing is disabled during beta testing.
+🔔 یادآور تمرین روزانه اختیاری است و فقط با تصمیم والدین فعال می‌شود. برنامه برای آموزش به مجوز دوربین، میکروفون یا مکان نیاز ندارد.
 
-## قبل از انتشار / Release checklist
+پیانوی ترمه یک بازی **کمک‌آموزشی** است و جای آموزش مربی یا تمرین عملی با ساز را نمی‌گیرد.
 
-1. انتشار یک بسته APK/AAB امضاشده با کلید دائمی و نگهداری امن کلید (نه فایل دیباگ).
-2. اتصال Poolakey و ساخت SKU یک‌بارهٔ واقعی، فعال‌کردن پس از **تأیید سمت سرور**.
-3. نگهداری نسخه واقعی درس‌های پولی در منبع خصوصی؛ **فایل پیش‌نمایش دیباگ عمومی بوده و محتوا راز تجاری محسوب نمی‌شود.**
-4. دانلود و بازکردن بستهٔ رمزنگاری‌شده پس از خرید؛ ذخیره ایمن کلید و بازیابی آن روی دستگاه جدید.
-5. تست خرید آزمایشی، خرید ناموفق، انصراف، بازپرداخت، آفلاین، تعویض دستگاه و نصب به‌روزرسانی.
-6. تهیه تصاویر واقعی برنامه، آیکون نهایی، رده سنی مناسب و اطلاعات پشتیبانی قابل‌دسترسی.
-7. تأیید سازگاری با مقررات مخصوص کودکان و تأیید متن حریم خصوصی/شرایط استفاده.
-8. قبل از افزایش حداقل نسخه اجباری، مطمئن شوید نسخه جدید واقعاً در فروشگاه در دسترس است.
+## Short English description
+
+🎹 Playful piano note-reading for kids: five free starter notes and optional lifetime advanced lessons!
+
+## Full English description
+
+🎹 **Welcome to Termeh Piano!** A child-friendly learning game with an interactive piano, note-reading on the staff, treble and bass clefs, note values, rhythm practice, stars and rewards.
+
+🎁 **Start free:** Five starter treble-clef notes are free. No child account is required.
+
+🔓 **Optional lifetime upgrade:** Parents may unlock advanced lessons with **one non-consumable in-app purchase through the official Cafe Bazaar checkout**. There is no subscription or automatic renewal. Bazaar shows the final price before payment.
+
+📚 **Learning progression:** Buying premium unlocks ownership, but bass-clef and note-duration lessons start **after treble-clef practice and its final assessment**. A lesson prerequisite does **not** mean the purchase failed.
+
+📴 Main practice works offline after setup. Purchase and restore require an internet connection and the same Cafe Bazaar account.
+
+💾 **Progress is stored only on the device.** Clearing app data or uninstalling can erase stars, scores and completed exercises; restoring a lifetime purchase **does not restore lesson progress**.
+
+Optional daily reminders require a parent's choice. Termeh Piano is a **supplementary learning game**, not a substitute for a qualified music teacher or hands-on piano practice.
+
+## عملیات پیش از فشردن انتشار دستی
+
+1. در پیشخان، نسخهٔ **1.0.2 (code 35)** با شناسه `com.termeh.piano` را جایگزین **فایل اولیهٔ 1.3.6-beta/code 11** کنید و مطمئن شوید گواهی امضای دائمی تغییر نکرده. فایل پرداخت‌خاموشِ CI را به عنوان نسخه تجاری آپلود نکنید.
+2. وضعیت غیرمصرفی `termeh_premium_lifetime` «فعال»، و دانلود برنامه رایگان با خرید درون‌برنامه‌ای باشد.
+3. آیکون نهایی دختر/پاندا، اسکرین‌شات فارسی و انگلیسی، لینک‌های حریم خصوصی و شرایط استفاده، رده‌بندی و ایمیل پشتیبانی را بازبینی کنید.
+4. خرید واقعی و بازیابی پس از نصب مجدد **با موفقیت مشاهده شده**؛ استرداد واقعی **هنوز منتظر پاسخ بازار است**. سناریوی لغو مالکیت در CI شبیه‌سازی شده و جایگزین استرداد واقعی نیست.
+5. نسخه پشتیبان **رمزگذاری‌شده و قابل بازیابی از کلید امضای دائمی خارج از گوشی** باید وجود داشته باشد. هیچ فایل خصوصی یا رمز در مخزن/گفتگو نگذارید.
+6. فقط با تأیید صریح نهایی مالک و پس از کنترل‌های فوق، دکمه **انتشار دستی برنامه** زده شود. QA با شناسه `.qa` مطلقاً منتشر نشود.
