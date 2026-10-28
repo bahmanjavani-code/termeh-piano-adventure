@@ -74,6 +74,9 @@ android {
             versionNameSuffix '-ceo'
             manifestPlaceholders = [termehAppLabel: 'Termeh Piano CEO']
             buildConfigField 'boolean', 'CEO_EDITION', 'true'
+            // Explicitly deny merchant checkout regardless of host build environment.
+            buildConfigField 'boolean', 'BAZAAR_CHECKOUT_ENABLED', 'false'
+            buildConfigField 'boolean', 'PAID_PACK_STAGED', 'false'
         }
         release {
             debuggable false
