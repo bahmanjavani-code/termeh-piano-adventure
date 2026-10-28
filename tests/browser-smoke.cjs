@@ -28,6 +28,7 @@ const { chromium }=require('playwright-core');
   }
   const debugUrl=createAssets('debug');
   const releaseUrl=createAssets('release');
+  const ceoUrl=createAssets('ceo');
   const errors=[];
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}});
@@ -729,6 +730,46 @@ const { chromium }=require('playwright-core');
     assert.equal(await freshPaid.evaluate(()=>state.stars),22,
       'Native confirmed refund must close paid lesson access without deleting practice');
     await freshPaid.close();
+
+    // REAL browser against the CEO-specific bundled course, without any
+    // Bazaar bridge, simulated purchase, store entitlement or exam completion.
+    // This is not the customer's public com.termeh.piano application.
+    const ceoPage=await browser.newPage({viewport:{width:390,height:844}});
+    ceoPage.on('pageerror',e=>errors.push('CEO '+e.message));
+    await ceoPage.goto(ceoUrl);
+    await ceoPage.locator("button[onclick=\"chooseLanguage('en')\"]").click();
+    await ceoPage.locator('#welcomeAccepted').check();
+    await ceoPage.locator('#welcomeContinue').click();
+    assert.equal(await ceoPage.evaluate(()=>window.TERMEH_CONTENT_VARIANT),'ceo-full-preview');
+    assert.equal(await ceoPage.evaluate(()=>window.termehQaPreviewActive()),true,
+      'CEO must have permanent full learning preview without using a QA toggle');
+    assert.equal(await ceoPage.evaluate(()=>getActiveTrebleNotes().length),12,
+      'CEO must preview all twelve treble-clef notes immediately');
+    assert.equal(await ceoPage.evaluate(()=>BASS_NOTES.length),10,
+      'CEO must bundle and expose all ten bass notes immediately');
+    assert.equal(await ceoPage.evaluate(()=>NOTE_DURATIONS.length),4,
+      'CEO must bundle all note-duration lessons immediately');
+    assert(await ceoPage.locator('#ceoEditionBadge').isVisible(),'CEO identifier must be visible');
+    assert(!(await ceoPage.locator('#premiumOffer').isVisible()),
+      'CEO personal app must never show price, purchase or restore offer');
+    for(const mode of ['bass','rhythm']){
+      assert.equal(await ceoPage.locator('#modeTab-'+mode).getAttribute('data-locked'),'false',
+        'CEO '+mode+' must be unlocked before any practice or exam');
+      await ceoPage.locator('#modeTab-'+mode).click();
+      assert.equal(await ceoPage.evaluate(()=>state.mode),mode,'CEO '+mode+' must be playable immediately');
+      assert(!(await ceoPage.locator('#unlockOverlay').evaluate(e=>e.classList.contains('open'))),
+        'CEO must not show a purchase or educational unlock dialog');
+    }
+    assert.equal(await ceoPage.evaluate(()=>window.TERMEH_NATIVE_PREMIUM),false,
+      'CEO must not counterfeit a native Bazaar purchase');
+    await ceoPage.evaluate(()=>{
+      window.__CEO_BILLING_ATTEMPTS=0;
+      window.TermehBazaar={beginLifetimePurchase:()=>window.__CEO_BILLING_ATTEMPTS++};
+      window.termehBuyFromBazaar();
+    });
+    assert.equal(await ceoPage.evaluate(()=>window.__CEO_BILLING_ATTEMPTS),0,
+      'Even a synthetic billing bridge must never start checkout from CEO UI');
+    await ceoPage.close();
 
     await freePage.locator('#modeTab-bass').click();
     assert(await freePage.locator('#unlockOverlay').evaluate(x=>x.classList.contains('open')),'Free release must show locked premium lesson notice');

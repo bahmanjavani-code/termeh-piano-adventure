@@ -53,7 +53,8 @@ public class MainActivity extends ComponentActivity {
         // QA keeps read-only diagnostics; a signed release registers its native
         // bridge only when the merchant key is configured. Real purchases
         // require a separate compile-time opt-in AND encrypted paid lessons.
-        if (BuildConfig.DEBUG || !BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty()) {
+        // The standalone CEO edition must never connect to Bazaar or expose its billing bridge.
+        if (!BuildConfig.CEO_EDITION && (BuildConfig.DEBUG || !BuildConfig.BAZAAR_RSA_PUBLIC_KEY.isEmpty())) {
             billing = new BazaarBillingBridge(this, web);
             web.addJavascriptInterface(billing, "TermehBazaar");
         }

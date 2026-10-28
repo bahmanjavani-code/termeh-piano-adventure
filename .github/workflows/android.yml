@@ -28,6 +28,8 @@ jobs:
         run: node tests/quality.test.cjs
       - name: Check accurate Persian and English Bazaar privacy, terms and store copy
         run: node tests/public-bazaar-listing-guard.test.cjs
+      - name: Check independent CEO app has no purchase and no public-store asset leakage
+        run: node tests/ceo-isolation.test.cjs
       - name: Verify public 1.0.0 final version, progress-safe updates and Bazaar controls
         run: node tests/final-release-guard.test.cjs
       - name: Validate signed release workflow is safe and syntactically sound
@@ -186,6 +188,38 @@ jobs:
           echo "[Download Termeh-Piano-APK]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
           echo "Artifact ID: $ARTIFACT_ID" >> "$GITHUB_STEP_SUMMARY"
           echo "APK artifact uploaded: $ARTIFACT_URL"
+      - name: Build separate personal CEO APK with all lessons and NO purchases
+        env:
+          TERMEH_ENABLE_LIVE_CHECKOUT: '0'
+        run: gradle --no-daemon :app:assembleCeo
+      - name: Verify CEO APK identity, full lessons, no merchant payment and Android signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/ceo/app-ceo.apk"
+          test -s "$APK"
+          AAPT="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -1)"
+          APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -1)"
+          "$APKSIGNER" verify "$APK"
+          "$AAPT" dump badging "$APK" | grep -q "package: name='com.termeh.piano.ceo'"
+          "$AAPT" dump badging "$APK" | grep -q "application-label:'Termeh Piano CEO'"
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'ceo-full-preview'
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'trebleExtra'
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'bass:'
+          unzip -p "$APK" assets/premium-preview.js | grep -q 'durations:'
+          if unzip -l "$APK" | grep -q 'assets/premium-lessons.tpk'; then
+            echo '::error::Commercial paid pack must not be included in CEO APK'
+            exit 1
+          fi
+          echo 'PASS: independently installable CEO with all lesson fixtures; never upload to Bazaar.'
+      - name: Upload personal CEO unlocked APK (never for marketplace)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Termeh-Piano-CEO-PERSONAL-NOT-FOR-BAZAAR
+          path: app/build/outputs/apk/ceo/app-ceo.apk
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
       - name: Install browser smoke-test runner
         run: npm install --no-save --ignore-scripts playwright-core@1.56.1
       - name: Exercise offline app in headless Chrome

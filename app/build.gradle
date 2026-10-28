@@ -32,6 +32,8 @@ android {
         buildConfigField 'String', 'PREMIUM_CONTENT_KEY_HEX', '"' + paidKey + '"'
         buildConfigField 'boolean', 'BAZAAR_CHECKOUT_ENABLED', liveRequested && paidReady ? 'true' : 'false'
         buildConfigField 'boolean', 'PAID_PACK_STAGED', paidReady ? 'true' : 'false'
+        // Separate personal-only CEO app. Always false for public release and QA.
+        buildConfigField 'boolean', 'CEO_EDITION', 'false'
         applicationId 'com.termeh.piano'
         // The public package is never modified by developer-only QA settings.
         manifestPlaceholders = [termehAppLabel: 'Termeh Piano']
@@ -63,6 +65,18 @@ android {
             applicationIdSuffix '.qa'
             versionNameSuffix '-qa'
             manifestPlaceholders = [termehAppLabel: 'Termeh Piano QA']
+        }
+        // A fully unlocked personal demo in a DIFFERENT Android package.
+        // Never sign it with merchant keys or upload it to Cafe Bazaar.
+        ceo {
+            initWith debug
+            applicationIdSuffix '.ceo'
+            versionNameSuffix '-ceo'
+            manifestPlaceholders = [termehAppLabel: 'Termeh Piano CEO']
+            buildConfigField 'boolean', 'CEO_EDITION', 'true'
+            // Explicitly deny merchant checkout regardless of host build environment.
+            buildConfigField 'boolean', 'BAZAAR_CHECKOUT_ENABLED', 'false'
+            buildConfigField 'boolean', 'PAID_PACK_STAGED', 'false'
         }
         release {
             debuggable false
