@@ -5,6 +5,8 @@ import android.webkit.WebView;
 import android.app.AlertDialog;
 import android.text.InputType;
 import android.widget.EditText;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import java.security.SecureRandom;
 import androidx.activity.ComponentActivity;
 import ir.cafebazaar.poolakey.request.PurchaseRequest;
@@ -45,6 +47,8 @@ final class BazaarBillingBridge {
     private final AtomicBoolean restoreInProgress = new AtomicBoolean(false);
     private final AtomicBoolean purchaseInProgress = new AtomicBoolean(false);
     private volatile boolean catalogReady;
+    // Read from Bazaar's official public product catalog only; never the WebView.
+    private volatile String catalogPrice = "";
     private final AtomicLong entitlementEpoch = new AtomicLong();
 
     BazaarBillingBridge(ComponentActivity activity, WebView web) {
@@ -144,6 +148,7 @@ final class BazaarBillingBridge {
         activity.runOnUiThread(() -> {
             if (!catalogLookupConfigured()) {
                 catalogReady = false;
+                catalogPrice = "";
                 publishOffer("offer_unavailable", "");
                 return;
             }
@@ -163,6 +168,7 @@ final class BazaarBillingBridge {
                             }
                         }
                         catalogReady = found;
+                        catalogPrice = found ? price : "";
                         // A known price is not permission to open checkout.
                         // 'offer_readonly' shows the genuine Bazaar catalog
                         // with no buy button when this APK forbids charging.
@@ -173,6 +179,7 @@ final class BazaarBillingBridge {
                     });
                     callback.getSkuDetailsFailed(error -> {
                         catalogReady = false;
+                        catalogPrice = "";
                         publishOffer("offer_unavailable", "");
                         return Unit.INSTANCE;
                     });
@@ -180,6 +187,7 @@ final class BazaarBillingBridge {
                 });
             } catch (RuntimeException ignored) {
                 catalogReady = false;
+                catalogPrice = "";
                 publishOffer("offer_unavailable", "");
             }
         });
@@ -207,7 +215,7 @@ final class BazaarBillingBridge {
     @JavascriptInterface
     public void beginLifetimePurchase(String requestedLanguage) {
         activity.runOnUiThread(() -> {
-            if (!checkoutConfigured() || !catalogReady) {
+            if (!checkoutConfigured() || !catalogReady || catalogPrice.isEmpty()) {
                 publishStatus("purchase_unavailable");
                 return;
             }
@@ -228,14 +236,32 @@ final class BazaarBillingBridge {
             answer.setSingleLine(true);
             answer.setInputType(InputType.TYPE_CLASS_NUMBER);
             answer.setHint(en ? "Parent answer" : "پاسخ والدین");
+            // Separate explicit parent consent from the mathematics challenge.
+            CheckBox consent = new CheckBox(activity);
+            consent.setText(en ? "I accept the lifetime purchase terms and want to open Bazaar checkout" :
+                    "شرایط خرید دائمی را خواندم و با ورود به صفحه پرداخت بازار موافقم");
+            consent.setChecked(false);
+            LinearLayout form = new LinearLayout(activity);
+            form.setOrientation(LinearLayout.VERTICAL);
+            int margin = (int) (16 * activity.getResources().getDisplayMetrics().density);
+            form.setPadding(margin, 0, margin, 0);
+            form.addView(answer);
+            form.addView(consent);
+            String officialPrice = catalogPrice;
             new AlertDialog.Builder(activity)
                     .setTitle(en ? "One-time Termeh Piano upgrade" : "ارتقای دائمی پیانوی ترمه")
                     .setMessage(en ?
-                        "First solve this parent check: " + factorA + " × " + factorB + " + " + extra
-                        + " = ?\n\nThen Bazaar will show the final one-time price. No subscription." :
-                        "ابتدا فقط والدین پاسخ دهند: " + factorA + " × " + factorB + " + " + extra
-                        + " = ؟\n\nسپس بازار قیمت نهایی خرید دائمی را نشان می‌دهد. بدون اشتراک.")
-                    .setView(answer)
+                        "Official Bazaar catalog price: " + officialPrice
+                        + "\nLifetime purchase; no subscription or automatic renewal."
+                        + "\nBass clef and note durations start after the treble-clef assessment."
+                        + "\nRefunds are not guaranteed; Bazaar rules and statutory buyer rights apply."
+                        + "\nParent check: " + factorA + " × " + factorB + " + " + extra + " = ?" :
+                        "قیمت رسمی کاتالوگ بازار: " + officialPrice
+                        + "\nخرید دائمی و یک‌باره؛ بدون اشتراک یا تمدید خودکار."
+                        + "\nشروع کلید فا و کشش نت‌ها منوط به گذراندن کلید سل و آزمون آن است."
+                        + "\nبازپرداخت تضمین‌شده نیست؛ مقررات کافه‌بازار و حقوق قانونی خریدار محفوظ است."
+                        + "\nپرسش والدین: " + factorA + " × " + factorB + " + " + extra + " = ؟")
+                    .setView(form)
                     .setNegativeButton(en ? "Cancel" : "انصراف", (dialog, which) -> {
                         purchaseInProgress.set(false);
                         publishStatus("purchase_cancelled");
@@ -244,7 +270,12 @@ final class BazaarBillingBridge {
                         purchaseInProgress.set(false);
                         publishStatus("purchase_cancelled");
                     })
-                    .setPositiveButton(en ? "Continue in Bazaar" : "ادامه در کافه‌بازار", (dialog, which) -> {
+                    .setPositiveButton(en ? "I agree · Open Bazaar" : "تأیید شرایط و ادامه در بازار", (dialog, which) -> {
+                        if (!consent.isChecked()) {
+                            purchaseInProgress.set(false);
+                            publishStatus("purchase_terms_not_accepted");
+                            return; // Unchecked consent NEVER opens an official payment page.
+                        }
                         if (!expected.equals(normalizeParentAnswer(answer.getText()))) {
                             purchaseInProgress.set(false);
                             publishStatus("parent_verification_required");
@@ -517,6 +548,7 @@ final class BazaarBillingBridge {
         destroyed = true;
         connected = false;
         catalogReady = false;
+        catalogPrice = "";
         purchaseInProgress.set(false);
         if (connection != null) connection.disconnect();
         connection = null;
