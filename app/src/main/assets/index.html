@@ -2798,6 +2798,10 @@ html[lang=en] .only-fa, html[lang=fa] .only-en{display:none!important}
      style="padding:12px;margin:12px 0;border:2px solid #a7f3d0;border-radius:14px;background:#ecfdf5">
     <strong>🔐 <span class="only-fa">ارتقای دائمی از کافه‌بازار</span><span class="only-en">Official lifetime upgrade from Cafe Bazaar</span></strong>
     <p id="realBazaarPrice" style="font-size:16px;font-weight:800" aria-live="polite"></p>
+    <p id="realBazaarTerms" style="font-size:13px;line-height:1.8;color:#064e3b;text-align:start">
+      <span class="only-fa">⚠️ <strong>پیش از خرید:</strong> این یک خرید دائمی و یک‌باره است؛ اشتراک و تمدید خودکار ندارد. کلید فا و کشش نت‌ها پس از تکمیل کلید سل و آزمون آن آغاز می‌شوند. <strong>بازپرداخت تضمین‌شده نیست</strong> و درخواست استرداد تابع مقررات کافه‌بازار و حقوق قانونی خریدار است. فقط پس از تأیید جداگانه والدین، صفحه پرداخت رسمی بازار باز می‌شود.</span>
+      <span class="only-en">⚠️ <strong>Before buying:</strong> This is a one-time lifetime purchase, not a subscription or automatic renewal. Bass clef and note durations begin after the treble-clef assessment. <strong>Refunds are not guaranteed</strong>; requests follow Cafe Bazaar rules and applicable buyer rights. Official checkout opens only after a separate parental confirmation.</span>
+    </p>
     <button id="realBazaarBuyBtn" type="button" class="action" onclick="termehBuyFromBazaar()" disabled>🛍️ <span class="only-fa">خرید یک‌باره در بازار</span><span class="only-en">One-time purchase in Bazaar</span></button>
     <button id="realBazaarRestoreBtn" type="button" class="action" onclick="termehRestoreFromBazaar()">🔄 <span class="only-fa">بازیابی خرید قبلی</span><span class="only-en">Restore previous purchase</span></button>
     <p id="realBazaarStatus" role="status" aria-live="polite" style="font-size:13px;color:#065f46"></p>
@@ -2868,6 +2872,7 @@ window.termehBazaarStatus=function(code){
     purchase_started:['در حال ورود به صفحهٔ رسمی پرداخت بازار…','Opening official Bazaar checkout…'],
     purchase_unavailable:['خرید واقعی این نسخه هنوز آماده نیست؛ پولی دریافت نشد.','Checkout is not available in this build; no payment was taken.'],
     purchase_busy:['یک درخواست خرید دیگر در حال انجام است.','A purchase request is already running.'],
+    purchase_terms_not_accepted:['شرایط خرید تأیید نشد؛ صفحه پرداخت باز نشد و هزینه‌ای دریافت نشد.','Purchase terms were not accepted; checkout was not opened and no payment was taken.'],
     purchase_verifying:['در حال بررسی مجدد مالکیت امضاشده در بازار…','Rechecking signed ownership in your Bazaar account…'],
     purchase_failed:['خرید انجام نشد یا مالکیت معتبر نبود؛ درسی باز نشد.','Checkout failed or ownership was not verified; no lessons were unlocked.'],
     purchase_cancelled:['خرید لغو شد؛ همچنان می‌توانید رایگان تمرین کنید.','Purchase canceled; free practice remains available.'],

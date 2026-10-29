@@ -30,6 +30,8 @@ jobs:
         run: node tests/public-bazaar-listing-guard.test.cjs
       - name: Check independent CEO app has no purchase and no public-store asset leakage
         run: node tests/ceo-isolation.test.cjs
+      - name: Assert independent parent acceptance before any real Bazaar checkout
+        run: node tests/purchase-parent-consent.test.cjs
       - name: Verify public 1.0.0 final version, progress-safe updates and Bazaar controls
         run: node tests/final-release-guard.test.cjs
       - name: Validate signed release workflow is safe and syntactically sound

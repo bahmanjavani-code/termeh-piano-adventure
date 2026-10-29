@@ -573,6 +573,12 @@ const { chromium }=require('playwright-core');
     // cannot charge or unlock anything without a real Android bridge.
     await freePage.evaluate(()=>window.termehBazaarOffer('offer_ready','123,000 تومان <b>raw</b>'));
     assert(await freePage.locator('#realBazaarOffer').isVisible());
+    assert(await freePage.locator('#realBazaarTerms').isVisible(),
+      'A parent must see one-time purchase conditions before the Buy button');
+    const buyerTerms=await freePage.locator('#realBazaarTerms').innerText();
+    assert(buyerTerms.includes('Refunds are not guaranteed')&&buyerTerms.includes('Cafe Bazaar'),
+      'Buyer notice must disclose qualified refund terms, not blanket denial of consumer rights');
+
     assert((await freePage.locator('#realBazaarPrice').innerText()).includes('<b>raw</b>'),
       'Bazaar price must be assigned as text, not untrusted HTML');
     assert.equal(await freePage.locator('#realBazaarPrice b').count(),0,
