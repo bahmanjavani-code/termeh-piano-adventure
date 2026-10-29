@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "minimumVersionCode": 6,
-  "latestVersionCode": 35,
+  "latestVersionCode": 36,
   "storeUrl": "",
-  "notes": "Termeh Piano 1.0.2 build 35: prevent duplicate lifetime Bazaar checkout for verified buyers; after a confirmed refund, store ownership and buy button are refreshed without erasing free-learning progress. No new payments in automatic signed builds. Real refund still needs a verified live marketplace action."
+  "notes": "Termeh Piano 1.0.3 build 36: explicit parent opt-in to an official Bazaar lifetime purchase with live SKU catalog price, no subscription, honest refund limitations and separate treble-clef learning gate. No automatic payment in ordinary CI builds."
 }
