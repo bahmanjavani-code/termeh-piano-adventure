@@ -23,10 +23,10 @@ assert(!bridge.includes('payment.consumeProduct('),'Lifetime purchases must neve
 // Regression: native parent confirmation should render paragraph breaks.
 const singleEscapedNewline=String.fromCharCode(92,110,92,110);
 const doubleEscapedNewline=String.fromCharCode(92,92,110,92,92,110);
-assert(bridge.includes(' = ?'+singleEscapedNewline+'Then Bazaar will show'),
-  'English parent dialog must render proper line breaks');
-assert(bridge.includes(' = ؟'+singleEscapedNewline+'سپس بازار قیمت'),
-  'Persian parent dialog must render proper line breaks');
+assert(bridge.includes(' + "'+singleEscapedNewline.slice(0,2)+'Lifetime purchase;'),
+  'English lifetime terms must render real line breaks');
+assert(bridge.includes(' + "'+singleEscapedNewline.slice(0,2)+'خرید دائمی و یک‌باره؛'),
+  'Persian lifetime terms must render real line breaks');
 assert(!bridge.includes(doubleEscapedNewline),
   'Native parent dialog must not display escape sequences as visible text');
 assert(activity.includes('if (billing != null) billing.recheckOwnershipOnResume();'),
