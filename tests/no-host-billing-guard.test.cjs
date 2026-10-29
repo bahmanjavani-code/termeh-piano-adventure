@@ -18,7 +18,7 @@ assert.match(java,/LIFETIME_SKU\.equals\(purchase\.getProductId\(\)\)/);
 assert.doesNotMatch(java,/\.consumeProduct\s*\(/,'Lifetime purchase must never be consumed');
 assert.match(java,/\.purchaseProduct\s*\(/,'Poolakey product flow should now be implemented behind a compile-time gate');
 assert.match(java,/VerifiedPremiumLessons\.enabled\(\)/,'Native paid pack and verified entitlement are required');
-assert.match(java,/if \(!checkoutConfigured\(\) \|\| !catalogReady\)/,
+assert.match(java,/if \(!checkoutConfigured\(\) \|\| !catalogReady \|\| catalogPrice\.isEmpty\(\)\)/,
   'Checkout must be impossible without active merchant SKU price');
 assert.match(java,/new AlertDialog\.Builder\(activity\)/,
   'Require a native parent purchase confirmation before opening Bazaar');
