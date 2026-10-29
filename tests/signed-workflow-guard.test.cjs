@@ -36,6 +36,11 @@ assert.equal(text.split(confirmGate).length-1,7,
   'Every checkout trigger, summary, package name and build check must require manual checkbox AND exact typed acknowledgement');
 assert(text.includes('owner_payment_acknowledgement:') && text.includes("default: ''"),
   'A blank acknowledgement is required by default');
+// Exactly one owner-authorized commercial QA build: pinned previous main SHA.
+// This never starts a charge; parent consent + native Bazaar payment still required.
+const ownerOnce="github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before == 'b61bca3981cdc7815b73b7b357ba687c873bdba4' && startsWith(github.event.head_commit.message, 'owner-authorized-1.0.3-native-consent-paid-candidate')";
+assert.equal(text.split(ownerOnce).length-1,7,
+  'Every temporary paid branch must be pinned to one previous main SHA and owner merge marker');
 assert(!text.includes('vars.TERMEH_ENABLE_LIVE_CHECKOUT') &&
        !text.includes('vars.TERMEH_BAZAAR_CONTROLLED_TEST_AUTHORIZED'),
   'Sticky repository variables must never authorize real money');
