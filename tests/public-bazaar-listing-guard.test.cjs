@@ -31,7 +31,7 @@ assert(docs.enTerms.includes('learning prerequisite is not a failed purchase'),
   'English terms must explain ownership versus learning stages');
 assert(docs.listing.includes('حذف برنامه یا پاک‌کردن داده‌ها')&&
        docs.listing.includes('restoring a lifetime purchase')&&
-       docs.listing.includes('versionCode 35'),
+       docs.listing.includes('versionCode 36'),
   'Bazaar store listing must accurately disclose local-progress loss and version');
 assert(docs.enHome.includes('not yet publicly distributed')&&docs.faHome.includes('انتشار عمومی هنوز'),
   'Keep website honest about pending public launch');
